@@ -42,10 +42,12 @@ jobs:
           cli-version: latest
 
       # Build the connection config from GitHub Secrets.
-      # SNOWFLAKE_ACCOUNT   — account identifier (e.g. abc12345.eu-west-1)
-      # SNOWFLAKE_USER      — user with ACCOUNTADMIN privileges
-      # SNOWFLAKE_PRIVATE_KEY — RSA private key PEM (no passphrase)
-      # See README.md for key-pair generation steps.
+      # SNOWFLAKE_ACCOUNT     — account identifier (e.g. SFSEEUROPE-EU_DEMO47)
+      # SNOWFLAKE_USER        — user with ACCOUNTADMIN privileges in the target account
+      # SNOWFLAKE_PRIVATE_KEY — RSA private key PEM (no passphrase); see README.md
+      # Key pair auth is Snowflake-native (SNOWFLAKE_JWT) — does not go through Okta/SSO.
+      # The service user in the target account must have the public key registered:
+      #   ALTER USER <user> ADD KEY PAIR my_key PUBLIC_KEY = '...';
       - name: Configure Snowflake connection
         env:
           SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}
