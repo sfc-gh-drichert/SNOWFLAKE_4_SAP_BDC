@@ -388,7 +388,7 @@ SELECT
         ELSE NULL
     END                                                          AS SALESVOLUME,
     COALESCE(p.LIST_PRICE_EUR, 500.00)                          AS LIST_PRICE_EUR,
-    'SO-' || LPAD(CAST(e.rn AS VARCHAR), 8, '0')               AS SALESORDER,
+    'SO-' || LPAD(CAST(e.rn AS VARCHAR), 7, '0')               AS SALESORDER,
     CASE WHEN e.racct = '0820000' THEN 'G2' ELSE 'F2' END      AS BILLINGTYPE,
     '000'                                                        AS VERSION,
     '00'                                                         AS RECORDTYPE,

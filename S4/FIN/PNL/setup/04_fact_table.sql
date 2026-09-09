@@ -209,7 +209,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
         COMMENT 'Billing document type: F2=Invoice, G2=Credit Note, RE=Return',
     ORIGINGROUP                     VARCHAR(4)
         COMMENT 'SAP origin group',
-    SALESORDER                      VARCHAR(10)
+    SALESORDER                      VARCHAR(20)
         COMMENT 'Sales order number (synthetic: SO-XXXXXXXX)',
     VERSION                         VARCHAR(3)
         COMMENT 'Plan/actual version: 000=Actuals, 001=Budget, 002=Latest Estimate',
