@@ -300,6 +300,147 @@ full runbook SQL.
 
 ---
 
+## Mapping SAP BDC Data Products into the Gold Layer
+
+`S4.FIN.S3_FINANCE_PNL_MDR` (the P&L gold table) references SAP master and
+transactional data — customers, cost/profit centers, GL accounts, sales
+orders, currency, etc. — that lives in SAP Business Data Cloud (BDC), not in
+this repo. This section maps those SAP BDC data products into Snowflake as
+catalog-linked databases (CLDs), and puts a stable view on top of each one so
+gold-layer SQL never has to reference SAP-generated CLD internals directly.
+
+See [`S4/FIN/PNL/runbooks/sap_bdc_lineage.md`](S4/FIN/PNL/runbooks/sap_bdc_lineage.md)
+for the full lineage analysis (CDS view → BDC data product → gold layer,
+including primary/foreign keys and a currency-handling risk analysis) that
+this mapping was built from.
+
+### Naming convention
+
+| Layer | Object | Example |
+|---|---|---|
+| Raw / landing | CLD database | `zzbdcL0_CUSTOMER` |
+| Clean | View | `S4.L1.CUSTOMER` |
+
+`zz` sorts these CLDs to the bottom of any object listing; `bdc` marks the
+source system; `L0` is the raw layer. `L1` is the schema every gold-layer
+join should actually point at — it insulates you from SAP's internal CLD
+table naming, which can vary between BDC releases.
+
+### Prerequisite (not covered by this repo)
+
+A **CONNECTED** zero-copy connector to SAP BDC must already exist in the
+target Snowflake account. Setting one up is an account-level, one-time
+action — see the `manage-zerocopy-sapbdc` Cortex Code skill, or
+`SHOW ZEROCOPY CONNECTORS IN ACCOUNT;` to check if one already exists.
+
+### Why this can't be a single script
+
+SAP BDC share names and the table names inside a mounted CLD both include
+SAP-generated, tenant-specific details that can't be predicted in advance
+(e.g. `"Sales Order (BDF730, sap.s4pce:apiResource:SalesOrder:v1)"`). So the
+process is deliberately split into discover → confirm → mount, with a human
+reviewing the real names before anything gets created — no script silently
+guesses and mounts.
+
+### Step-by-step
+
+1. **Catalog setup (once).** Creates the `L1` schema and the control tables
+   (`BDC_PRODUCT_CATALOG`, `BDC_L1_VIEW_MAP`, `BDC_CLD_MOUNT_LOG`), seeded
+   with the 14 SAP BDC data products this gold layer needs.
+
+   ```bash
+   make bdc-catalog CONNECTION=my_snowflake DATABASE=S4
+   ```
+
+2. **Share the data products from SAP BDC.** In the SAP BDC catalog, someone
+   with the right roles (BDC Data Packages read, Catalog Asset read, Cloud
+   Data Product share) must share each of the 14 products to this Snowflake
+   account. This repo cannot trigger that step — it happens entirely on the
+   SAP side.
+
+3. **Discover (read-only, repeat as needed).** Lists what's actually been
+   shared and suggests matches against the 14 products.
+
+   ```bash
+   make bdc-discover CONNECTOR=SAP_BDC_DB.SAP_SCHEMA.SAP_CONNECTOR
+   ```
+
+   Review the output — the "suggested" column is a heuristic, not a
+   guarantee. Note the exact `share_name` for each product you're ready to
+   mount.
+
+4. **Confirm.** Record the exact share name for each product, one at a time
+   (or via the GitHub Action's `confirm` action with a JSON blob covering
+   all of them at once).
+
+   ```bash
+   make bdc-confirm PRODUCT_KEY=CUSTOMER SHARE_NAME="Customer (BDF730, sap.s4com:apiResource:Customer:v1)"
+   ```
+
+5. **Mount.** Creates the `zzbdcL0_*` CLDs for every confirmed product, then
+   resolves each one's root entity table and creates the matching `S4.L1`
+   view. Safe to re-run — already-mounted CLDs and views are skipped, not
+   recreated.
+
+   ```bash
+   make bdc-mount CONNECTOR=SAP_BDC_DB.SAP_SCHEMA.SAP_CONNECTOR
+   ```
+
+6. **Verify (read-only).** Confirms every planned CLD/view resolved, that
+   each view returns rows, and that the documented foreign keys actually
+   join into `S3_FINANCE_PNL_MDR`.
+
+   ```bash
+   make bdc-verify
+   ```
+
+   Any `SKIPPED` or `FAILED` row in `BDC_CLD_MOUNT_LOG` means the mount
+   script found zero or more than one candidate table inside a CLD and
+   refused to guess — resolve those manually (see the comments in
+   `13_bdc_mount_clds.sql` for how).
+
+7. **Teardown**, if needed. Drops all mounted CLDs and `L1` views but keeps
+   `CONFIRMED_SHARE_NAME`, so re-mounting later doesn't require re-confirming
+   shares.
+
+   ```bash
+   make bdc-teardown
+   ```
+
+### Via GitHub Actions
+
+Same steps, via **Actions → Deploy S4.FIN.PNL — SAP BDC CLD Mapping → Run
+workflow**. Choose the `action` (`catalog-setup` / `discover` / `confirm` /
+`mount` / `verify` / `teardown`) and fill in `connector_fqn`. For `confirm`,
+paste a JSON object into `confirmed_shares_json`:
+
+```json
+{
+  "CUSTOMER": "Customer (BDF730, sap.s4com:apiResource:Customer:v1)",
+  "COST_CENTER": "Cost Center (BDF730, sap.s4com:apiResource:CostCenter:v1)"
+}
+```
+
+### Known limitations
+
+- None of this has been run end-to-end against a real BDC-connected
+  Snowflake account — the SQL was syntax-validated (compile-only) against a
+  live account, but the actual `CREATE DATABASE ... LINKED_ZEROCOPY_CONNECTOR`
+  and root-entity table matching logic have not been exercised against real
+  SAP BDC data. Treat the first real run as a test run and check
+  `BDC_CLD_MOUNT_LOG` carefully.
+- `GENERAL_LEDGER_ACCOUNT` and `SALES_ORGANIZATIONAL_STRUCTURE` each produce
+  two `L1` views (their CLDs bundle multiple entities relevant to the gold
+  layer) — everything else is 1:1.
+- The `SALES_ORGANIZATION`/`DISTRIBUTION_CHANNEL` views are not directly
+  joinable from the journal entry item — see the lineage doc for the
+  two-hop path via `SALES_ORDER`.
+- Currency handling (`HSL`/`CURRENCY`/`CURRENCYTYPE`) has open correctness
+  questions independent of this mapping — read Section 5 of the lineage doc
+  before writing any aggregate query against the mounted currency data.
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for conventions on adding new demos.

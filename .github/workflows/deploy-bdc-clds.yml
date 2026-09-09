@@ -1,0 +1,183 @@
+name: Deploy S4.FIN.PNL — SAP BDC CLD Mapping
+
+# Maps SAP BDC data products into catalog-linked databases (CLDs) and clean
+# L1 views on top of them, so the S3_FINANCE_PNL_MDR gold layer can join to
+# real SAP BDC data.
+#
+# Prerequisite: a CONNECTED zero-copy connector to SAP BDC must already
+# exist in the target Snowflake account (see the manage-zerocopy-sapbdc
+# skill). This workflow does not create that connector.
+#
+# Typical order of operations:
+#   1. catalog-setup — once, creates the control tables and L1 schema
+#   2. discover      — repeat until every product has a plausible share match
+#   3. confirm       — paste the JSON mapping of product_key -> real share_name
+#   4. mount         — creates the CLDs and L1 views
+#   5. verify        — confirms everything resolved and joins into the gold table
+#
+# Colleagues trigger this from the GitHub Actions UI:
+# Actions tab → "Deploy S4.FIN.PNL — SAP BDC CLD Mapping" → Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      warehouse:
+        description: 'Snowflake warehouse name'
+        required: true
+        default: 'BSH_DEMO_WH'
+      database:
+        description: 'Target Snowflake database'
+        required: true
+        default: 'S4'
+      connector_fqn:
+        description: 'Fully-qualified zero-copy connector name, e.g. SAP_BDC_DB.SAP_SCHEMA.SAP_CONNECTOR'
+        required: false
+        default: ''
+      action:
+        description: 'What to run'
+        required: true
+        type: choice
+        options:
+          - ping            # Connection test only
+          - catalog-setup   # Create S4.L1 schema + BDC_PRODUCT_CATALOG + BDC_L1_VIEW_MAP (11)
+          - discover        # List real SAP BDC shares and suggest matches (12) — read-only
+          - confirm         # Record real share names from confirmed_shares_json into the catalog
+          - mount           # Create zzbdcL0_* CLDs + L1 views (13)
+          - verify          # Confirm CLDs/views/joins (14) — read-only
+          - teardown        # Drop all mounted CLDs and L1 views
+        default: ping
+      confirmed_shares_json:
+        description: 'Only used when action=confirm. JSON object mapping PRODUCT_KEY -> real share_name, e.g. {"CUSTOMER": "Customer (BDF730, sap.s4com:apiResource:Customer:v1)"}'
+        required: false
+        default: '{}'
+
+jobs:
+  deploy:
+    name: BDC CLD Mapping (${{ inputs.action }}) → ${{ inputs.database }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Snowflake CLI
+        run: |
+          pip install snowflake-cli
+          snow --version
+
+      # Same auth pattern as deploy-s4-fin-pnl.yml — see README for service
+      # user setup (BSH_GITHUB_ACTIONS, key pair auth, no Okta/SSO).
+      - name: Configure Snowflake connection
+        env:
+          SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER:        ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.snowflake
+          cat > ~/.snowflake/config.toml << TOMLEOF
+          [connections.default]
+          account          = "${SNOWFLAKE_ACCOUNT}"
+          user             = "${SNOWFLAKE_USER}"
+          authenticator    = "SNOWFLAKE_JWT"
+          private_key_path = "/tmp/rsa_key.p8"
+          role             = "ACCOUNTADMIN"
+          TOMLEOF
+          printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" > /tmp/rsa_key.p8
+          chmod 0600 /tmp/rsa_key.p8
+          chmod 0600 ~/.snowflake/config.toml
+
+      - name: Test connection
+        run: |
+          echo "==> Testing connection to Snowflake..."
+          snow sql -q "SELECT CURRENT_USER() AS user, CURRENT_ACCOUNT() AS account, CURRENT_ROLE() AS role"
+          echo "==> Connection OK"
+
+      - name: Require connector_fqn for connector-dependent actions
+        if: ${{ contains(fromJSON('["discover","mount"]'), inputs.action) && inputs.connector_fqn == '' }}
+        run: |
+          echo "::error::action '${{ inputs.action }}' requires the connector_fqn input (e.g. SAP_BDC_DB.SAP_SCHEMA.SAP_CONNECTOR)."
+          exit 1
+
+      - name: Run SQL files
+        if: ${{ !(contains(fromJSON('["discover","mount"]'), inputs.action) && inputs.connector_fqn == '') }}
+        run: |
+          DB="${{ inputs.database }}"
+          WH="${{ inputs.warehouse }}"
+          CONN="${{ inputs.connector_fqn }}"
+          BASE="S4/FIN/PNL/setup"
+
+          run_sql() {
+            echo ""
+            echo "--> Running $(basename $1)"
+            shift
+            snow sql -f "${BASE}/$1" --variable "db_name=${DB}" --variable "wh_name=${WH}" "${@:2}"
+          }
+
+          echo "==> Action: ${{ inputs.action }}  |  DB: ${DB}  |  WH: ${WH}  |  Connector: ${CONN:-<none>}"
+
+          case "${{ inputs.action }}" in
+            ping)
+              echo "Connection test passed in previous step. No SQL files to run."
+              ;;
+            catalog-setup)
+              snow sql -f "${BASE}/11_bdc_l1_schema_and_catalog.sql" --variable "db_name=${DB}"
+              ;;
+            discover)
+              snow sql -f "${BASE}/12_bdc_discover_shares.sql" \
+                --variable "db_name=${DB}" \
+                --variable "connector_fqn=${CONN}"
+              ;;
+            mount)
+              snow sql -f "${BASE}/13_bdc_mount_clds.sql" \
+                --variable "db_name=${DB}" \
+                --variable "wh_name=${WH}" \
+                --variable "connector_fqn=${CONN}"
+              ;;
+            verify)
+              snow sql -f "${BASE}/14_bdc_verify_clds.sql" \
+                --variable "db_name=${DB}" \
+                --variable "wh_name=${WH}"
+              ;;
+            teardown)
+              snow sql -f "S4/FIN/PNL/runbooks/teardown_bdc_clds.sql" \
+                --variable "db_name=${DB}" \
+                --variable "wh_name=${WH}"
+              ;;
+          esac
+
+      # Only used for action=confirm. Turns the pasted JSON object into one
+      # bdc_confirm_share.sql run per key, so a single workflow_dispatch call
+      # can confirm all 14 products at once without 14 separate text inputs.
+      - name: Confirm share names from JSON
+        if: ${{ inputs.action == 'confirm' }}
+        run: |
+          echo '${{ inputs.confirmed_shares_json }}' > /tmp/confirmed_shares.json
+          if ! jq empty /tmp/confirmed_shares.json 2>/dev/null; then
+            echo "::error::confirmed_shares_json is not valid JSON."
+            exit 1
+          fi
+
+          for key in $(jq -r 'keys[]' /tmp/confirmed_shares.json); do
+            share_name=$(jq -r --arg k "$key" '.[$k]' /tmp/confirmed_shares.json)
+            echo ""
+            echo "--> Confirming ${key} -> ${share_name}"
+            snow sql -f "S4/FIN/PNL/runbooks/bdc_confirm_share.sql" \
+              --variable "db_name=${{ inputs.database }}" \
+              --variable "product_key=${key}" \
+              --variable "share_name=${share_name}"
+          done
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## S4.FIN.PNL — SAP BDC CLD Mapping" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Action | \`${{ inputs.action }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Database | \`${{ inputs.database }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Warehouse | \`${{ inputs.warehouse }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Connector | \`${{ inputs.connector_fqn }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | ${{ job.status }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | @${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Review the 'Run SQL files' / 'Confirm share names' step output above for per-product/per-view results (BDC_CLD_MOUNT_LOG)." >> "$GITHUB_STEP_SUMMARY"
