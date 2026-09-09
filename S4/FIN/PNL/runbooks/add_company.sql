@@ -40,22 +40,22 @@ GRANT USAGE ON WAREHOUSE IDENTIFIER('<% wh_name %>')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
 GRANT USAGE ON DATABASE  IDENTIFIER('<% db_name %>')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT USAGE ON SCHEMA    IDENTIFIER('<% db_name %>').FIN
+GRANT USAGE ON SCHEMA    IDENTIFIER('<% db_name %>.FIN')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL
+GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.S3_FINANCE_PNL')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>').FIN.BSH_DOCUMENTS
+GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.BSH_DOCUMENTS')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>').FIN.DIM_GL_ACCOUNT
+GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.DIM_GL_ACCOUNT')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>').FIN.DIM_PRODUCT
+GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.DIM_PRODUCT')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>').FIN.DIM_CUSTOMER
+GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.DIM_CUSTOMER')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
 -- REFERENCES + SELECT both required for Cortex Agent usage of the semantic view
-GRANT REFERENCES, SELECT ON SEMANTIC VIEW IDENTIFIER('<% db_name %>').FIN.BSH_PNL_ANALYTICS_SV
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW IDENTIFIER('<% db_name %>.FIN.BSH_PNL_ANALYTICS_SV')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT USAGE ON AGENT IDENTIFIER('<% db_name %>').FIN.BSH_PNL_AGENT
+GRANT USAGE ON AGENT IDENTIFIER('<% db_name %>.FIN.BSH_PNL_AGENT')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
 
 -- Add new role under BSH_DEMO_GLOBAL_ROLE so multi-company execs see all data
@@ -66,7 +66,7 @@ GRANT ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE') TO ROLE BSH_DEMO_GLOBAL_ROLE
 -- This is the ONLY change to the access control layer.
 -- NULL ALLOWED_REGION = the role can see all regions for this client.
 -- ==============================================================================
-INSERT INTO IDENTIFIER('<% db_name %>').FIN.ROLE_ACCESS_MAPPING
+INSERT INTO IDENTIFIER('<% db_name %>.FIN.ROLE_ACCESS_MAPPING')
     (ROLE_NAME, ALLOWED_CLIENT, ALLOWED_REGION, DESCRIPTION)
 SELECT
     '<% company_id %>_DEMO_ROLE',
@@ -74,7 +74,7 @@ SELECT
     NULL,
     'Full access to all <% company_id %> regions. Created via add_company.sql.'
 WHERE NOT EXISTS (
-    SELECT 1 FROM IDENTIFIER('<% db_name %>').FIN.ROLE_ACCESS_MAPPING
+    SELECT 1 FROM IDENTIFIER('<% db_name %>.FIN.ROLE_ACCESS_MAPPING')
     WHERE ROLE_NAME    = '<% company_id %>_DEMO_ROLE'
       AND ALLOWED_CLIENT = '<% company_id %>'
       AND ALLOWED_REGION IS NULL
@@ -90,5 +90,5 @@ SELECT
     'Optional: CREATE OR REPLACE AGENT <% company_id %>_PNL_AGENT ...' AS next_step_3;
 
 SELECT ROLE_NAME, ALLOWED_CLIENT, ALLOWED_REGION, DESCRIPTION
-FROM IDENTIFIER('<% db_name %>').FIN.ROLE_ACCESS_MAPPING
+FROM IDENTIFIER('<% db_name %>.FIN.ROLE_ACCESS_MAPPING')
 WHERE ROLE_NAME = '<% company_id %>_DEMO_ROLE';
