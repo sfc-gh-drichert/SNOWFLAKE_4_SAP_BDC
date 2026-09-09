@@ -12,30 +12,33 @@ USE ROLE ACCOUNTADMIN;
 --   BSH_SERVICE_AUTH_POLICY - restricts this user to key pair only (no password/SSO)
 --
 -- Privilege design:
---   Default role  : BSH_DATA_DEPLOY_ROLE (low privilege - used for data-only, verify)
+--   Default role  : BSH_DATA_DEPLOY_ROLE (low privilege, used for data-only/verify runs)
 --   Elevated role : ACCOUNTADMIN (granted here; invoked explicitly by setup scripts)
 --     Needed for: CREATE ROLE, MANAGE GRANTS, CREATE DATABASE, CREATE WAREHOUSE
 --     Used by   : 01_setup.sql, 03_rbac.sql (first deploy only)
 --     NOT used by: data-only and verify GitHub Actions runs
 --
--- Object grants (warehouse, tables, demo roles) are applied in 03_rbac.sql
--- as part of the main deploy. Run 01-09 setup scripts after this file.
+-- Object grants (warehouse, tables, demo roles) are applied automatically
+-- during the main deploy in 03_rbac.sql, 04_fact_table.sql, 06_search.sql.
+-- Run setup files 01-09 after this script.
 --
--- After running this file, complete the key pair setup:
+-- After running this script, complete the key pair setup:
 --   See README.md Steps 2-4 to generate the key, register the public key,
---   and add the three GitHub Secrets.
+--   and add the GitHub Secrets to the repo.
 -- ==============================================================================
 
-USE DATABASE S4; so the authentication policy has a home.
--- CREATE IF NOT EXISTS means this is safe to run even if S4 already exists.
+-- Create the database and admin schema now so the authentication policy has
+-- a home. CREATE IF NOT EXISTS is safe to run even after the main deploy.
 CREATE DATABASE IF NOT EXISTS S4;
-CREATE SCHEMA IF NOT EXISTS S4.ADMIN;
+CREATE SCHEMA  IF NOT EXISTS S4.ADMIN;
 USE DATABASE S4;
 USE SCHEMA ADMIN;
 
 -- ==============================================================================
 -- 1. Low-privilege deployment role
---    Object grants (warehouse, tables, demo roles) are added by 03_rbac.sql.
+--    Extra grants (INSERT on fact table, INSERT on documents) are added by
+--    04_fact_table.sql and 06_search.sql during the main deploy.
+--    All SELECT and USAGE privileges are inherited via BSH_DEMO_GLOBAL_ROLE.
 -- ==============================================================================
 CREATE ROLE IF NOT EXISTS BSH_DATA_DEPLOY_ROLE
     COMMENT = 'GitHub Actions ongoing runs: data refresh and verify. No DDL, no role management.';
@@ -43,8 +46,8 @@ CREATE ROLE IF NOT EXISTS BSH_DATA_DEPLOY_ROLE
 -- ==============================================================================
 -- 2. Service user
 --    Default role is BSH_DATA_DEPLOY_ROLE, not ACCOUNTADMIN.
---    ACCOUNTADMIN is granted below but is NOT the default — scripts must
---    explicitly USE ROLE ACCOUNTADMIN to invoke it.
+--    ACCOUNTADMIN is granted below but is NOT the default - setup scripts
+--    must explicitly USE ROLE ACCOUNTADMIN to invoke it.
 -- ==============================================================================
 CREATE USER IF NOT EXISTS BSH_GITHUB_ACTIONS
     DISPLAY_NAME         = 'BSH GitHub Actions'
@@ -61,7 +64,7 @@ GRANT ROLE ACCOUNTADMIN         TO USER BSH_GITHUB_ACTIONS;
 -- ==============================================================================
 CREATE OR REPLACE AUTHENTICATION POLICY S4.ADMIN.BSH_SERVICE_AUTH_POLICY
     AUTHENTICATION_METHODS = ('KEYPAIR')
-    COMMENT = 'Restricts BSH_GITHUB_ACTIONS to key pair auth. No password or SSO.';
+    COMMENT = 'Restricts BSH_GITHUB_ACTIONS to key pair auth only. No password or SSO.';
 
 ALTER USER BSH_GITHUB_ACTIONS
     SET AUTHENTICATION POLICY S4.ADMIN.BSH_SERVICE_AUTH_POLICY;
@@ -69,11 +72,10 @@ ALTER USER BSH_GITHUB_ACTIONS
 -- ==============================================================================
 -- 4. Register the public key
 --
--- BEFORE running this section:
---   a) Generate the key pair on your laptop (README.md Step 2)
---   b) Get the public key body (no headers):
+-- Run this AFTER generating the key pair on your laptop (README.md Step 2).
+--   a) Get the public key body (no PEM headers):
 --        grep -v "BEGIN\|END" bsh_demo_cicd.pub | tr -d '\n'
---   c) Replace the placeholder '...' below with that output, then run this block
+--   b) Paste the output in place of the '...' below and run just this block.
 -- ==============================================================================
 
 -- ALTER USER BSH_GITHUB_ACTIONS
@@ -86,7 +88,7 @@ ALTER USER BSH_GITHUB_ACTIONS
 DESC USER BSH_GITHUB_ACTIONS;
 SHOW USER KEY PAIRS FOR USER BSH_GITHUB_ACTIONS;
 
-SELECT 'Setup complete. Next: register public key (step 4 above), then run the deploy.' AS next_step;
+SELECT 'Setup complete. Next: register public key (step 4 above), then run 01-09 setup scripts.' AS next_step;
 
 -- ==============================================================================
 -- OPTIONAL: Revoke ACCOUNTADMIN after the first successful full deploy.

@@ -149,6 +149,11 @@ CREATE ROLE IF NOT EXISTS BSH_DEMO_ROLE
 CREATE ROLE IF NOT EXISTS BSH_DEMO_GLOBAL_ROLE
     COMMENT = 'Global access: all CLIENT_IDs and all regions. Use for executive demos.';
 
+-- Service account role — created here as a safety net in case setup_service_user.sql
+-- was not run before the main deploy. The role is also created in setup_service_user.sql.
+CREATE ROLE IF NOT EXISTS BSH_DATA_DEPLOY_ROLE
+    COMMENT = 'GitHub Actions service user role: data refresh and verify runs. No DDL.';
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- STEP 4: Role hierarchy grants (for privilege inheritance only)
 --
@@ -211,24 +216,12 @@ GRANT SELECT ON TABLE IDENTIFIER('&{db_name}').FIN.DIM_PLANT       TO ROLE BSH_A
 -- Documents table — granted in 06_search.sql after BSH_DOCUMENTS is created
 
 -- ==============================================================================
--- BSH_DATA_DEPLOY_ROLE grants
--- Applied here so that the GitHub Actions service user (BSH_GITHUB_ACTIONS)
--- can run data-only and verify workflows without ACCOUNTADMIN.
--- This role is created by setup_service_user.sql. If that script has not been
--- run yet, these grants will fail gracefully — re-run after setup.
+-- BSH_DATA_DEPLOY_ROLE: role hierarchy grant only
+-- SELECT/USAGE on all objects is inherited through BSH_DEMO_GLOBAL_ROLE chain.
+-- INSERT/TRUNCATE on S3_FINANCE_PNL and BSH_DOCUMENTS are added in files 04
+-- and 06 respectively, after those tables are created.
 -- ==============================================================================
-GRANT USAGE  ON WAREHOUSE IDENTIFIER('&{wh_name}')              TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT USAGE  ON DATABASE  IDENTIFIER('&{db_name}')              TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT USAGE  ON SCHEMA    IDENTIFIER('&{db_name}').FIN          TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT SELECT ON ALL TABLES IN SCHEMA IDENTIFIER('&{db_name}').FIN TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT INSERT, TRUNCATE ON TABLE IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT INSERT, TRUNCATE ON TABLE IDENTIFIER('&{db_name}').FIN.BSH_DOCUMENTS  TO ROLE BSH_DATA_DEPLOY_ROLE;
--- Grant BSH demo roles so 09_verify.sql can USE ROLE them for isolation tests
-GRANT ROLE BSH_DEMO_GLOBAL_ROLE  TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT ROLE BSH_DEMO_ROLE         TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT ROLE BSH_EUROPE_DEMO_ROLE  TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT ROLE BSH_NA_DEMO_ROLE      TO ROLE BSH_DATA_DEPLOY_ROLE;
-GRANT ROLE BSH_APAC_DEMO_ROLE    TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT ROLE BSH_DEMO_GLOBAL_ROLE TO ROLE BSH_DATA_DEPLOY_ROLE;
 
 -- ==============================================================================
 -- Verification
