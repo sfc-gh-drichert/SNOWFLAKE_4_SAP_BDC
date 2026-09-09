@@ -119,13 +119,27 @@ assigned AS (
             ELSE                            'THERMADOR'
         END  AS brand,
 
-        -- ── Category (cycling within brand group, 5 categories) ──────────────
-        CASE MOD(FLOOR((b.rn - 1) / 13), 5)
-            WHEN 0 THEN 'LAUNDRY_CARE'
-            WHEN 1 THEN 'DISH_CARE'
-            WHEN 2 THEN 'COOKING'
-            WHEN 3 THEN 'COOLING'
-            WHEN 4 THEN 'CONSUMER_PRODUCTS'
+        -- ── Category (brand-aware: only assigns categories each brand sells)
+        -- Gaggenau  : COOKING | COOLING | DISH_CARE        (luxury specialist)
+        -- NEFF      : COOKING | DISH_CARE | LAUNDRY_CARE   (cooking enthusiast brand)
+        -- Thermador : COOKING | COOLING | DISH_CARE        (NA luxury kitchen)
+        -- Bosch/Siemens: all 5 categories
+        CASE
+            WHEN MOD(b.rn, 100) BETWEEN 78 AND 84  -- Gaggenau
+                THEN CASE MOD(FLOOR((b.rn - 1) / 13), 3)
+                     WHEN 0 THEN 'COOKING' WHEN 1 THEN 'COOLING' ELSE 'DISH_CARE' END
+            WHEN MOD(b.rn, 100) >= 93              -- Thermador
+                THEN CASE MOD(FLOOR((b.rn - 1) / 13), 3)
+                     WHEN 0 THEN 'COOKING' WHEN 1 THEN 'COOLING' ELSE 'DISH_CARE' END
+            WHEN MOD(b.rn, 100) BETWEEN 85 AND 92  -- Neff
+                THEN CASE MOD(FLOOR((b.rn - 1) / 13), 3)
+                     WHEN 0 THEN 'COOKING' WHEN 1 THEN 'DISH_CARE' ELSE 'LAUNDRY_CARE' END
+            ELSE  -- Bosch and Siemens: all 5 categories
+                CASE MOD(FLOOR((b.rn - 1) / 13), 5)
+                    WHEN 0 THEN 'LAUNDRY_CARE' WHEN 1 THEN 'DISH_CARE'
+                    WHEN 2 THEN 'COOKING'      WHEN 3 THEN 'COOLING'
+                    ELSE 'CONSUMER_PRODUCTS'
+                END
         END  AS category,
 
         -- ── Region (weighted: DACH 35%, W_EU 25%, E_EU 10%, NA 5%, APAC 15%, EM 10%)
