@@ -44,6 +44,9 @@ CREATE OR REPLACE AGENT BSH_PNL_AGENT
   tool_resources:
     PnL_Analyst:
       semantic_view: "<% db_name %>.FIN.BSH_PNL_ANALYTICS_SV"
+      execution_environment:
+        type: "warehouse"
+        warehouse: "<% wh_name %>"
     BSH_Docs_Search:
       search_service: "<% db_name %>.FIN.BSH_PNL_SEARCH_SVC"
       max_results: "5"
