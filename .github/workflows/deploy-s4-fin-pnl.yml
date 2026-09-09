@@ -66,14 +66,14 @@ jobs:
           chmod 0600 /tmp/rsa_key.p8
           chmod 0600 ~/.snowflake/config.toml
 
-      # Runs before any SQL files. If this step fails, the credentials or account
-      # identifier are wrong — no point running SQL files.
+      # Confirms key pair auth is working before running any SQL files.
+      # Uses CURRENT_USER() — a metadata query that needs no warehouse,
+      # so this works even before the first deploy creates BSH_DEMO_WH.
       - name: Test connection
         run: |
           echo "==> Testing connection to Snowflake..."
-          snow connection test
-          echo "==> Connection OK. User and account:"
           snow sql -q "SELECT CURRENT_USER() AS user, CURRENT_ACCOUNT() AS account, CURRENT_ROLE() AS role"
+          echo "==> Connection OK"
 
       - name: Run SQL files
         run: |
