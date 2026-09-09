@@ -18,13 +18,14 @@ on:
         required: true
         type: choice
         options:
-          - all               # Full setup: files 01–09
-          - rbac-only         # RBAC + Row Access Policy only (03)
-          - data-only         # Fact table + 100K row seed (04–05)
-          - search-agent-only # Documents, Semantic View, Agent (06–08)
-          - verify            # Verification queries only (09)
-          - teardown          # Drop all BSH demo objects
-        default: all
+          - ping               # Connection test only — no SQL, no objects needed
+          - all                # Full setup: files 01–09
+          - rbac-only          # RBAC + Row Access Policy only (03)
+          - data-only          # Fact table + 100K row seed (04–05)
+          - search-agent-only  # Documents, Semantic View, Agent (06–08)
+          - verify             # Full verification queries (09) — run after 'all'
+          - teardown           # Drop all BSH demo objects
+        default: ping
 
 jobs:
   deploy:
@@ -35,7 +36,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Official Snowflake CLI action — installs `snow` on the runner
       - name: Install Snowflake CLI
         uses: Snowflake-Labs/snowflake-cli-action@v2
         with:
@@ -43,11 +43,10 @@ jobs:
 
       # Build the connection config from GitHub Secrets.
       # SNOWFLAKE_ACCOUNT     — account identifier (e.g. orgname-accountname)
-      # SNOWFLAKE_USER        — user with ACCOUNTADMIN privileges in the target account
-      # SNOWFLAKE_PRIVATE_KEY — RSA private key PEM (no passphrase); see README.md
-      # Key pair auth is Snowflake-native (SNOWFLAKE_JWT) — does not go through Okta/SSO.
-      # The service user in the target account must have the public key registered:
-      #   ALTER USER <user> ADD KEY PAIR my_key PUBLIC_KEY = '...';
+      # SNOWFLAKE_USER        — service user, e.g. BSH_GITHUB_ACTIONS
+      # SNOWFLAKE_PRIVATE_KEY — full PEM contents of bsh_demo_cicd.p8,
+      #                         including -----BEGIN PRIVATE KEY----- headers
+      # Key pair auth (SNOWFLAKE_JWT) does not go through Okta/SSO.
       - name: Configure Snowflake connection
         env:
           SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}
@@ -55,16 +54,25 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         run: |
           mkdir -p ~/.snowflake
-          cat > ~/.snowflake/config.toml << EOF
+          cat > ~/.snowflake/config.toml << TOMLEOF
           [connections.default]
           account          = "${SNOWFLAKE_ACCOUNT}"
           user             = "${SNOWFLAKE_USER}"
           authenticator    = "SNOWFLAKE_JWT"
           private_key_path = "/tmp/rsa_key.p8"
           role             = "ACCOUNTADMIN"
-          EOF
+          TOMLEOF
           printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" > /tmp/rsa_key.p8
           chmod 400 /tmp/rsa_key.p8
+
+      # Runs before any SQL files. If this step fails, the credentials or account
+      # identifier are wrong — no point running SQL files.
+      - name: Test connection
+        run: |
+          echo "==> Testing connection to Snowflake..."
+          snow connection test
+          echo "==> Connection OK. User and account:"
+          snow sql -q "SELECT CURRENT_USER() AS user, CURRENT_ACCOUNT() AS account, CURRENT_ROLE() AS role"
 
       - name: Run SQL files
         run: |
@@ -73,7 +81,8 @@ jobs:
           BASE="S4/FIN/PNL/setup"
 
           run_sql() {
-            echo "  --> Running $1"
+            echo ""
+            echo "--> Running $(basename $1)"
             snow sql -f "$1" \
               --variable "db_name=${DB}" \
               --variable "wh_name=${WH}"
@@ -82,6 +91,9 @@ jobs:
           echo "==> Action: ${{ inputs.action }}  |  DB: ${DB}  |  WH: ${WH}"
 
           case "${{ inputs.action }}" in
+            ping)
+              echo "Connection test passed in previous step. No SQL files to run."
+              ;;
             all)
               for f in "${BASE}"/[0-9][0-9]_*.sql; do run_sql "$f"; done
               ;;
@@ -98,6 +110,7 @@ jobs:
               run_sql "${BASE}/08_agent.sql"
               ;;
             verify)
+              echo "NOTE: verify requires 'all' to have been run first."
               run_sql "${BASE}/09_verify.sql"
               ;;
             teardown)
@@ -108,7 +121,7 @@ jobs:
       - name: Write deployment summary
         if: always()
         run: |
-          echo "## S4.FIN.PNL — BSH P&L Demo Deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "## S4.FIN.PNL — BSH P&L Demo" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
