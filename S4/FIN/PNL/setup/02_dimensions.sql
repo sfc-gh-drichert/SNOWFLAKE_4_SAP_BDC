@@ -289,7 +289,7 @@ INSERT INTO DIM_PLANT VALUES
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Verification
 -- ─────────────────────────────────────────────────────────────────────────────
-SELECT 'DIM_GL_ACCOUNT'  AS table_name, COUNT(*) AS rows FROM DIM_GL_ACCOUNT  UNION ALL
+SELECT 'DIM_GL_ACCOUNT'  AS table_name, COUNT(*) AS row_count FROM DIM_GL_ACCOUNT  UNION ALL
 SELECT 'DIM_PRODUCT',                   COUNT(*)         FROM DIM_PRODUCT      UNION ALL
 SELECT 'DIM_CUSTOMER',                  COUNT(*)         FROM DIM_CUSTOMER     UNION ALL
 SELECT 'DIM_COMPANY',                   COUNT(*)         FROM DIM_COMPANY      UNION ALL

@@ -66,7 +66,7 @@ FROM pnl;
 -- ─────────────────────────────────────────────────────────────────────────────
 SELECT '4. Brand mix' AS test,
        BRAND,
-       COUNT(*)                                        AS rows,
+       COUNT(*)                                        AS row_count,
        ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) AS pct_of_rows
 FROM S3_FINANCE_PNL
 GROUP BY 2
@@ -77,7 +77,7 @@ ORDER BY 3 DESC;
 -- ─────────────────────────────────────────────────────────────────────────────
 SELECT '5. Region mix' AS test,
        REGION,
-       COUNT(*) AS rows,
+       COUNT(*) AS row_count,
        ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 1) AS pct
 FROM S3_FINANCE_PNL
 GROUP BY 2
