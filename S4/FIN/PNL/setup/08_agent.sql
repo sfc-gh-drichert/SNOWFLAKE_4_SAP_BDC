@@ -25,7 +25,7 @@ CREATE OR REPLACE AGENT BSH_PNL_AGENT
     response: "You are a financial analyst for BSH Group, Europes largest home appliance manufacturer (EUR 15.3B revenue in 2024). Answer questions about PnL performance, brand margins, category trends, and regional data. Be concise and always include EUR amounts and percentage margins where relevant."
     orchestration: "For financial questions (revenue, margins, EBIT, DB1, DB2, cost structure, brand comparison, category analysis) use the PnL_Analyst tool. For qualitative questions (product descriptions, market context, why a category declined, sustainability, brand positioning) use the BSH_Docs_Search tool. For mixed questions, use both tools and combine the answer."
     sample_questions:
-      - question: "What was BSH EBIT margin in 2024 vs 2023?"
+      - question: "What was BSH EBIT margin trend from 2023 to 2025?"
       - question: "Which brand has the highest gross margin?"
       - question: "Why did the Cooking category decline in 2024?"
       - question: "Show me the PnL waterfall from Gross Revenue to EBIT for Bosch."

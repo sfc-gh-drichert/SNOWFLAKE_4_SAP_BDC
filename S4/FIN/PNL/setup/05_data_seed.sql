@@ -101,11 +101,11 @@ assigned AS (
         b.rn,
         b.rseed,
 
-        -- ── Period: 24 months, Jan 2023 – Dec 2024 ──────────────────────────
-        MOD(b.rn - 1, 24)                                    AS period_offset,
-        DATEADD('month', MOD(b.rn - 1, 24), '2023-01-01')   AS period_date,
-        YEAR( DATEADD('month', MOD(b.rn - 1, 24), '2023-01-01'))  AS fy,
-        MONTH(DATEADD('month', MOD(b.rn - 1, 24), '2023-01-01'))  AS fp,
+        -- ── Period: 45 months, Jan 2023 – Sep 2026 (partial current year) ─────
+        MOD(b.rn - 1, 45)                                    AS period_offset,
+        DATEADD('month', MOD(b.rn - 1, 45), '2023-01-01')   AS period_date,
+        YEAR( DATEADD('month', MOD(b.rn - 1, 45), '2023-01-01'))  AS fy,
+        MONTH(DATEADD('month', MOD(b.rn - 1, 45), '2023-01-01'))  AS fp,
 
         -- ── GL type: 13 types cycling across all rows ────────────────────────
         MOD(b.rn - 1, 13)  AS gl_idx,
@@ -163,7 +163,7 @@ assigned AS (
         , 2) AS base_amount,
 
         -- ── Seasonality multiplier ────────────────────────────────────────────
-        CASE MONTH(DATEADD('month', MOD(b.rn - 1, 24), '2023-01-01'))
+        CASE MONTH(DATEADD('month', MOD(b.rn - 1, 45), '2023-01-01'))
             WHEN 12 THEN 1.35   -- December: Christmas peak
             WHEN 11 THEN 1.25   -- November: Black Friday + pre-Christmas
             WHEN 10 THEN 1.15   -- October: build-up
@@ -196,13 +196,26 @@ enriched AS (
             a.base_amount
             * gl.pct_factor
             * a.season_factor
-            -- Category 2024 growth/decline adjustor
+            -- Category growth/decline adjustors by year
+            -- 2024: Cooking -4.6% (built-in slump); Consumer Products +5.5%
+            -- 2025: Cooking begins recovery; NA growth continues
+            -- 2026: Stronger Cooking recovery; AI appliances lift Consumer Products
             * CASE
                 WHEN a.fy = 2024 AND a.category = 'COOKING'          THEN 0.954
                 WHEN a.fy = 2024 AND a.category = 'LAUNDRY_CARE'     THEN 1.041
                 WHEN a.fy = 2024 AND a.category = 'DISH_CARE'        THEN 1.032
                 WHEN a.fy = 2024 AND a.category = 'COOLING'          THEN 0.996
                 WHEN a.fy = 2024 AND a.category = 'CONSUMER_PRODUCTS'THEN 1.055
+                WHEN a.fy = 2025 AND a.category = 'COOKING'          THEN 1.015
+                WHEN a.fy = 2025 AND a.category = 'LAUNDRY_CARE'     THEN 1.020
+                WHEN a.fy = 2025 AND a.category = 'DISH_CARE'        THEN 0.990
+                WHEN a.fy = 2025 AND a.category = 'COOLING'          THEN 1.000
+                WHEN a.fy = 2025 AND a.category = 'CONSUMER_PRODUCTS'THEN 1.040
+                WHEN a.fy = 2026 AND a.category = 'COOKING'          THEN 1.030
+                WHEN a.fy = 2026 AND a.category = 'LAUNDRY_CARE'     THEN 1.030
+                WHEN a.fy = 2026 AND a.category = 'DISH_CARE'        THEN 1.020
+                WHEN a.fy = 2026 AND a.category = 'COOLING'          THEN 1.010
+                WHEN a.fy = 2026 AND a.category = 'CONSUMER_PRODUCTS'THEN 1.060
                 ELSE 1.000
               END
             -- Premium brand margin overrides (reduce cost ratios → better margins)
