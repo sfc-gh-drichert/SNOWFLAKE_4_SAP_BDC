@@ -210,9 +210,29 @@ GRANT SELECT ON TABLE IDENTIFIER('&{db_name}').FIN.DIM_PLANT       TO ROLE BSH_A
 
 -- Documents table — granted in 06_search.sql after BSH_DOCUMENTS is created
 
--- ─────────────────────────────────────────────────────────────────────────────
+-- ==============================================================================
+-- BSH_DATA_DEPLOY_ROLE grants
+-- Applied here so that the GitHub Actions service user (BSH_GITHUB_ACTIONS)
+-- can run data-only and verify workflows without ACCOUNTADMIN.
+-- This role is created by setup_service_user.sql. If that script has not been
+-- run yet, these grants will fail gracefully — re-run after setup.
+-- ==============================================================================
+GRANT USAGE  ON WAREHOUSE IDENTIFIER('&{wh_name}')              TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT USAGE  ON DATABASE  IDENTIFIER('&{db_name}')              TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT USAGE  ON SCHEMA    IDENTIFIER('&{db_name}').FIN          TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT SELECT ON ALL TABLES IN SCHEMA IDENTIFIER('&{db_name}').FIN TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT INSERT, TRUNCATE ON TABLE IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT INSERT, TRUNCATE ON TABLE IDENTIFIER('&{db_name}').FIN.BSH_DOCUMENTS  TO ROLE BSH_DATA_DEPLOY_ROLE;
+-- Grant BSH demo roles so 09_verify.sql can USE ROLE them for isolation tests
+GRANT ROLE BSH_DEMO_GLOBAL_ROLE  TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT ROLE BSH_DEMO_ROLE         TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT ROLE BSH_EUROPE_DEMO_ROLE  TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT ROLE BSH_NA_DEMO_ROLE      TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT ROLE BSH_APAC_DEMO_ROLE    TO ROLE BSH_DATA_DEPLOY_ROLE;
+
+-- ==============================================================================
 -- Verification
--- ─────────────────────────────────────────────────────────────────────────────
+-- ==============================================================================
 SELECT ROLE_NAME, ALLOWED_CLIENT, ALLOWED_REGION, DESCRIPTION
 FROM ROLE_ACCESS_MAPPING
 ORDER BY ROLE_NAME, ALLOWED_CLIENT, ALLOWED_REGION;
