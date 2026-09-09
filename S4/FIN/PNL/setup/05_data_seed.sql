@@ -150,15 +150,15 @@ assigned AS (
         ROUND(
             CASE
                 WHEN MOD(b.rn, 100) BETWEEN 78 AND 84  -- Gaggenau (premium)
-                    THEN UNIFORM( 80000, 500000, RANDOM(b.rn *  7))
+                    THEN CAST(80000 + ABS(HASH(b.rn,  7)) % 420001 AS NUMBER(18,2))
                 WHEN MOD(b.rn, 100) >= 93              -- Thermador (premium NA)
-                    THEN UNIFORM( 60000, 300000, RANDOM(b.rn * 11))
+                    THEN CAST(60000 + ABS(HASH(b.rn, 11)) % 240001 AS NUMBER(18,2))
                 WHEN MOD(b.rn, 100) BETWEEN 85 AND 92  -- Neff (mid-premium)
-                    THEN UNIFORM( 30000, 200000, RANDOM(b.rn * 13))
+                    THEN CAST(30000 + ABS(HASH(b.rn, 13)) % 170001 AS NUMBER(18,2))
                 WHEN MOD(b.rn, 100) BETWEEN 50 AND 77  -- Siemens
-                    THEN UNIFORM( 40000, 350000, RANDOM(b.rn * 17))
+                    THEN CAST(40000 + ABS(HASH(b.rn, 17)) % 310001 AS NUMBER(18,2))
                 ELSE                                    -- Bosch
-                    UNIFORM( 50000, 400000, RANDOM(b.rn * 19))
+                    CAST(50000 + ABS(HASH(b.rn, 19)) % 350001 AS NUMBER(18,2))
             END
         , 2) AS base_amount,
 

@@ -34,7 +34,7 @@ INSERT INTO BSH_DOCUMENTS (TITLE, DOCUMENT_TYPE, YEAR, SOURCE, DOCUMENT_TEXT) VA
 
 ('BSH Group 2024 Annual Results — Press Release',
  'PRESS_RELEASE', 2024, 'BSH Hausgeräte GmbH Press Release April 2025',
- 'BSH Hausgeräte GmbH achieved a turnover of 15.3 billion euros in fiscal year 2024, recording year-over-year growth of 3%, or 7.5% after adjustment for exchange rate effects. Europe remains BSH's largest region at 6.9 billion euros. North America posted approximately 700 million euros, benefiting from high demand for premium appliances. BSH invested 835 million euros in research and development in 2024, representing 5.5% of revenue and well above the industry average. EBIT margin reached approximately 6%. CEO Dr Matthias Metz: "Despite challenging market conditions — particularly the continued weakness in demand for built-in appliances linked to the European real estate cycle — BSH delivered solid results driven by our premium brand portfolio and digital innovation."'),
+ 'BSH Hausgeräte GmbH achieved a turnover of 15.3 billion euros in fiscal year 2024, recording year-over-year growth of 3%, or 7.5% after adjustment for exchange rate effects. Europe remains BSH''s largest region at 6.9 billion euros. North America posted approximately 700 million euros, benefiting from high demand for premium appliances. BSH invested 835 million euros in research and development in 2024, representing 5.5% of revenue and well above the industry average. EBIT margin reached approximately 6%. CEO Dr Matthias Metz: "Despite challenging market conditions — particularly the continued weakness in demand for built-in appliances linked to the European real estate cycle — BSH delivered solid results driven by our premium brand portfolio and digital innovation."'),
 
 ('BSH Group 2023 Annual Results — Press Release',
  'PRESS_RELEASE', 2023, 'BSH Hausgeräte GmbH Press Release April 2024',
@@ -46,7 +46,7 @@ INSERT INTO BSH_DOCUMENTS (TITLE, DOCUMENT_TYPE, YEAR, SOURCE, DOCUMENT_TEXT) VA
 
 ('Category Performance 2024: Laundry Care and Consumer Products Growth',
  'MARKET_ANALYSIS', 2024, 'BSH Internal Market Intelligence',
- 'Laundry Care was BSH's strongest large-appliance category in 2024, growing 4.1%. Growth was driven by the shift to premium energy-efficient models (A-rated) as European consumers replaced older appliances under the EU energy label framework. The Bosch Serie 8 EcoSilence range and Siemens iQ700 line saw strong demand. Consumer Products (small appliances) grew 5.5%, led by fully automatic coffee machines. The Bosch VeroBar AromaPro and Siemens EQ900 are the flagship coffee machines. The Asia-Pacific region was the fastest-growing market for small appliances, with particularly strong demand for coffee machines and floor care products. Dish Care grew 3.2%, supported by the launch of Bosch PerfectDry Extra Clean Zone dishwashers and Siemens zeolite technology models. Cooling declined slightly (-0.4%) in line with the broader kitchen appliance weakness.'),
+ 'Laundry Care was BSH''s strongest large-appliance category in 2024, growing 4.1%. Growth was driven by the shift to premium energy-efficient models (A-rated) as European consumers replaced older appliances under the EU energy label framework. The Bosch Serie 8 EcoSilence range and Siemens iQ700 line saw strong demand. Consumer Products (small appliances) grew 5.5%, led by fully automatic coffee machines. The Bosch VeroBar AromaPro and Siemens EQ900 are the flagship coffee machines. The Asia-Pacific region was the fastest-growing market for small appliances, with particularly strong demand for coffee machines and floor care products. Dish Care grew 3.2%, supported by the launch of Bosch PerfectDry Extra Clean Zone dishwashers and Siemens zeolite technology models. Cooling declined slightly (-0.4%) in line with the broader kitchen appliance weakness.'),
 
 ('Gaggenau Brand Positioning — The Art of Exceptional Cooking',
  'BRAND_GUIDE', 2024, 'BSH Brand Communications',
@@ -129,12 +129,12 @@ GRANT INSERT, TRUNCATE ON TABLE BSH_DOCUMENTS TO ROLE BSH_DATA_DEPLOY_ROLE;
 CREATE OR REPLACE CORTEX SEARCH SERVICE BSH_PNL_SEARCH_SVC
     ON document_text
     ATTRIBUTES title, document_type, year, source
-    WAREHOUSE = IDENTIFIER('<% wh_name %>')
+    WAREHOUSE = <% wh_name %>
     TARGET_LAG = '1 day'
     COMMENT = 'BSH document corpus search service — press releases, product briefs, market context. Used by BSH_PNL_AGENT for qualitative QA alongside structured PnL data.'
     AS (
         SELECT document_text, title, document_type, year, source
-        FROM IDENTIFIER('<% db_name %>').FIN.BSH_DOCUMENTS
+        FROM <% db_name %>.FIN.BSH_DOCUMENTS
     );
 
 SELECT 'Documents indexed: ' || COUNT(*) AS status FROM BSH_DOCUMENTS;

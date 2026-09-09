@@ -1,33 +1,14 @@
--- =============================================================================
--- 07_semantic_view.sql — BSH PnL Analytics Semantic View
+-- ==============================================================================
+-- 07_semantic_view.sql - BSH PnL Analytics Semantic View
 --
--- Creates the Snowflake Semantic View that the Cortex Agent (and Cortex Analyst)
--- uses to answer structured PnL questions.
+-- DDL structure (from Snowflake docs):
+--   TABLES (...), DIMENSIONS (...), METRICS (...) are top-level sibling clauses.
+--   Each dimension/metric is prefixed with the logical table alias: PNL.<name>
+--   Derived metrics (ratios of other metrics) have NO table prefix.
 --
 -- The view is built on S3_FINANCE_PNL, which has the Row Access Policy applied.
--- The Semantic View INHERITS the RAP automatically — no WHERE filter is needed
--- in the view DDL, and no agent query needs to include CLIENT_ID or REGION filters.
---
--- PnL WATERFALL IMPLEMENTED:
---   GROSS_REVENUE
---   └─ minus TRADE_DISCOUNTS + RETURNS
---      = NET_REVENUE
---      └─ minus MATERIAL_COGS + MFG_LABOUR + MFG_OVERHEAD + LOGISTICS
---         = GROSS_PROFIT  (GP_MARGIN_PCT)
---         └─ minus BRAND_ADP (Advertising and Promotion + Trade Marketing)
---            = DB1_MARGINAL_CONTRIBUTION
---            └─ minus SALES_COST
---               = DB2_MARGINAL_CONTRIBUTION  (DB2_MARGIN_PCT)
---               └─ minus RD_EXPENSE + GA_EXPENSE
---                  = EBIT  (EBIT_MARGIN_PCT)
---
--- NOTE ON DERIVED METRICS:
--- Snowflake Semantic View syntax may or may not support derived metrics that
--- reference other named metrics (e.g. NET_REVENUE = GROSS_REVENUE - TRADE_DISCOUNTS).
--- If your account version does not support this, replace derived metrics with
--- their full SUM(CASE...) expansion, or create a wrapper view first and build
--- the SV on that view.
--- =============================================================================
+-- The Semantic View inherits the RAP automatically.
+-- ==============================================================================
 
 USE ROLE ACCOUNTADMIN;
 USE WAREHOUSE IDENTIFIER('<% wh_name %>');
@@ -35,175 +16,150 @@ USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
-    TABLES (
-        PNL TABLE IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL
-        PRIMARY KEY (SALESORDER, ACDOCA_RACCT, COMPANYCODE, POSTINGDATE, MATERIAL, CUSTOMER)
 
-        DIMENSIONS (
+  TABLES (
+    PNL AS <% db_name %>.FIN.S3_FINANCE_PNL
+      PRIMARY KEY (SALESORDER, ACDOCA_RACCT, COMPANYCODE, POSTINGDATE, MATERIAL, CUSTOMER)
+      COMMENT = 'BSH Group PnL fact table. Row Access Policy on (CLIENT_ID, REGION) enforces data visibility.'
+  )
 
-            -- ── TENANT + ISOLATION ─────────────────────────────────────────
-            CLIENT_ID       COMMENT 'Tenant identifier. Row Access Policy enforces which CLIENT_ID values are visible per role. No need to filter manually — RAP handles it.',
+  DIMENSIONS (
+    PNL.CLIENT_ID           AS CLIENT_ID
+      COMMENT = 'Tenant identifier. Row Access Policy enforces visibility per role.',
+    PNL.BRAND               AS BRAND
+      COMMENT = 'BSH brand: BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
+    PNL.CATEGORY            AS CATEGORY
+      COMMENT = 'Product category: COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
+    PNL.SUBCATEGORY         AS SUBCATEGORY,
+    PNL.PRODUCT_TIER        AS PRODUCT_TIER
+      COMMENT = 'Positioning tier: PREMIUM | MID | ENTRY',
+    PNL.REGION              AS REGION
+      COMMENT = 'Sales region: DACH | W_EUROPE | E_EUROPE | N_AMERICA | APAC | EMERGING',
+    PNL.COMPANYCODE         AS COMPANYCODE
+      COMMENT = 'SAP company code: 1000=Germany, 1100=W_Europe, 1200=E_Europe, 2000=NA, 3000=APAC, 4000=Emerging',
+    PNL.COUNTRY             AS COUNTRY
+      COMMENT = 'Country of company code (ISO 3166-1 alpha-3)',
+    PNL.DISTRIBUTIONCHANNEL AS DISTRIBUTIONCHANNEL
+      COMMENT = '10=Retail Specialist | 20=Built-in/Project | 30=E-Commerce | 40=B2B',
+    PNL.CUSTOMER            AS CUSTOMER
+      COMMENT = 'SAP customer number',
+    PNL.MATERIAL            AS MATERIAL
+      COMMENT = 'BSH material/SKU number (e.g. BSH-DW-B6000)',
+    PNL.PRODUCT_NAME        AS PRODUCT_NAME
+      COMMENT = 'Full product name (e.g. Bosch Serie 6 PerfectDry SMV6ZCX00E)',
+    PNL.ACDOCA_RACCT        AS ACDOCA_RACCT
+      COMMENT = 'GL account number (e.g. 0800000=Gross Revenue, 0500000=Material COGS)',
+    PNL.PNL_CATEGORY        AS PNL_CATEGORY
+      COMMENT = 'PnL category: REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | BRAND_ADP | SALES | RD | GA',
+    PNL.POSTINGDATE         AS POSTINGDATE
+      COMMENT = 'Posting date (last day of fiscal period)',
+    PNL.FISCALYEAR          AS FISCALYEAR
+      COMMENT = 'Fiscal year (2023 or 2024)',
+    PNL.POSTINGPERIOD       AS POSTINGPERIOD
+      COMMENT = 'Posting period within fiscal year (1-12)',
+    PNL.MONTHYEAR           AS MONTHYEAR
+      COMMENT = 'Fiscal period in YYYYMMM format (e.g. 2024003)',
+    PNL.CUSTOMERGROUP       AS CUSTOMERGROUP
+      COMMENT = '01=Specialist Retail | 02=Mass | 03=E-Commerce | 04=Built-in | 05=B2B'
+  )
 
-            -- ── BRAND + PRODUCT ────────────────────────────────────────────
-            BRAND           COMMENT 'BSH brand: BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
-            CATEGORY        COMMENT 'Product category: COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
-            SUBCATEGORY     COMMENT 'Product sub-category (e.g. Dishwasher Fully Integrated)',
-            PRODUCT_TIER    COMMENT 'Positioning tier: PREMIUM | MID | ENTRY',
-            MATERIAL        COMMENT 'BSH material/SKU number (e.g. BSH-DW-B6000)',
-            PRODUCT_NAME    COMMENT 'Full product name (e.g. Bosch Serie 6 PerfectDry SMV6ZCX00E)',
+  METRICS (
+    -- ── REVENUE ─────────────────────────────────────────────────────────────
+    PNL.GROSS_REVENUE AS SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
+      COMMENT = 'Gross Revenue before any trade deductions (EUR). Highest line in the PnL waterfall.',
 
-            -- ── GEOGRAPHY ─────────────────────────────────────────────────
-            REGION          COMMENT 'Sales region: DACH | W_EUROPE | E_EUROPE | N_AMERICA | APAC | EMERGING',
-            COMPANYCODE     COMMENT 'SAP company code (BSH internal): 1000=Germany, 1100=W_Europe, 1200=E_Europe, 2000=NA, 3000=APAC, 4000=Emerging',
-            COUNTRY         COMMENT 'Country of company code (ISO 3166-1 alpha-3)',
-            PLANT           COMMENT 'Manufacturing plant code',
+    PNL.TRADE_DISCOUNTS AS SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
+      COMMENT = 'Total trade deductions: customer rebates, volume bonuses, listing fees (EUR). Typically 7.5-10% of gross revenue.',
 
-            -- ── CUSTOMER + CHANNEL ────────────────────────────────────────
-            CUSTOMER        COMMENT 'SAP customer number',
-            CUSTOMERGROUP   COMMENT 'Customer group: 01=Specialist Retail | 02=Mass | 03=E-Commerce | 04=Built-in | 05=B2B',
-            DISTRIBUTIONCHANNEL
-                            COMMENT 'Distribution channel: 10=Retail | 20=Built-in | 30=E-Commerce | 40=B2B',
+    PNL.RETURNS AS SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
+      COMMENT = 'Product returns and credit notes (EUR). Typically ~1% of gross.',
 
-            -- ── PnL CLASSIFICATION ────────────────────────────────────────
-            ACDOCA_RACCT    COMMENT 'GL account number (e.g. 0800000=Gross Revenue, 0500000=Material COGS)',
-            PNL_CATEGORY    COMMENT 'PnL category: REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | BRAND_ADP | SALES | RD | GA',
+    PNL.NET_REVENUE AS SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
+                     - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
+                     - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
+      COMMENT = 'Net Revenue = Gross Revenue minus trade discounts and returns (EUR). Approx 91.5% of gross.',
 
-            -- ── TIME ──────────────────────────────────────────────────────
-            POSTINGDATE     COMMENT 'Posting date (last day of fiscal period)',
-            FISCALYEAR      COMMENT 'Fiscal year (2023 or 2024)',
-            POSTINGPERIOD   COMMENT 'Posting period within fiscal year (1-12)',
-            MONTHYEAR       COMMENT 'Fiscal period in YYYYMMM format (e.g. 2024003)'
-        )
+    -- ── COST OF GOODS SOLD ───────────────────────────────────────────────────
+    PNL.MATERIAL_COGS AS SUM(IFF(ACDOCA_RACCT = '0500000', -HSL, 0))
+      COMMENT = 'Material cost of goods sold (EUR). Typically 45% of net revenue for Bosch/Siemens, ~36% for Gaggenau.',
 
-        METRICS (
+    PNL.MFG_LABOUR AS SUM(IFF(ACDOCA_RACCT = '0510000', -HSL, 0))
+      COMMENT = 'Manufacturing labour and assembly costs (EUR). Typically 8% of net revenue.',
 
-            -- ── REVENUE ────────────────────────────────────────────────────
-            GROSS_REVENUE = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                COMMENT 'Gross Revenue before any trade deductions (EUR). Highest line in the PnL waterfall.',
+    PNL.MFG_OVERHEAD AS SUM(IFF(ACDOCA_RACCT = '0520000', -HSL, 0))
+      COMMENT = 'Manufacturing overhead including depreciation (EUR). Typically 8% of net revenue.',
 
-            TRADE_DISCOUNTS = SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                COMMENT 'Total trade deductions: customer rebates, volume bonuses, listing fees (EUR). Typically 7.5-10% of gross revenue. Gaggenau has lower discounts (~4.5%).',
+    PNL.LOGISTICS AS SUM(IFF(PNL_CATEGORY = 'LOGISTICS', -HSL, 0))
+      COMMENT = 'Outbound logistics and freight to customers (EUR). Typically 5% of net revenue.',
 
-            RETURNS = SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                COMMENT 'Product returns and credit notes (EUR). Typically ~1% of gross.',
+    PNL.GROSS_PROFIT AS SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
+                      - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
+                      - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
+                      - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
+      COMMENT = 'Gross Profit = Net Revenue minus COGS and logistics (EUR). Typically 34% of net for BSH. Gaggenau ~46%.',
 
-            NET_REVENUE = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                          - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                          - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                COMMENT 'Net Revenue = Gross Revenue minus trade discounts and returns (EUR). Approximately 91.5% of gross. The primary revenue reference for margin ratios.',
+    -- ── MARGINAL CONTRIBUTION 1 (DB1) ────────────────────────────────────────
+    PNL.BRAND_ADP AS SUM(IFF(PNL_CATEGORY = 'BRAND_ADP', -HSL, 0))
+      COMMENT = 'Brand advertising, media spend, and trade marketing (EUR). Typically 11.5% of net revenue.',
 
-            -- ── COST OF GOODS SOLD ─────────────────────────────────────────
-            MATERIAL_COGS = SUM(IFF(ACDOCA_RACCT = '0500000', -HSL, 0))
-                COMMENT 'Material cost of goods sold (EUR) — purchased components and raw materials. Typically 45% of net revenue for Bosch/Siemens, ~36% for Gaggenau.',
+    PNL.DB1_MARGINAL_CONTRIBUTION AS SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY = 'BRAND_ADP', -HSL, 0))
+      COMMENT = 'DB1 Marginal Contribution (Deckungsbeitrag 1) = Gross Profit minus brand advertising and promotion (EUR). Typically 22.5% of net.',
 
-            MFG_LABOUR = SUM(IFF(ACDOCA_RACCT = '0510000', -HSL, 0))
-                COMMENT 'Manufacturing labour and assembly costs (EUR). Typically 8% of net revenue.',
+    -- ── MARGINAL CONTRIBUTION 2 (DB2) ────────────────────────────────────────
+    PNL.SALES_COST AS SUM(IFF(PNL_CATEGORY = 'SALES', -HSL, 0))
+      COMMENT = 'Sales force, key account management, and commercial costs (EUR). Typically 7% of net revenue.',
 
-            MFG_OVERHEAD = SUM(IFF(ACDOCA_RACCT = '0520000', -HSL, 0))
-                COMMENT 'Manufacturing overhead including depreciation (EUR). Typically 8% of net revenue.',
+    PNL.DB2_MARGINAL_CONTRIBUTION AS SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
+                                    - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
+      COMMENT = 'DB2 Marginal Contribution (Deckungsbeitrag 2) = DB1 minus sales and commercial costs (EUR). Typically 15.5% of net.',
 
-            LOGISTICS = SUM(IFF(PNL_CATEGORY = 'LOGISTICS', -HSL, 0))
-                COMMENT 'Outbound logistics and freight to customers (EUR). Typically 5% of net revenue.',
+    -- ── EBIT ──────────────────────────────────────────────────────────────────
+    PNL.RD_EXPENSE AS SUM(IFF(PNL_CATEGORY = 'RD', -HSL, 0))
+      COMMENT = 'Research and Development expense (EUR). BSH spends ~5.5-6% of net revenue on Research and Development — above industry average. EUR 835M in 2024.',
 
-            GROSS_PROFIT = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                           - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                           - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                           - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-                COMMENT 'Gross Profit = Net Revenue minus COGS and logistics (EUR). Typically 34% of net for BSH overall. Gaggenau ~46%, Bosch/Siemens ~32-33%.',
+    PNL.GA_EXPENSE AS SUM(IFF(PNL_CATEGORY = 'GA', -HSL, 0))
+      COMMENT = 'General and Administrative expenses (EUR). Typically 3.5% of net revenue.',
 
-            GP_MARGIN_PCT = (
-                              SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                              - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                              - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                              - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-                            )
-                            / NULLIF(
-                              SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                              - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                              - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                            , 0) * 100
-                COMMENT 'Gross Profit Margin % of Net Revenue. BSH avg ~34%. Gaggenau ~46%.',
+    PNL.EBIT AS SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
+              - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
+              - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
+              - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
+              - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
+              - SUM(IFF(PNL_CATEGORY IN ('RD','GA'), -HSL, 0))
+      COMMENT = 'EBIT - Earnings Before Interest and Tax (EUR). BSH actual 2024: approx EUR 918M (6% of EUR 15.3B net revenue).',
 
-            -- ── MARGINAL CONTRIBUTION 1 (DB1) ─────────────────────────────
-            BRAND_ADP = SUM(IFF(PNL_CATEGORY = 'BRAND_ADP', -HSL, 0))
-                COMMENT 'Brand advertising, media spend, and trade marketing (EUR). Typically 11.5% of net revenue. Bosch invests heavily in brand media.',
+    -- ── VOLUME ────────────────────────────────────────────────────────────────
+    PNL.TOTAL_UNITS AS SUM(IFF(ACDOCA_RACCT = '0800000', SALESVOLUME, 0))
+      COMMENT = 'Total units sold (from SALESVOLUME column on revenue rows).',
 
-            DB1_MARGINAL_CONTRIBUTION = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY = 'BRAND_ADP', -HSL, 0))
-                COMMENT 'DB1 Marginal Contribution (Deckungsbeitrag 1) = Gross Profit minus brand advertising and promotion (EUR). Typically 22.5% of net revenue. Key metric for brand investment decisions.',
+    -- ── DERIVED METRICS (ratios) - no table prefix ────────────────────────────
+    -- These reference the table-scoped metrics above using the PNL.<name> notation.
+    EBIT_MARGIN_PCT AS PNL.EBIT / NULLIF(PNL.NET_REVENUE, 0) * 100
+      COMMENT = 'EBIT Margin % of Net Revenue. BSH 2024 actual: ~6%.',
 
-            -- ── MARGINAL CONTRIBUTION 2 (DB2) ─────────────────────────────
-            SALES_COST = SUM(IFF(PNL_CATEGORY = 'SALES', -HSL, 0))
-                COMMENT 'Sales force, key account management, and commercial costs (EUR). Typically 7% of net revenue.',
+    GP_MARGIN_PCT AS PNL.GROSS_PROFIT / NULLIF(PNL.NET_REVENUE, 0) * 100
+      COMMENT = 'Gross Profit Margin % of Net Revenue. BSH avg ~34%. Gaggenau ~46%.',
 
-            DB2_MARGINAL_CONTRIBUTION = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-                                        - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
-                COMMENT 'DB2 Marginal Contribution (Deckungsbeitrag 2) = DB1 minus sales and commercial costs (EUR). Typically 15.5% of net revenue. Used for regional and brand profitability.',
+    DB2_MARGIN_PCT AS PNL.DB2_MARGINAL_CONTRIBUTION / NULLIF(PNL.NET_REVENUE, 0) * 100
+      COMMENT = 'DB2 Marginal Contribution Margin % of Net Revenue. Typically 15.5%.',
 
-            DB2_MARGIN_PCT = (
-                               SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                               - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                               - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                               - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-                               - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
-                             )
-                             / NULLIF(
-                               SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                               - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                               - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                             , 0) * 100
-                COMMENT 'DB2 Marginal Contribution Margin % of Net Revenue. Typically 15.5%.',
+    AVG_SELLING_PRICE_EUR AS PNL.GROSS_REVENUE / NULLIF(PNL.TOTAL_UNITS, 0)
+      COMMENT = 'Average Selling Price in EUR = Gross Revenue / Units Sold. Gaggenau ASP is 4-6x higher than Bosch.'
+  )
 
-            -- ── EBIT ──────────────────────────────────────────────────────
-            RD_EXPENSE = SUM(IFF(PNL_CATEGORY = 'RD', -HSL, 0))
-                COMMENT 'Research & Development expense (EUR). BSH spends ~5.5-6% of net revenue on Research and Development — above industry average. EUR 835M in 2024 (5.5% of EUR 15.3B revenue).',
+  COMMENT = 'BSH Group PnL Analytics Semantic View. Full PnL waterfall: Gross Revenue to DB1 to DB2 to EBIT. Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. 2023-2024 actuals, ~100K rows. EUR currency throughout.';
 
-            GA_EXPENSE = SUM(IFF(PNL_CATEGORY = 'GA', -HSL, 0))
-                COMMENT 'General & Administrative expenses (EUR). Typically 3.5% of net revenue.',
-
-            EBIT = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                   - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                   - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                   - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-                   - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
-                   - SUM(IFF(PNL_CATEGORY IN ('RD','GA'), -HSL, 0))
-                COMMENT 'EBIT — Earnings Before Interest and Tax (EUR). BSH actual 2024: approximately EUR 918M (6% of EUR 15.3B net revenue). Gaggenau contributes disproportionately to group EBIT despite low volume.',
-
-            EBIT_MARGIN_PCT = (
-                                SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                                - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                                - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                                - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-                                - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
-                                - SUM(IFF(PNL_CATEGORY IN ('RD','GA'), -HSL, 0))
-                              )
-                              / NULLIF(
-                                SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                                - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
-                                - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
-                              , 0) * 100
-                COMMENT 'EBIT Margin % of Net Revenue. BSH 2024 actual: ~6%.',
-
-            -- ── VOLUME ────────────────────────────────────────────────────
-            TOTAL_UNITS = SUM(IFF(ACDOCA_RACCT = '0800000', SALESVOLUME, 0))
-                COMMENT 'Total units sold (calculated from SALESVOLUME column on revenue rows). Populated on ACDOCA_RACCT=0800000 (Gross Revenue) lines only.',
-
-            AVG_SELLING_PRICE_EUR = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
-                                    / NULLIF(SUM(IFF(ACDOCA_RACCT = '0800000', SALESVOLUME, 0)), 0)
-                COMMENT 'Average Selling Price in EUR = Gross Revenue / Units Sold. Gaggenau ASP is 4-6x higher than Bosch. Monitor for mix shift from premium to entry tier.'
-        )
-    )
-COMMENT = 'BSH Group PnL Analytics Semantic View — ACDOCA/CO-PA profitability analysis. Full PnL waterfall: Gross Revenue → Net Revenue → Gross Profit → DB1 → DB2 → EBIT. Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. 2023-2024 actuals, ~100K rows. EUR currency throughout.';
-
--- Grant select on semantic view to demo roles
-GRANT SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_EUROPE_DEMO_ROLE;
-GRANT SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_NA_DEMO_ROLE;
-GRANT SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_APAC_DEMO_ROLE;
+-- Grant REFERENCES + SELECT (REFERENCES is required for Cortex Agent usage)
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_EUROPE_DEMO_ROLE;
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_NA_DEMO_ROLE;
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_APAC_DEMO_ROLE;
+-- BSH_DATA_DEPLOY_ROLE inherits via BSH_DEMO_GLOBAL_ROLE chain
 
 SELECT 'Semantic view created: BSH_PNL_ANALYTICS_SV' AS status;
