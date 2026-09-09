@@ -1,7 +1,7 @@
 # BSH Group P&L Demo — Demo Flow Guide
 
 A complete narrative for running the BSH Group financial P&L demo in Snowflake.
-Covers setup context, role demonstrations, Cortex Agent Q&A, and a sample question bank.
+Covers setup context, role demonstrations, Cortex Agent QA, and a sample question bank.
 
 ---
 
@@ -182,17 +182,17 @@ USE ROLE BSH_DEMO_ROLE;
 - "Which combination of brand and distribution channel has the highest DB2 margin?"
 
 ### Cost Structure and Margins
-- "Break down BSH's cost structure as a percentage of net revenue (COGS, A&P, Sales, R&D, G&A)."
-- "BSH invested EUR 835 million in R&D in 2024. What is that as a percentage of revenue?"
+- "Break down BSH's cost structure as a percentage of net revenue (COGS, Advertising and Promotion, Sales, Research and Development, General and Administrative)."
+- "BSH invested EUR 835 million in Research and Development in 2024. What is that as a percentage of revenue?"
 - "How does trade marketing spend compare across brands?"
 - "What would EBIT be if trade discounts were reduced by 2 percentage points?"
 
 ### Contextual / Qualitative (uses search tool)
-- "What is the Slide&Hide oven? Why is it a signature NEFF product?"
+- "What is the Slide-Hide oven? Why is it a signature NEFF product?"
 - "What is Home Connect and how many appliances is it connected to?"
 - "What is zeolite technology in BSH dishwashers?"
 - "Explain BSH's sustainability commitment — are they carbon neutral?"
-- "Why does BSH invest so heavily in R&D compared to competitors?"
+- "Why does BSH invest so heavily in Research and Development compared to competitors?"
 
 ---
 
@@ -338,9 +338,9 @@ Roles:
 | NET_REVENUE | Gross – Discounts – Returns | 100% |
 | MATERIAL_COGS | ABS(SUM) where account=0500000 | ~45% |
 | GROSS_PROFIT | Net Revenue – COGS – Logistics | ~34% |
-| DB1 | Gross Profit – Brand A&P | ~22.5% |
+| DB1 | Gross Profit – Brand Advertising and Promotion | ~22.5% |
 | DB2 | DB1 – Sales Costs | ~15.5% |
-| EBIT | DB2 – R&D – G&A | ~6.0% |
+| EBIT | DB2 – Research and Development – General and Administrative | ~6.0% |
 
 ### Row Access Policy Logic
 

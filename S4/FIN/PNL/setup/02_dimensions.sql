@@ -138,7 +138,7 @@ INSERT INTO DIM_PRODUCT VALUES
 -- ── GAGGENAU — DISH CARE ────────────────────────────────────────────────────
 ('BSH-DW-G2870', 'Gaggenau GM287161 Fully Integrated 60cm',           'GAGGENAU', 'DISH_CARE',        'Dishwasher Fully Integrated',   2800.00, 'PREMIUM', 'A'),
 -- ── NEFF — COOKING ──────────────────────────────────────────────────────────
-('BSH-OV-N5770', 'NEFF B57VR22N0B Slide&Hide Pyrolytic',              'NEFF',     'COOKING',          'Built-in Oven Pyrolytic',        999.00,  'PREMIUM', 'A'),
+('BSH-OV-N5770', 'NEFF B57VR22N0B Slide-Hide Pyrolytic',              'NEFF',     'COOKING',          'Built-in Oven Pyrolytic',        999.00,  'PREMIUM', 'A'),
 ('BSH-OV-N6900', 'NEFF B69FH7AN0B CircoTherm',                        'NEFF',     'COOKING',          'Built-in Oven',                  849.00,  'MID',     'A'),
 ('BSH-OV-N4700', 'NEFF B47CR32N0B Pyrolytic',                         'NEFF',     'COOKING',          'Built-in Oven Pyrolytic',        779.00,  'MID',     'A'),
 ('BSH-IH-N4600', 'NEFF T46PT60X0 Induction Hob 60cm',                 'NEFF',     'COOKING',          'Induction Hob 60cm',             549.00,  'MID',     NULL),
@@ -186,7 +186,7 @@ INSERT INTO DIM_CUSTOMER VALUES
 ('0000100004', 'Euronics Deutschland eG',            'DEU', 'DACH',     '01', '10', 'STANDARD'),
 ('0000100005', 'Expert SE',                          'DEU', 'DACH',     '01', '10', 'STANDARD'),
 ('0000100006', 'Otto GmbH & Co KG',                  'DEU', 'DACH',     '03', '30', 'STANDARD'),
-('0000100007', 'Küche&Co GmbH (Built-in)',           'DEU', 'DACH',     '04', '20', 'KEY'),
+('0000100007', 'Kueche Co GmbH (Built-in)',           'DEU', 'DACH',     '04', '20', 'KEY'),
 ('0000100008', 'Nolte Küchen GmbH',                  'DEU', 'DACH',     '04', '20', 'STANDARD'),
 ('0000100009', 'Nobilia-Werke GmbH',                 'DEU', 'DACH',     '04', '20', 'KEY'),
 ('0000100010', 'REWE Group (Small Appliances)',       'DEU', 'DACH',     '02', '10', 'STANDARD'),

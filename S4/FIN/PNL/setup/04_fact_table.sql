@@ -98,7 +98,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     FUNCTIONALAREA                  VARCHAR(16)
         COMMENT 'SAP functional area used in cost-of-sales accounting: '
                 'REV=Revenue, SPD=Trade Spend, COS=COGS, LOG=Logistics, '
-                'ADP=Advertising, SLS=Sales, RD=R&D, GA=G&A',
+                'ADP=Advertising, SLS=Sales, RD=Research and Development, GA=General and Administrative',
     COSTCENTER                      VARCHAR(10)
         COMMENT 'SAP cost centre (KOSTL)',
     ORIGINCCTR                      VARCHAR(10)

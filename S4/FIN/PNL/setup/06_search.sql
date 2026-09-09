@@ -29,7 +29,7 @@ CREATE OR REPLACE TABLE BSH_DOCUMENTS (
     DOCUMENT_TEXT    VARCHAR(16777216) COMMENT 'Full document text — indexed by Cortex Search'
 )
 COMMENT = 'BSH Group document corpus: press releases, product briefs, and market context. '
-          'Indexed by BSH_PNL_SEARCH_SVC for the Cortex Agent qualitative Q&A tool.';
+          'Indexed by BSH_PNL_SEARCH_SVC for the Cortex Agent qualitative QA tool.';
 
 INSERT INTO BSH_DOCUMENTS (TITLE, DOCUMENT_TYPE, YEAR, SOURCE, DOCUMENT_TEXT) VALUES
 
@@ -100,15 +100,15 @@ INSERT INTO BSH_DOCUMENTS (TITLE, DOCUMENT_TYPE, YEAR, SOURCE, DOCUMENT_TEXT) VA
  'The brand is heavily concentrated in DACH and Western Europe, with select presence '
  'in North America and APAC through high-end kitchen designers.'),
 
-('NEFF Slide&Hide — The Brand for Cooking Enthusiasts',
+('NEFF Slide-Hide — The Brand for Cooking Enthusiasts',
  'BRAND_GUIDE', 2024, 'BSH Brand Communications',
  'NEFF was founded in 1877 and has been part of BSH since 1984. '
  'The brand is positioned for passionate home cooks — people who genuinely love cooking '
  'and want appliances that enhance the cooking experience. '
- 'The signature product is the Slide&Hide oven, where the door slides under the cavity '
+ 'The signature product is the Slide-Hide oven, where the door slides under the cavity '
  'rather than swinging down. This allows cooks to stand close to the oven while cooking, '
  'reach inside easily, and use the top of the oven as extra worktop space. '
- 'The Slide&Hide B57VR22N0B (EUR 999) features pyrolytic self-cleaning and CircoTherm '
+ 'The Slide-Hide B57VR22N0B (EUR 999) features pyrolytic self-cleaning and CircoTherm '
  'fan technology for even heat distribution. '
  'NEFF is sold exclusively as built-in appliances — the brand does not offer freestanding models. '
  'Primary markets are Germany, UK, Ireland, and Australia. '
@@ -319,7 +319,7 @@ CREATE OR REPLACE CORTEX SEARCH SERVICE BSH_PNL_SEARCH_SVC
     WAREHOUSE = IDENTIFIER('<% wh_name %>')
     TARGET_LAG = '1 day'
     COMMENT = 'BSH document corpus search service — press releases, product briefs, market context. '
-              'Used by BSH_PNL_AGENT for qualitative Q&A alongside structured PnL data.'
+              'Used by BSH_PNL_AGENT for qualitative QA alongside structured PnL data.'
     AS (
         SELECT document_text, title, document_type, year, source
         FROM IDENTIFIER('<% db_name %>').FIN.BSH_DOCUMENTS

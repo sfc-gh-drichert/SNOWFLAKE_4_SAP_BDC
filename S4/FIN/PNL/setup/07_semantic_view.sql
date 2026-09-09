@@ -14,7 +14,7 @@
 --      = NET_REVENUE
 --      └─ minus MATERIAL_COGS + MFG_LABOUR + MFG_OVERHEAD + LOGISTICS
 --         = GROSS_PROFIT  (GP_MARGIN_PCT)
---         └─ minus BRAND_ADP (A&P + Trade Marketing)
+--         └─ minus BRAND_ADP (Advertising and Promotion + Trade Marketing)
 --            = DB1_MARGINAL_CONTRIBUTION
 --            └─ minus SALES_COST
 --               = DB2_MARGINAL_CONTRIBUTION  (DB2_MARGIN_PCT)
@@ -184,7 +184,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
             -- ── EBIT ──────────────────────────────────────────────────────
             RD_EXPENSE = SUM(IFF(PNL_CATEGORY = 'RD', -HSL, 0))
                 COMMENT 'Research & Development expense (EUR). '
-                        'BSH spends ~5.5-6% of net revenue on R&D — above industry average. '
+                        'BSH spends ~5.5-6% of net revenue on Research and Development — above industry average. '
                         'EUR 835M in 2024 (5.5% of EUR 15.3B revenue).',
 
             GA_EXPENSE = SUM(IFF(PNL_CATEGORY = 'GA', -HSL, 0))

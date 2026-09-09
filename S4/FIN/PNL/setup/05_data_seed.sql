@@ -22,13 +22,13 @@
 --   Mfg Overhead           -0.073  ( -8.0% of net)
 --   Logistics              -0.046  ( -5.0% of net)
 --   Gross Profit           = 31.1% of gross = 34.0% of net
---   Brand A&P              -0.082  ( -9.0% of net)
+--   Brand Advertising and Promotion              -0.082  ( -9.0% of net)
 --   Trade Marketing        -0.023  ( -2.5% of net)
 --   DB1 Marginal Contrib   = 20.6% of gross = 22.5% of net
 --   Sales Costs            -0.064  ( -7.0% of net)
 --   DB2 Marginal Contrib   = 14.2% of gross = 15.5% of net
---   R&D                    -0.055  ( -6.0% of net) ← BSH actual €835M/€15.3B
---   G&A                    -0.032  ( -3.5% of net)
+--   Research and Development                    -0.055  ( -6.0% of net) ← BSH actual €835M/€15.3B
+--   General and Administrative                    -0.032  ( -3.5% of net)
 --   EBIT                   =  5.5% of gross =  6.0% of net ✓
 --
 -- PREMIUM BRAND OVERRIDES
@@ -79,11 +79,11 @@ gl_types AS (
         ( 5, '0510000', 'COGS',       'COS', -0.073,  'Mfg Labour'),
         ( 6, '0520000', 'COGS',       'COS', -0.073,  'Mfg Overhead'),
         ( 7, '0530000', 'LOGISTICS',  'LOG', -0.046,  'Logistics'),
-        ( 8, '0600000', 'BRAND_ADP',  'ADP', -0.082,  'Brand A&P'),
+        ( 8, '0600000', 'BRAND_ADP',  'ADP', -0.082,  'Brand Advertising and Promotion'),
         ( 9, '0610000', 'BRAND_ADP',  'ADP', -0.023,  'Trade Marketing'),
         (10, '0620000', 'SALES',      'SLS', -0.064,  'Sales Costs'),
-        (11, '0700000', 'RD',         'RD',  -0.055,  'R&D'),
-        (12, '0710000', 'GA',         'GA',  -0.032,  'G&A')
+        (11, '0700000', 'RD',         'RD',  -0.055,  'Research and Development'),
+        (12, '0710000', 'GA',         'GA',  -0.032,  'General and Administrative')
     ) t(gl_idx, racct, pnl_cat, func_area, pct_factor, lbl)
 ),
 
@@ -300,7 +300,7 @@ enriched AS (
                 CASE MOD(a.rn, 10)
                     WHEN 0 THEN '0000100001' WHEN 1 THEN '0000100001'  -- MediaMarkt DE (20%)
                     WHEN 2 THEN '0000100003' WHEN 3 THEN '0000100003'  -- Amazon DE (20%)
-                    WHEN 4 THEN '0000100007'                            -- Küche&Co (10%)
+                    WHEN 4 THEN '0000100007'                            -- Kueche Co (10%)
                     WHEN 5 THEN '0000100009'                            -- Nobilia (10%)
                     WHEN 6 THEN '0000100002'                            -- Saturn (10%)
                     WHEN 7 THEN '0000100004'                            -- Euronics (10%)
