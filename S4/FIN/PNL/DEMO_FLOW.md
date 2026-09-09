@@ -198,30 +198,100 @@ USE ROLE BSH_DEMO_ROLE;
 
 ## Add a New Company (Runbook)
 
-To onboard a second demo company (e.g. Henkel, Miele, Bayer):
+### What does "a company" mean here?
+
+Every row in `S3_FINANCE_PNL` has a `CLIENT_ID` column. All BSH rows have `CLIENT_ID = 'BSH'`.
+A "new company" is simply a set of rows with a different `CLIENT_ID` — for example `'HENKEL'`.
+
+> `CLIENT_ID` is the **tenant** identifier.
+> `COMPANYCODE` is different — it is the SAP-internal entity within a company
+> (BSH uses 1000=Germany, 2000=North America, 3000=APAC, etc.).
+> Do not confuse the two.
+
+The table, semantic view, and Row Access Policy are **shared** across all companies.
+The RAP reads `ROLE_ACCESS_MAPPING` dynamically, so it automatically enforces boundaries for any
+new `CLIENT_ID` you register — no DDL changes required.
+
+### Step 1 — Create the role and register access
+
+Run from your laptop (or trigger via GitHub Actions → `deploy` with the runbook):
 
 ```bash
-# Step 1: Run the onboarding script
 make add-company COMPANY=HENKEL CONNECTION=EU_DEMO47
-
-# Step 2: Load Henkel P&L data
-# → Insert rows into S4.FIN.S3_FINANCE_PNL with CLIENT_ID = 'HENKEL'
-# → Use your own data generation script or adapt 05_data_seed.sql
-
-# Step 3: Create a Henkel-specific agent (optional but recommended)
-# → Add CREATE CORTEX AGENT HENKEL_PNL_AGENT ... to a new 08_agent_henkel.sql
-
-# Step 4: Test isolation
-USE ROLE HENKEL_DEMO_ROLE;
-SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
--- Returns: HENKEL only  (BSH rows invisible to this role)
-
-USE ROLE BSH_DEMO_ROLE;
-SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
--- Returns: BSH only  (Henkel rows invisible to this role)
 ```
 
-**What does NOT change:** `S3_FINANCE_PNL` DDL, `BSH_PNL_ANALYTICS_SV`, `PNL_CLIENT_ISOLATION_POLICY`.
+This creates `HENKEL_DEMO_ROLE` and inserts one row into `ROLE_ACCESS_MAPPING`:
+
+| ROLE_NAME | ALLOWED_CLIENT | ALLOWED_REGION | Effect |
+|-----------|---------------|----------------|--------|
+| HENKEL_DEMO_ROLE | HENKEL | NULL | Full Henkel access, all regions |
+
+### Step 2 — Load Henkel's data
+
+Insert rows into `S3_FINANCE_PNL` with `CLIENT_ID = 'HENKEL'`.
+The easiest path is to copy `05_data_seed.sql`, replace `'BSH'` with `'HENKEL'`, and adapt the
+product names, brand names, and amount ranges to match Henkel's business profile.
+
+For a quick isolation test before building a full dataset, one row is enough:
+
+```sql
+INSERT INTO S4.FIN.S3_FINANCE_PNL
+    (CLIENT_ID, REGION, BRAND, CATEGORY, PNL_CATEGORY, HSL,
+     FISCALYEAR, POSTINGPERIOD, POSTINGDATE, CURRENCY,
+     ACDOCA_RACCT, COMPANYCODE, SALESORDER, VERSION, RECORDTYPE,
+     LASTUPDATE_TS_REPORTING, CFIN_TS_DELTA)
+VALUES
+    ('HENKEL', 'DACH', 'HENKEL_CONSUMER', 'CONSUMER_GOODS', 'REVENUE',
+     1500000, 2024, 3, '2024-03-31', 'EUR',
+     '0800000', '1000', 'SO-HENKEL-001', '000', '00',
+     CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+```
+
+### Step 3 — Verify isolation
+
+```sql
+-- Henkel role: should see only HENKEL rows
+USE ROLE HENKEL_DEMO_ROLE;
+SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
+-- Expected: HENKEL
+
+-- BSH role: must not see HENKEL rows
+USE ROLE BSH_DEMO_ROLE;
+SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
+-- Expected: BSH only
+
+-- Global role: sees both companies side by side
+USE ROLE BSH_DEMO_GLOBAL_ROLE;
+SELECT CLIENT_ID, COUNT(*) AS rows FROM S4.FIN.S3_FINANCE_PNL GROUP BY 1;
+-- Expected: BSH ~100,000 rows  |  HENKEL however many you loaded
+```
+
+### Step 4 — Create a Henkel Cortex Agent (optional)
+
+The shared `BSH_PNL_ANALYTICS_SV` semantic view already works for Henkel data.
+A company-specific agent just lets you tailor the system prompt:
+
+```sql
+USE ROLE ACCOUNTADMIN;
+USE DATABASE S4; USE SCHEMA FIN;
+
+CREATE OR REPLACE CORTEX AGENT HENKEL_PNL_AGENT
+    SEMANTIC_VIEWS  = (S4.FIN.BSH_PNL_ANALYTICS_SV)
+    SEARCH_SERVICES = (S4.FIN.BSH_PNL_SEARCH_SVC)
+    COMMENT = 'Henkel P&L analysis agent';
+
+GRANT USAGE ON CORTEX AGENT HENKEL_PNL_AGENT TO ROLE HENKEL_DEMO_ROLE;
+```
+
+### Summary: what changes and what does not
+
+| Object | Changes needed? |
+|--------|-----------------|
+| `S3_FINANCE_PNL` table DDL | No — same table, new rows with new `CLIENT_ID` |
+| `PNL_CLIENT_ISOLATION_POLICY` RAP | No — reads `ROLE_ACCESS_MAPPING` dynamically |
+| `BSH_PNL_ANALYTICS_SV` semantic view | No — shared, works for any company |
+| `ROLE_ACCESS_MAPPING` | Yes — one `INSERT` row via `make add-company` |
+| New company's data | Yes — you need to create the data rows |
 
 ---
 
