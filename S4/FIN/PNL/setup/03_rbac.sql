@@ -62,13 +62,11 @@ CREATE OR REPLACE TABLE ROLE_ACCESS_MAPPING (
     ALLOWED_CLIENT  VARCHAR(50)
                     COMMENT 'CLIENT_ID this role may see. NULL = all clients (global access)',
     ALLOWED_REGION  VARCHAR(30)
-                    COMMENT 'REGION this role may see within the allowed client. '
-                            'NULL = all regions for that client',
+                    COMMENT 'REGION this role may see within the allowed client. NULL = all regions for that client',
     DESCRIPTION     VARCHAR(500)
                     COMMENT 'Human-readable purpose of this mapping row'
 )
-COMMENT = 'RAP data-access registry — one row per (role, client, region) permission. '
-          'Insert here to onboard new companies or regional roles; no DDL changes required.';
+COMMENT = 'RAP data-access registry — one row per (role, client, region) permission. Insert here to onboard new companies or regional roles; no DDL changes required.';
 
 -- BSH_DEMO_GLOBAL_ROLE — all clients, all regions
 INSERT INTO ROLE_ACCESS_MAPPING VALUES
@@ -126,8 +124,7 @@ CREATE OR REPLACE ROW ACCESS POLICY PNL_CLIENT_ISOLATION_POLICY
               AND (ALLOWED_CLIENT IS NULL OR ALLOWED_CLIENT = p_client_id)
               AND (ALLOWED_REGION IS NULL OR ALLOWED_REGION = p_region)
         )
-COMMENT = 'Two-column Row Access Policy: enforces CLIENT_ID (tenant) + REGION isolation. '
-          'Applied to S3_FINANCE_PNL. Inherited automatically by the Semantic View.';
+COMMENT = 'Two-column Row Access Policy: enforces CLIENT_ID (tenant) + REGION isolation. Applied to S3_FINANCE_PNL. Inherited automatically by the Semantic View.';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- STEP 3: Create roles

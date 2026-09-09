@@ -26,11 +26,7 @@ USE SCHEMA FIN;
 CREATE OR REPLACE CORTEX AGENT BSH_PNL_AGENT
     SEMANTIC_VIEWS  = (IDENTIFIER('<% db_name %>').FIN.BSH_PNL_ANALYTICS_SV)
     SEARCH_SERVICES = (IDENTIFIER('<% db_name %>').FIN.BSH_PNL_SEARCH_SVC)
-    COMMENT = 'BSH Group financial PnL analysis agent. '
-              'Answers structured margin questions via the Semantic View and qualitative '
-              'market/product questions via the BSH document search service. '
-              'Row Access Policy on the underlying table enforces data visibility per role — '
-              'the agent automatically sees only data the calling role is authorised to access.'
+    COMMENT = 'BSH Group financial PnL analysis agent. Answers structured margin questions via the Semantic View and qualitative market/product questions via the BSH document search service. Row Access Policy on the underlying table enforces data visibility per role — the agent automatically sees only data the calling role is authorised to access.'
 ;
 
 -- =============================================================================

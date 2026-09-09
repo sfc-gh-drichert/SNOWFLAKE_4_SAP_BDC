@@ -28,8 +28,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
 
     -- ── TENANT ISOLATION ───────────────────────────────────────────────────
     CLIENT_ID                       VARCHAR(50)
-        COMMENT 'Tenant identifier — Row Access Policy enforces visibility per role. '
-                'BSH = BSH Group. HENKEL, etc. for future companies.',
+        COMMENT 'Tenant identifier — Row Access Policy enforces visibility per role. BSH = BSH Group. HENKEL, etc. for future companies.',
 
     -- ── PERIOD / TIME ──────────────────────────────────────────────────────
     MONTHYEAR                       NUMBER(38,0)
@@ -45,60 +44,43 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
 
     -- ── AMOUNT ─────────────────────────────────────────────────────────────
     HSL                             NUMBER(18,2)
-        COMMENT 'Amount in EUR (company code currency). '
-                'Positive = revenue/credit; negative = cost/debit. '
-                'This is the primary PnL value used in all metric calculations.',
+        COMMENT 'Amount in EUR (company code currency). Positive = revenue/credit; negative = cost/debit. This is the primary PnL value used in all metric calculations.',
     CURRENCY                        VARCHAR(5)
-        COMMENT 'Currency code (ISO 4217). EUR for all demo rows; '
-                'future: USD for COMPANYCODE=2000, CNY for 3000.',
+        COMMENT 'Currency code (ISO 4217). EUR for all demo rows; future: USD for COMPANYCODE=2000, CNY for 3000.',
     CURRENCYTYPE                    VARCHAR(2)
         COMMENT 'Currency type: 10=company code currency, 30=group currency',
 
     -- ── GL ACCOUNT / PnL CLASSIFICATION ────────────────────────────────────
     ACDOCA_RACCT                    VARCHAR(10)
-        COMMENT 'GL account number — primary join key to DIM_GL_ACCOUNT '
-                'and the PnL hierarchy. See 02_dimensions.sql for mapping.',
+        COMMENT 'GL account number — primary join key to DIM_GL_ACCOUNT and the PnL hierarchy. See 02_dimensions.sql for mapping.',
     PNL_CATEGORY                    VARCHAR(30)
-        COMMENT 'Denormalised from ACDOCA_RACCT: '
-                'REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | '
-                'BRAND_ADP | SALES | RD | GA. '
-                'Used directly in Semantic View metric expressions.',
+        COMMENT 'Denormalised from ACDOCA_RACCT: REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | BRAND_ADP | SALES | RD | GA. Used directly in Semantic View metric expressions.',
     LEDGER                          VARCHAR(4)
         COMMENT 'SAP ledger: 0L = standard ledger (actuals)',
 
     -- ── ORGANISATIONAL DIMENSIONS ───────────────────────────────────────────
     COMPANYCODE                     VARCHAR(4)
-        COMMENT 'SAP company code (BUKRS). BSH-internal entity: '
-                '1000=Germany, 1100=W_Europe, 1200=E_Europe, '
-                '2000=NA (USD), 3000=China (CNY), 4000=Emerging. '
-                'NOT the same as CLIENT_ID — see design notes in 03_rbac.sql.',
+        COMMENT 'SAP company code (BUKRS). BSH-internal entity: 1000=Germany, 1100=W_Europe, 1200=E_Europe, 2000=NA (USD), 3000=China (CNY), 4000=Emerging. NOT the same as CLIENT_ID — see design notes in 03_rbac.sql.',
     COUNTRY                         VARCHAR(3)
         COMMENT 'Country of the company code (ISO 3166-1 alpha-3)',
     COUNTRY_SOLD_TO                 VARCHAR(3)
         COMMENT 'Country of the sold-to party',
     SALESORGANISATION               VARCHAR(4)
-        COMMENT 'SAP sales organisation: 0010=Bosch, 0020=Siemens, '
-                '0030=Gaggenau, 0040=Neff, 0050=Thermador',
+        COMMENT 'SAP sales organisation: 0010=Bosch, 0020=Siemens, 0030=Gaggenau, 0040=Neff, 0050=Thermador',
     DISTRIBUTIONCHANNEL             VARCHAR(2)
-        COMMENT 'Distribution channel: '
-                '10=Retail Specialist | 20=Built-in/Project | '
-                '30=E-Commerce | 40=B2B/Commercial',
+        COMMENT 'Distribution channel: 10=Retail Specialist | 20=Built-in/Project | 30=E-Commerce | 40=B2B/Commercial',
     REPORTINGUNITASREALIGNED        VARCHAR(10)
         COMMENT 'Reporting unit after realignment adjustments',
     CONTROLLINGAREA                 VARCHAR(4)
         COMMENT 'SAP controlling area (BSH0 for all BSH entities)',
     REGION                          VARCHAR(20)
-        COMMENT 'Sales region: DACH | W_EUROPE | E_EUROPE | '
-                'N_AMERICA | APAC | EMERGING. '
-                'SECOND column in the Row Access Policy — controls regional visibility.',
+        COMMENT 'Sales region: DACH | W_EUROPE | E_EUROPE | N_AMERICA | APAC | EMERGING. SECOND column in the Row Access Policy — controls regional visibility.',
     SALESDISTRICT                   VARCHAR(6)
         COMMENT 'SAP sales district',
     PLANT                           VARCHAR(4)
         COMMENT 'Manufacturing plant (maps to DIM_PLANT.PLANT)',
     FUNCTIONALAREA                  VARCHAR(16)
-        COMMENT 'SAP functional area used in cost-of-sales accounting: '
-                'REV=Revenue, SPD=Trade Spend, COS=COGS, LOG=Logistics, '
-                'ADP=Advertising, SLS=Sales, RD=Research and Development, GA=General and Administrative',
+        COMMENT 'SAP functional area used in cost-of-sales accounting: REV=Revenue, SPD=Trade Spend, COS=COGS, LOG=Logistics, ADP=Advertising, SLS=Sales, RD=Research and Development, GA=General and Administrative',
     COSTCENTER                      VARCHAR(10)
         COMMENT 'SAP cost centre (KOSTL)',
     ORIGINCCTR                      VARCHAR(10)
@@ -112,9 +94,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     SHIPTOPARTY                     VARCHAR(10)
         COMMENT 'SAP ship-to party number',
     CUSTOMERGROUP                   VARCHAR(2)
-        COMMENT 'SAP customer group: '
-                '01=Specialist Retail | 02=Mass Retail | '
-                '03=E-Commerce | 04=Built-in/Project | 05=B2B',
+        COMMENT 'SAP customer group: 01=Specialist Retail | 02=Mass Retail | 03=E-Commerce | 04=Built-in/Project | 05=B2B',
     KEYCUSTOMER                     VARCHAR(10)
         COMMENT 'Key customer identifier for strategic account tracking',
     CUST_SOLD_TO                    VARCHAR(10)
@@ -164,8 +144,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     BRAND                           VARCHAR(20)
         COMMENT 'BSH brand (denormalised): BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
     CATEGORY                        VARCHAR(30)
-        COMMENT 'Product category (denormalised): '
-                'COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
+        COMMENT 'Product category (denormalised): COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
     SUBCATEGORY                     VARCHAR(50)
         COMMENT 'Product sub-category (denormalised, e.g. "Dishwasher Fully Integrated")',
     PRODUCT_TIER                    VARCHAR(10)
@@ -209,11 +188,9 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
 
     -- ── QUANTITIES ────────────────────────────────────────────────────────
     SALESVOLUME                     NUMBER(18,3)
-        COMMENT 'Units sold — populated on REVENUE lines (ACDOCA_RACCT=0800000) only. '
-                'Derived as HSL / LIST_PRICE_EUR. Used for avg selling price metric.',
+        COMMENT 'Units sold — populated on REVENUE lines (ACDOCA_RACCT=0800000) only. Derived as HSL / LIST_PRICE_EUR. Used for avg selling price metric.',
     LIST_PRICE_EUR                  NUMBER(10,2)
-        COMMENT 'Published list price in EUR (denormalised from DIM_PRODUCT). '
-                'Used in AVG_SELLING_PRICE_EUR metric.',
+        COMMENT 'Published list price in EUR (denormalised from DIM_PRODUCT). Used in AVG_SELLING_PRICE_EUR metric.',
     SALESVOLUME3000                 NUMBER(18,3)
         COMMENT 'Sales volume (CO-PA value field 3000)',
     INDQTY6210                      NUMBER(18,3)
@@ -260,10 +237,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
         COMMENT 'Central Finance delta timestamp — tracks source system change events'
 
 )
-COMMENT = 'BSH Group PnL fact table — ACDOCA/CO-PA profitability analysis structure. '
-          '~100K rows, Jan 2023–Dec 2024 actuals. CLIENT_ID=BSH on all rows. '
-          'Row Access Policy enforces CLIENT_ID + REGION isolation per role. '
-          'Follows the Nestlé DefinePnLTable.txt template with BSH-specific extensions.';
+COMMENT = 'BSH Group PnL fact table — ACDOCA/CO-PA profitability analysis structure. ~100K rows, Jan 2023–Dec 2024 actuals. CLIENT_ID=BSH on all rows. Row Access Policy enforces CLIENT_ID + REGION isolation per role. Follows the Nestlé DefinePnLTable.txt template with BSH-specific extensions.';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Apply the Row Access Policy (created in 03_rbac.sql)

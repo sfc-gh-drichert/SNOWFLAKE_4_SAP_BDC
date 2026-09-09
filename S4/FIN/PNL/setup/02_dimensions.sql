@@ -25,15 +25,11 @@ CREATE OR REPLACE TABLE DIM_GL_ACCOUNT (
     GL_DESCRIPTION   VARCHAR(100)
                      COMMENT 'Human-readable account description',
     PNL_CATEGORY     VARCHAR(30)
-                     COMMENT 'PnL category used in semantic view metrics: '
-                             'REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | '
-                             'BRAND_ADP | SALES | RD | GA',
+                     COMMENT 'PnL category used in semantic view metrics: REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | BRAND_ADP | SALES | RD | GA',
     PNL_LEVEL        VARCHAR(10)
-                     COMMENT 'First PnL level where this account appears: '
-                             'TOP=before Net Revenue, MC1=before DB1, MC2=before DB2, MC3=before EBIT',
+                     COMMENT 'First PnL level where this account appears: TOP=before Net Revenue, MC1=before DB1, MC2=before DB2, MC3=before EBIT',
     IS_CREDIT_NORMAL BOOLEAN
-                     COMMENT 'TRUE = revenue account (credit balance = positive HSL); '
-                             'FALSE = cost account (debit balance = negative HSL)'
+                     COMMENT 'TRUE = revenue account (credit balance = positive HSL); FALSE = cost account (debit balance = negative HSL)'
 )
 COMMENT = 'SAP GL account master — maps account numbers to PnL waterfall categories';
 
@@ -72,8 +68,7 @@ CREATE OR REPLACE TABLE DIM_PRODUCT (
     BRAND            VARCHAR(20)
                      COMMENT 'BSH brand: BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
     CATEGORY         VARCHAR(30)
-                     COMMENT 'Product category: COOKING | LAUNDRY_CARE | DISH_CARE | '
-                             'COOLING | CONSUMER_PRODUCTS',
+                     COMMENT 'Product category: COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
     SUBCATEGORY      VARCHAR(50)
                      COMMENT 'Product sub-category (appliance type)',
     LIST_PRICE_EUR   NUMBER(10,2)
@@ -168,9 +163,7 @@ CREATE OR REPLACE TABLE DIM_CUSTOMER (
     REGION           VARCHAR(20)
                      COMMENT 'Sales region: DACH | W_EUROPE | E_EUROPE | N_AMERICA | APAC | EMERGING',
     CUSTOMER_GROUP   VARCHAR(2)
-                     COMMENT 'SAP customer group: '
-                             '01=Specialist Retail | 02=Mass Retail | '
-                             '03=E-Commerce | 04=Built-in/Project | 05=B2B/Commercial',
+                     COMMENT 'SAP customer group: 01=Specialist Retail | 02=Mass Retail | 03=E-Commerce | 04=Built-in/Project | 05=B2B/Commercial',
     CHANNEL_CODE     VARCHAR(2)
                      COMMENT 'Distribution channel: 10=Retail | 20=Built-in | 30=eCom | 40=B2B',
     CUSTOMER_TIER    VARCHAR(10)
