@@ -23,9 +23,14 @@ on:
           - rbac-only          # RBAC + Row Access Policy only (03)
           - data-only          # Fact table + 100K row seed (04–05)
           - search-agent-only  # Documents, Semantic View, Agent (06–08)
+          - react-dashboard-only  # Build + deploy the React dashboard (SAR)
           - verify             # Full verification queries (09) — run after 'all'
           - teardown           # Drop all BSH demo objects
         default: ping
+      deploy_target:
+        description: 'app.yml target for react-dashboard-only (e.g. customer, dev)'
+        required: false
+        default: 'customer'
 
 jobs:
   deploy:
@@ -97,6 +102,13 @@ jobs:
               ;;
             all)
               for f in "${BASE}"/[0-9][0-9]_*.sql; do run_sql "$f"; done
+              ;;
+            react-dashboard-only)
+              echo "NOTE: Deploying React PnL Dashboard. Runs 10_dashboard_infra.sql then builds and deploys the SAR app."
+              run_sql "${BASE}/10_dashboard_infra.sql"
+              cd S4/react-dashboard
+              npm ci
+              snow app deploy --target "${{ inputs.deploy_target }}" --verbose
               ;;
             rbac-only)
               run_sql "${BASE}/03_rbac.sql"

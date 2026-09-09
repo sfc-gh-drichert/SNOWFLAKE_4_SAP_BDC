@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Chart bars representing P&L waterfall -->
+  <rect x="6"  y="14" width="10" height="36" rx="2" fill="#003087" opacity="0.9"/>
+  <rect x="20" y="26" width="10" height="24" rx="2" fill="#6366f1" opacity="0.85"/>
+  <rect x="34" y="34" width="10" height="16" rx="2" fill="#10b981" opacity="0.85"/>
+  <rect x="48" y="40" width="10" height="10" rx="2" fill="#ef4444" opacity="0.8"/>
+  <!-- Descending line connecting bar tops -->
+  <polyline points="11,14 25,26 39,34 53,40" stroke="#003087" stroke-width="2" stroke-dasharray="3 2" fill="none" opacity="0.5"/>
+</svg>

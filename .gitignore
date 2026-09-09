@@ -1,0 +1,16 @@
+# Node / Next.js
+S4/react-dashboard/node_modules/
+S4/react-dashboard/.next/
+S4/react-dashboard/out/
+
+# Local env
+.env*.local
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Snow CLI
+.snowflake/
+*.p8

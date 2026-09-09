@@ -1,0 +1,57 @@
+version: 2
+
+# ─── App identity ────────────────────────────────────────────────────────────
+name: PNL_DASHBOARD
+label: "P&L Analytics Dashboard"
+description: "Financial P&L waterfall and Cortex Agent chat for SAP-sourced data."
+icon: public/icon.svg
+
+# ─── Deployment baseline (shared across all targets) ─────────────────────────
+# Override individual fields per target below.
+# To add a new deployment target:
+#   1. Add a named block under `targets:`
+#   2. Override database / schema / query_warehouse as needed
+#   3. Deploy with: snow app deploy --target <name>
+#
+database:        S4
+schema:          FIN
+query_warehouse: BSH_DEMO_WH
+
+auto_suspend_secs: 300     # suspend after 5 min idle
+
+default_target: dev
+
+targets:
+  # Local / personal development — uses your default Snow CLI connection
+  dev: {}
+
+  # Customer demo environment — override database/warehouse per engagement
+  # Typically triggered via GitHub Actions (workflow input: deploy_target=customer)
+  customer:
+    query_warehouse: BSH_DEMO_WH  # override if the target account uses a different name
+
+# ─── Environment variables available to the running service ──────────────────
+# These are read by lib/demo-config.ts to configure the data source.
+# Override NEXT_PUBLIC_SF_AGENT if the agent name differs in a new account.
+environment_variables:
+  - name: NEXT_PUBLIC_SF_DATABASE
+    value: "S4"
+  - name: NEXT_PUBLIC_SF_AGENT
+    value: "S4.FIN.BSH_PNL_AGENT"
+
+# ─── Builder phases ───────────────────────────────────────────────────────────
+install:
+  commands:
+    - ["npm", "ci", "--include=dev"]
+
+build:
+  commands:
+    - ["npm", "run", "build"]
+    # Standalone mode: copy static assets into the standalone output directory
+    - ["cp", "-r", ".next/static", ".next/standalone/.next/static"]
+    - ["cp", "-r", "public", ".next/standalone/public"]
+    # Drop the root node_modules — standalone includes its own copy
+    - ["rm", "-rf", "node_modules"]
+
+run:
+  command: ["node", ".next/standalone/server.js"]

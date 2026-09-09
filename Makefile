@@ -20,8 +20,9 @@ CONNECTION ?= my_snowflake
 DATABASE   ?= S4
 WAREHOUSE  ?= BSH_DEMO_WH
 DEMO       ?= S4/FIN/PNL
+TARGET     ?= dev    # app.yml target for snow app deploy
 
-.PHONY: install verify teardown add-company help \
+.PHONY: install verify teardown add-company dashboard-install dashboard-teardown help \
         bdc-catalog bdc-discover bdc-confirm bdc-mount bdc-verify bdc-teardown
 
 help:
@@ -69,6 +70,21 @@ add-company:
 		--connection "$(CONNECTION)" \
 		--variable "db_name=$(DATABASE)" \
 		--variable "company_id=$(COMPANY)"
+
+## Build and deploy the P&L React dashboard (Snowflake App Runtime)
+## Usage: make dashboard-install [TARGET=dev|customer] [CONNECTION=...]
+dashboard-install:
+	snow sql -f "$(DEMO)/setup/10_dashboard_infra.sql" \
+		--connection "$(CONNECTION)" \
+		--variable "db_name=$(DATABASE)"
+	@cd S4/react-dashboard && npm ci
+	snow app deploy --target "$(TARGET)" \
+		--connection "$(CONNECTION)"
+
+## Tear down the dashboard app service (leaves compute pool and image registry)
+dashboard-teardown:
+	snow app teardown --force --target "$(TARGET)" \
+		--connection "$(CONNECTION)"
 
 ## -----------------------------------------------------------------------------
 ## SAP BDC CLD mapping — see README: "Mapping SAP BDC Data Products into the
