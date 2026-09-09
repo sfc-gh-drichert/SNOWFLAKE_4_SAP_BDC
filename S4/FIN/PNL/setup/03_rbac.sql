@@ -119,7 +119,7 @@ CREATE OR REPLACE ROW ACCESS POLICY PNL_CLIENT_ISOLATION_POLICY
         -- Check against mapping table (policy runs as ACCOUNTADMIN owner)
         EXISTS (
             SELECT 1
-            FROM IDENTIFIER('<% db_name %>').FIN.ROLE_ACCESS_MAPPING
+            FROM <% db_name %>.FIN.ROLE_ACCESS_MAPPING
             WHERE ROLE_NAME     = CURRENT_ROLE()
               AND (ALLOWED_CLIENT IS NULL OR ALLOWED_CLIENT = p_client_id)
               AND (ALLOWED_REGION IS NULL OR ALLOWED_REGION = p_region)
