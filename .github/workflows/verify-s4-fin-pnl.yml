@@ -43,7 +43,8 @@ jobs:
           role             = "ACCOUNTADMIN"
           EOF
           printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" > /tmp/rsa_key.p8
-          chmod 400 /tmp/rsa_key.p8
+          chmod 0600 /tmp/rsa_key.p8
+          chmod 0600 ~/.snowflake/config.toml
 
       - name: Run verification
         run: |
