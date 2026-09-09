@@ -237,7 +237,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
         COMMENT 'Central Finance delta timestamp — tracks source system change events'
 
 )
-COMMENT = 'BSH Group PnL fact table — ACDOCA/CO-PA profitability analysis structure. ~100K rows, Jan 2023–Dec 2024 actuals. CLIENT_ID=BSH on all rows. Row Access Policy enforces CLIENT_ID + REGION isolation per role. Follows the Nestlé DefinePnLTable.txt template with BSH-specific extensions.';
+COMMENT = 'BSH Group PnL fact table — ACDOCA/CO-PA profitability analysis structure. ~100K rows, Jan 2023–Sep 2026 (2026 partial). CLIENT_ID=BSH on all rows. Row Access Policy enforces CLIENT_ID + REGION isolation per role. Follows the Nestlé DefinePnLTable.txt template with BSH-specific extensions.';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Apply the Row Access Policy (created in 03_rbac.sql)

@@ -50,7 +50,7 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
 
 ### Act 1 — BSH Context (2 minutes)
 
-> "BSH is Europe's largest home appliance manufacturer — EUR 15.3 billion in revenue in 2024,
+> "BSH is Europe's largest home appliance manufacturer — EUR 15.3 billion in revenue (2024 reference year),
 > owned by Bosch since 2015. They make the brands in most European kitchens:
 > Bosch, Siemens, Gaggenau, NEFF, Thermador.
 >
@@ -105,14 +105,14 @@ USE ROLE BSH_DEMO_ROLE;
 
 **Suggested agent questions:**
 
-1. *"Show me the BSH Group P&L waterfall for 2024 — from gross revenue down to EBIT, for each brand."*
+1. *"Show me the BSH Group P&L waterfall for 2025 — from gross revenue down to EBIT, for each brand."*
 
    Expected: table with BRAND | GROSS_REVENUE | NET_REVENUE | GROSS_PROFIT | DB1 | DB2 | EBIT | EBIT_MARGIN_PCT
 
-2. *"What was the EBIT margin in 2024 compared to 2023 across all brands?"*
+2. *"What was the EBIT margin trend from 2023 to 2026 across all brands?"*
 
-3. *"Why is the Cooking category declining? How much did it decline in 2024?"*
-   > This combines SQL (category revenue down 4.6%) with document search (real estate cycle explanation from the press release)
+3. *"The Cooking category declined in 2024 — has it recovered in 2025 and 2026?"*
+   > This combines SQL (2024 decline + 2025-2026 recovery arc) with document search (real estate cycle / AI appliance trends)
 
 ---
 
@@ -144,10 +144,10 @@ USE ROLE BSH_DEMO_ROLE;
 8. *"Compare gross margin across distribution channels — Retail, Built-in, E-Commerce, B2B."*
    > Expected: Built-in channel has highest margin (Gaggenau/NEFF bias), E-Commerce has lower
 
-9. *"Show monthly Bosch revenue for 2024. What seasonal pattern do you see?"*
+9. *"Show monthly Bosch revenue for 2025. What seasonal pattern do you see?"*
    > Expected: September peak (IFA Berlin product launches), November/December Christmas peak, January trough
 
-10. *"North America grew 3% in 2024. What drove that growth?"*
+10. *"How has North America grown since 2023? What drove that growth?"*
     > Agent should reference the Experience and Design Center expansion document
 
 ---
@@ -155,15 +155,15 @@ USE ROLE BSH_DEMO_ROLE;
 ## Sample Cortex Agent Question Bank
 
 ### Brand Performance
-- "What was BSH's total gross revenue in 2024 by brand?"
+- "What was BSH's total gross revenue in 2025 by brand?"
 - "Compare Bosch and Siemens: revenue, gross margin, and EBIT margin side by side."
 - "Which brand contributes most to group EBIT in absolute euros?"
 - "What is Thermador's EBIT margin compared to BSH's overall EBIT margin?"
 - "Show the DB2 margin waterfall for Gaggenau from gross revenue to DB2."
 
 ### Category Analysis
-- "Which product category had the highest revenue growth in 2024?"
-- "Consumer Products grew 5.5% in 2024. What drove this growth?"
+- "Which product category had the highest revenue growth between 2023 and 2026?"
+- "Consumer Products has been growing consistently. What drove this growth?"
 - "Compare gross margin across all five product categories."
 - "What is the split between PREMIUM, MID, and ENTRY tier revenue for dishwashers?"
 - "Which category has the highest average selling price?"
@@ -172,18 +172,18 @@ USE ROLE BSH_DEMO_ROLE;
 - "How does the DACH region P&L compare to Western Europe?"
 - "What is BSH's APAC revenue and EBIT margin?"
 - "Which regions are above and below the group average EBIT margin?"
-- "Show revenue by region for 2023 and 2024 — which grew fastest?"
+- "Show revenue by region from 2023 to 2026 — which grew fastest?"
 - "What is the distribution channel mix in North America versus Europe?"
 
 ### Channel Strategy
 - "What percentage of BSH revenue comes from E-Commerce versus Retail?"
 - "Compare trade discount rates across channels — which channel has the lowest discounts?"
-- "The Built-in channel declined in 2024. By how much and why?"
+- "The Built-in channel was under pressure. By how much did it decline and why?"
 - "Which combination of brand and distribution channel has the highest DB2 margin?"
 
 ### Cost Structure and Margins
 - "Break down BSH's cost structure as a percentage of net revenue (COGS, Advertising and Promotion, Sales, Research and Development, General and Administrative)."
-- "BSH invested EUR 835 million in Research and Development in 2024. What is that as a percentage of revenue?"
+- "BSH invested EUR 835 million in Research and Development (2024 reference). What is that as a percentage of revenue?"
 - "How does trade marketing spend compare across brands?"
 - "What would EBIT be if trade discounts were reduced by 2 percentage points?"
 

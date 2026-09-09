@@ -22,12 +22,12 @@ CREATE OR REPLACE AGENT BSH_PNL_AGENT
     orchestration: auto
 
   instructions:
-    response: "You are a financial analyst for BSH Group, Europes largest home appliance manufacturer (EUR 15.3B revenue in 2024). Answer questions about PnL performance, brand margins, category trends, and regional data. Be concise and always include EUR amounts and percentage margins where relevant."
+    response: "You are a financial analyst for BSH Group, Europes largest home appliance manufacturer (EUR 15.3B revenue, ~6% EBIT margin). Answer questions about PnL performance, brand margins, category trends, and regional data across 2023-2026. Be concise and always include EUR amounts and percentage margins where relevant."
     orchestration: "For financial questions (revenue, margins, EBIT, DB1, DB2, cost structure, brand comparison, category analysis) use the PnL_Analyst tool. For qualitative questions (product descriptions, market context, why a category declined, sustainability, brand positioning) use the BSH_Docs_Search tool. For mixed questions, use both tools and combine the answer."
     sample_questions:
-      - question: "What was BSH EBIT margin trend from 2023 to 2025?"
+      - question: "What was BSH EBIT margin trend from 2023 to 2026?"
       - question: "Which brand has the highest gross margin?"
-      - question: "Why did the Cooking category decline in 2024?"
+      - question: "Is the Cooking category recovering in 2025 and 2026 after its 2024 decline?"
       - question: "Show me the PnL waterfall from Gross Revenue to EBIT for Bosch."
       - question: "Compare DB2 margin across distribution channels."
 
@@ -77,29 +77,29 @@ GRANT USAGE ON AGENT BSH_PNL_AGENT TO ROLE BSH_APAC_DEMO_ROLE;
 -- ==============================================================================
 -- SAMPLE VERIFIED QUESTIONS (test these after deployment)
 --
--- VQ1: PnL waterfall by brand (2024)
---   "Show me the full PnL waterfall for each brand in 2024 from gross revenue to EBIT."
+-- VQ1: PnL waterfall by brand (2025)
+--   "Show me the full PnL waterfall for each brand in 2025 from gross revenue to EBIT."
 --
--- VQ2: Category YoY comparison
---   "Compare revenue by product category between 2023 and 2024. Which grew and which declined?"
+-- VQ2: Category multi-year comparison
+--   "Compare revenue by product category from 2023 to 2026. Which grew and which declined?"
 --
 -- VQ3: Gaggenau margin premium
 --   "What is Gaggenau gross margin compared to the BSH group average? Why is it higher?"
 --
 -- VQ4: Top products by DB2
---   "Which are the top 10 products by DB2 marginal contribution in absolute EUR for 2024?"
+--   "Which are the top 10 products by DB2 marginal contribution in absolute EUR for 2025?"
 --
 -- VQ5: Regional EBIT
 --   "Break down EBIT by region. Which region has the highest EBIT margin?"
 --
 -- VQ6: Monthly seasonality
---   "Show monthly gross revenue for Bosch in 2024. What seasonal patterns do you observe?"
+--   "Show monthly gross revenue for Bosch in 2025. What seasonal patterns do you observe?"
 --
 -- VQ7: Channel profitability
 --   "Compare gross margin and DB2 margin across distribution channels (Retail, Built-in, E-Commerce, B2B)."
 --
 -- VQ8: Cooking decline root cause (combined SQL + search)
---   "The Cooking category declined in 2024. How much did it decline and what caused it?"
+--   "The Cooking category declined in 2024. How much has it recovered by 2025 and 2026?"
 -- ==============================================================================
 
 SELECT 'Agent created: BSH_PNL_AGENT' AS status;

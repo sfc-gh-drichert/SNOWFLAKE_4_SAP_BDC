@@ -54,11 +54,11 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
     PNL.POSTINGDATE         AS POSTINGDATE
       COMMENT = 'Posting date (last day of fiscal period)',
     PNL.FISCALYEAR          AS FISCALYEAR
-      COMMENT = 'Fiscal year (2023 or 2024)',
+      COMMENT = 'Fiscal year (2023-2026; 2026 is partial through Sep)',
     PNL.POSTINGPERIOD       AS POSTINGPERIOD
       COMMENT = 'Posting period within fiscal year (1-12)',
     PNL.MONTHYEAR           AS MONTHYEAR
-      COMMENT = 'Fiscal period in YYYYMMM format (e.g. 2024003)',
+      COMMENT = 'Fiscal period in YYYYMMM format (e.g. 2025003 = March 2025)',
     PNL.CUSTOMERGROUP       AS CUSTOMERGROUP
       COMMENT = '01=Specialist Retail | 02=Mass | 03=E-Commerce | 04=Built-in | 05=B2B'
   )
@@ -122,7 +122,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
 
     -- ── EBIT ──────────────────────────────────────────────────────────────────
     PNL.RD_EXPENSE AS SUM(IFF(PNL_CATEGORY = 'RD', -HSL, 0))
-      COMMENT = 'Research and Development expense (EUR). BSH spends ~5.5-6% of net revenue on Research and Development — above industry average. EUR 835M in 2024.',
+      COMMENT = 'Research and Development expense (EUR). BSH spends ~5.5-6% of net revenue on Research and Development — above industry average. EUR 835M in 2024 (reference year).',
 
     PNL.GA_EXPENSE AS SUM(IFF(PNL_CATEGORY = 'GA', -HSL, 0))
       COMMENT = 'General and Administrative expenses (EUR). Typically 3.5% of net revenue.',
@@ -133,7 +133,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
               - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
               - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
               - SUM(IFF(PNL_CATEGORY IN ('RD','GA'), -HSL, 0))
-      COMMENT = 'EBIT - Earnings Before Interest and Tax (EUR). BSH actual 2024: approx EUR 918M (6% of EUR 15.3B net revenue).',
+      COMMENT = 'EBIT - Earnings Before Interest and Tax (EUR). BSH 2024 reference: approx EUR 918M (6% of EUR 15.3B net revenue). Dataset covers 2023-2026.',
 
     -- ── VOLUME ────────────────────────────────────────────────────────────────
     PNL.TOTAL_UNITS AS SUM(IFF(ACDOCA_RACCT = '0800000', SALESVOLUME, 0))
@@ -142,7 +142,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
     -- ── DERIVED METRICS (ratios) - no table prefix ────────────────────────────
     -- These reference the table-scoped metrics above using the PNL.<name> notation.
     EBIT_MARGIN_PCT AS PNL.EBIT / NULLIF(PNL.NET_REVENUE, 0) * 100
-      COMMENT = 'EBIT Margin % of Net Revenue. BSH 2024 actual: ~6%.',
+      COMMENT = 'EBIT Margin % of Net Revenue. BSH 2024 reference: ~6%. Dataset covers 2023-2026 with category-level adjustors applied each year.',
 
     GP_MARGIN_PCT AS PNL.GROSS_PROFIT / NULLIF(PNL.NET_REVENUE, 0) * 100
       COMMENT = 'Gross Profit Margin % of Net Revenue. BSH avg ~34%. Gaggenau ~46%.',
@@ -154,7 +154,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
       COMMENT = 'Average Selling Price in EUR = Gross Revenue / Units Sold. Gaggenau ASP is 4-6x higher than Bosch.'
   )
 
-  COMMENT = 'BSH Group PnL Analytics Semantic View. Full PnL waterfall: Gross Revenue to DB1 to DB2 to EBIT. Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. 2023-2024 actuals, ~100K rows. EUR currency throughout.';
+  COMMENT = 'BSH Group PnL Analytics Semantic View. Full PnL waterfall: Gross Revenue to DB1 to DB2 to EBIT. Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. 2023-2026 (2026 partial through Sep), ~100K rows. EUR currency throughout.';
 
 -- Grant REFERENCES + SELECT (REFERENCES is required for Cortex Agent usage)
 GRANT REFERENCES, SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_EUROPE_DEMO_ROLE;
