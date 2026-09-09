@@ -1,4 +1,4 @@
-[connections.EU_DEMO47]
+[connections.my_snowflake]
 # Snowflake account identifier — find it in Snowsight under Admin > Accounts
 # Format examples:
 #   abc12345.eu-west-1              (AWS Frankfurt)

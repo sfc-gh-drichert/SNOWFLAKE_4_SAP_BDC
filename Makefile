@@ -10,7 +10,7 @@
 #   make add-company COMPANY=HENKEL          # Onboard a new company
 # =============================================================================
 
-CONNECTION ?= EU_DEMO47
+CONNECTION ?= my_snowflake
 DATABASE   ?= S4
 WAREHOUSE  ?= BSH_DEMO_WH
 DEMO       ?= S4/FIN/PNL

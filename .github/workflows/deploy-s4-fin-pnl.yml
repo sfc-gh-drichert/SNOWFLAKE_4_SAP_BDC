@@ -42,7 +42,7 @@ jobs:
           cli-version: latest
 
       # Build the connection config from GitHub Secrets.
-      # SNOWFLAKE_ACCOUNT     — account identifier (e.g. SFSEEUROPE-EU_DEMO47)
+      # SNOWFLAKE_ACCOUNT     — account identifier (e.g. orgname-accountname)
       # SNOWFLAKE_USER        — user with ACCOUNTADMIN privileges in the target account
       # SNOWFLAKE_PRIVATE_KEY — RSA private key PEM (no passphrase); see README.md
       # Key pair auth is Snowflake-native (SNOWFLAKE_JWT) — does not go through Okta/SSO.

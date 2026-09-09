@@ -217,7 +217,7 @@ new `CLIENT_ID` you register — no DDL changes required.
 Run from your laptop (or trigger via GitHub Actions → `deploy` with the runbook):
 
 ```bash
-make add-company COMPANY=HENKEL CONNECTION=EU_DEMO47
+make add-company COMPANY=HENKEL CONNECTION=my_snowflake
 ```
 
 This creates `HENKEL_DEMO_ROLE` and inserts one row into `ROLE_ACCESS_MAPPING`:

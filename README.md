@@ -40,7 +40,7 @@ S3_FINANCE_PNL  (base fact table)
 
    | Secret | Value |
    |--------|-------|
-   | `SNOWFLAKE_ACCOUNT` | Account identifier for the target Snowflake account (e.g. `SFSEEUROPE-EU_DEMO47`) |
+   | `SNOWFLAKE_ACCOUNT` | Account identifier for the target Snowflake account (e.g. `orgname-accountname`) |
    | `SNOWFLAKE_USER` | Snowflake username of the service user running the deployment |
    | `SNOWFLAKE_PRIVATE_KEY` | Full contents of `bsh_demo_cicd.p8` including PEM headers — see setup guide below |
 
@@ -57,7 +57,7 @@ cd SNOWFLAKE_4_SAP_BDC
 cp .snowflake/config.toml.example ~/.snowflake/config.toml
 
 # Deploy the BSH PnL demo
-make install DEMO=S4/FIN/PNL CONNECTION=EU_DEMO47
+make install DEMO=S4/FIN/PNL CONNECTION=my_snowflake
 ```
 
 ---
@@ -85,7 +85,7 @@ openssl rsa -in bsh_demo_cicd.p8 -pubout -out bsh_demo_cicd.pub
 
 ### Step 2 — Register the public key in Snowflake (Snowsight or SnowSQL)
 
-Open Snowsight on the **target account** (e.g. EU_DEMO47) and run as `ACCOUNTADMIN`:
+Open Snowsight on the target Snowflake account and run as `ACCOUNTADMIN`:
 
 ```sql
 -- Use the named key pair approach (recommended — supports rotation and expiry)
@@ -116,7 +116,7 @@ and add these three secrets:
 
 | Secret name | Where to get the value |
 |---|---|
-| `SNOWFLAKE_ACCOUNT` | The account identifier for EU_DEMO47, e.g. `SFSEEUROPE-EU_DEMO47` |
+| `SNOWFLAKE_ACCOUNT` | Your Snowflake account identifier, e.g. `orgname-accountname` |
 | `SNOWFLAKE_USER` | The Snowflake username you ran `ALTER USER` on above |
 | `SNOWFLAKE_PRIVATE_KEY` | The **full contents** of `bsh_demo_cicd.p8` — copy everything including the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines |
 
@@ -180,7 +180,7 @@ Do not confuse the two.
 
 ```bash
 # From the repo root — this creates the role and registers it in ROLE_ACCESS_MAPPING
-make add-company COMPANY=HENKEL CONNECTION=EU_DEMO47
+make add-company COMPANY=HENKEL CONNECTION=my_snowflake
 ```
 
 Or trigger the GitHub Actions `deploy` workflow and choose `add-company` if you add that as a
@@ -188,7 +188,7 @@ workflow option, or just run the runbook directly:
 
 ```bash
 snow sql -f S4/FIN/PNL/runbooks/add_company.sql \
-  --connection EU_DEMO47 \
+  --connection my_snowflake \
   --variable db_name=S4 \
   --variable wh_name=BSH_DEMO_WH \
   --variable company_id=HENKEL

@@ -28,10 +28,10 @@ A complete Snowflake demo environment built on BSH Group financials, using an SA
 
 ```bash
 # From repo root:
-make install DEMO=S4/FIN/PNL CONNECTION=EU_DEMO47
+make install DEMO=S4/FIN/PNL CONNECTION=my_snowflake
 
 # Or directly:
-./install.sh EU_DEMO47 S4 BSH_DEMO_WH S4/FIN/PNL
+./install.sh my_snowflake S4 BSH_DEMO_WH S4/FIN/PNL
 ```
 
 ---
@@ -69,7 +69,7 @@ See **[DEMO_FLOW.md](DEMO_FLOW.md)** for the full demo script with talking point
 ## Adding a New Company
 
 ```bash
-make add-company COMPANY=HENKEL CONNECTION=EU_DEMO47
+make add-company COMPANY=HENKEL CONNECTION=my_snowflake
 ```
 
 Then load Henkel data rows with `CLIENT_ID = 'HENKEL'`. The Row Access Policy and Semantic View require no DDL changes. See [`runbooks/add_company.sql`](runbooks/add_company.sql) for full instructions.
@@ -79,7 +79,7 @@ Then load Henkel data rows with `CLIENT_ID = 'HENKEL'`. The Row Access Policy an
 ## Verification
 
 ```bash
-make verify CONNECTION=EU_DEMO47
+make verify CONNECTION=my_snowflake
 ```
 
 Runs 11 automated checks including row count, EBIT margin sanity (expect ~6%), and RAP isolation tests per role.
@@ -89,5 +89,5 @@ Runs 11 automated checks including row count, EBIT margin sanity (expect ~6%), a
 ## Teardown
 
 ```bash
-make teardown CONNECTION=EU_DEMO47
+make teardown CONNECTION=my_snowflake
 ```

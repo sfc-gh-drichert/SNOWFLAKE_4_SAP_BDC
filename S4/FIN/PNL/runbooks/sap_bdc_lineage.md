@@ -157,7 +157,62 @@ The grain of `S3_FINANCE_PNL_MDR` matches `OperationalAcctgDocItem` (the `EntryV
 
 ---
 
-## 5. Custom data products required (no BDC/CDS coverage)
+## 5. Currency handling: is `HSL`/`CURRENCY`/`CURRENCYTYPE` safe to aggregate?
+
+This deserves its own section because it's a common source of silently wrong P&L numbers, and the gold table's design raises a real question mark.
+
+### 5.1 How SAP actually handles multi-currency amounts
+
+`OperationalAcctgDocItem` (the source behind `EntryViewJournalEntry`) does **not** store one amount per line item — it stores several, pre-translated at posting time using rates from `TCURR` (the `HANACurrency`/`I_ExchangeRateRawData` entity). Each is a separate column on the same row:
+
+| Currency role | Currency code field | Amount field |
+|---|---|---|
+| Transaction/document | `TransactionCurrency` | `AmountInTransactionCurrency` |
+| Company code (local) | `CompanyCodeCurrency` | `AmountInCompanyCodeCurrency` |
+| Functional | `FunctionalCurrency` | `AmountInFunctionalCurrency` |
+| Additional 1 (role-driven — hard/group/index, per client config) | `AdditionalCurrency1` | `AmountInAdditionalCurrency1` |
+| Additional 2 (role-driven) | `AdditionalCurrency2` | `AmountInAdditionalCurrency2` |
+| Payment | `PaymentCurrency` | `AmountInPaymentCurrency` |
+
+(These `AdditionalCurrency1/2` fields were missed in an earlier pass of this analysis — a regex used to extract currency fields didn't handle digit-suffixed names. Re-run against the full field list, they are confirmed present.)
+
+This is the "pre-processing" the amounts already went through: translation happens once, upstream, in S/4HANA — not something the analytics layer should ever recompute. Consuming this **wide** layout (one row, many currency columns) is inherently safe — you just pick the column you need.
+
+**Group currency is not one of these fields.** A dedicated `GroupCurrency`/`AmountInGroupCurrency` field does not exist anywhere in this entity. Consolidated/group-currency reporting in the BDC catalog lives in a **separate** data product — `CnsldtnGroupJournalEntry` (plus `ConsolidationVersion`) — not in `EntryViewJournalEntry`. Whether `AdditionalCurrency1`/`2` happen to be configured as group currency in a given SAP system is a client-specific setting, not something guaranteed by the schema.
+
+### 5.2 The mismatch in the gold table
+
+`S3_FINANCE_PNL_MDR` doesn't mirror that wide shape. It has:
+
+```
+HSL NUMBER(18,2)         -- one amount
+CURRENCY VARCHAR(5)      -- one currency code
+CURRENCYTYPE VARCHAR(2)  -- 'e.g. 10=company code, 30=group'
+```
+
+This is a **narrow/pivoted** shape — a single amount column tagged by a currency-type indicator — not the wide, native ACDOCA shape. `HSL` is also the classic SAP R/3-era field name (`BSEG-HSL`, or classic CO-PA `CE1xxxx-HSL`), which points to legacy FI/CO-PA extract naming conventions rather than the modern Universal Journal CDS field names. Something in the ETL has to explicitly remap `AmountInCompanyCodeCurrency → HSL`, `CompanyCodeCurrency → CURRENCY`, and decide what value `CURRENCYTYPE` gets — there's no field on the source entity literally called "currency type."
+
+### 5.3 Two possible designs, two different risks
+
+Without seeing the loaded data or ETL code, either of these is consistent with the DDL:
+
+1. **`CURRENCYTYPE` is always `'10'`** (only company code/local currency is ever populated). In this case `CURRENCYTYPE` is vestigial, group/consolidated reporting isn't supported from this table at all, and — the real danger — **`SUM(HSL)` across multiple company codes with different local currencies silently mixes currencies** (summing USD + EUR + GBP as if they were the same unit). Nothing in the DDL prevents this; there's no constraint or semantic-layer guard forcing a `GROUP BY CURRENCY`.
+
+2. **The ETL unions rows for multiple currency types** — e.g., pulling local-currency rows from `EntryViewJournalEntry` and group-currency rows from `CnsldtnGroupJournalEntry`, tagged by `CURRENCYTYPE`. In this case a naive `SUM(HSL)` without `WHERE CURRENCYTYPE = '10'` **double- or triple-counts every line**, because the same underlying transaction appears more than once at a different currency valuation.
+
+Both are real correctness bugs waiting to happen; the DDL alone can't tell you which applies.
+
+### 5.4 Recommended checks before trusting this table
+
+1. `SELECT CURRENCYTYPE, COUNT(*) FROM S3_FINANCE_PNL_MDR GROUP BY 1` — if both `'10'` and `'30'` show up, the union/long design is real, and every downstream aggregate query needs an explicit `CURRENCYTYPE` filter.
+2. On a sample of documents, check `COUNT(DISTINCT CURRENCYTYPE)` per `(COMPANYCODE, fiscal doc keys)` — more than one confirms the double-counting risk.
+3. Check whether `CURRENCY` ever varies for a single `COMPANYCODE` — a company code has one fixed local currency, so variation would indicate a bug.
+4. Confirm with the ETL owner whether group-currency rows (if present) are sourced from `CnsldtnGroupJournalEntry`, or just copy-cast from `AdditionalCurrency1/2` — the latter is only correct if that role is actually configured as group currency in this SAP system, which is not guaranteed.
+5. Regardless of design, add a semantic-layer/BI safeguard — a metric definition that requires grouping by `CURRENCY` (or converts to one reporting currency) — rather than relying on analysts to remember to filter.
+
+---
+
+## 6. Custom data products required (no BDC/CDS coverage)
 
 These fields have no matching CDS view or BDC entity anywhere in the catalog searched — they are client-configured extensions or entirely non-SAP data. Building them requires custom pipelines, not BDC subscriptions.
 
@@ -172,7 +227,7 @@ These fields have no matching CDS view or BDC entity anywhere in the catalog sea
 
 ---
 
-## 6. Verification methodology and caveats
+## 7. Verification methodology and caveats
 
 Everything in this document was checked against `TEMP.SAP.BDC_CHUNKS` rather than asserted from memory or naming convention. Specifically:
 
