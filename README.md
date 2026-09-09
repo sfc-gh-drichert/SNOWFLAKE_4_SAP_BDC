@@ -90,22 +90,9 @@ Once the infrastructure is deployed for the first time, you can revoke `ACCOUNTA
 service user entirely. The commented-out `REVOKE` command at the bottom of
 [`setup_service_user.sql`](setup_service_user.sql) does this.
 
-### Step 1 — Run the service user setup (Snowsight, as ACCOUNTADMIN)
+### Step 1 — Generate the key pair (your laptop terminal)
 
-Open Snowsight on the target Snowflake account, open a SQL worksheet, and run:
-
-```sql
--- Copy and run setup_service_user.sql from the repo root
--- This creates BSH_GITHUB_ACTIONS, BSH_DATA_DEPLOY_ROLE, and the auth policy
-```
-
-Or from the command line if you have the Snow CLI configured for the target account:
-
-```bash
-snow sql -f setup_service_user.sql --connection my_snowflake
-```
-
-### Step 2 — Generate the key pair (your laptop terminal)
+Do this first so you can paste the public key directly into `setup_service_user.sql` and run everything in one shot.
 
 ```bash
 # Private key — PKCS8 format, no passphrase (required for unattended CI/CD)
@@ -117,28 +104,48 @@ openssl rsa -in bsh_demo_cicd.p8 -pubout -out bsh_demo_cicd.pub
 
 > Keep `bsh_demo_cicd.p8` private. Do not commit it to any repo.
 
-### Step 3 — Register the public key in Snowflake (Snowsight, as ACCOUNTADMIN)
-
-Get the public key body without the PEM headers:
+Get the public key body — one long base64 string, no headers, no line breaks:
 
 ```bash
 grep -v "BEGIN\|END" bsh_demo_cicd.pub | tr -d '\n'
-# Copy the output — it is one long base64 string with no line breaks
+# Copy this output — you will paste it into the setup script in the next step
 ```
 
-Then in Snowsight, run:
+### Step 2 — Edit and run setup_service_user.sql (Snowsight, as ACCOUNTADMIN)
+
+Open `setup_service_user.sql` from the repo root. Find the key registration block near the bottom:
+
+```sql
+-- ALTER USER BSH_GITHUB_ACTIONS
+--     ADD KEY PAIR bsh_demo_github_actions
+--     PUBLIC_KEY = '...';
+```
+
+Uncomment those three lines and replace `'...'` with the public key body you copied in Step 1:
 
 ```sql
 ALTER USER BSH_GITHUB_ACTIONS
     ADD KEY PAIR bsh_demo_github_actions
-    PUBLIC_KEY = 'MIIBIjAN...';   -- paste the base64 body here (no headers)
+    PUBLIC_KEY = 'MIIBIjANBgkq...';   -- your key body here
+```
 
--- Verify it registered
+Then open Snowsight on the target account, paste the full script into a SQL worksheet, and run it.
+This creates the service user, role, authentication policy, and registers the key — all in one run.
+
+Or from the command line:
+
+```bash
+snow sql -f setup_service_user.sql --connection my_snowflake
+```
+
+Verify the key registered:
+
+```sql
 SHOW USER KEY PAIRS FOR USER BSH_GITHUB_ACTIONS;
 -- Should show: bsh_demo_github_actions   ACTIVE
 ```
 
-### Step 4 — Add secrets to GitHub (repo settings in your browser)
+### Step 3 — Add secrets to GitHub (repo settings in your browser)
 
 Go to **your repo → Settings → Secrets and variables → Actions → New repository secret**
 and add these three secrets:
@@ -151,11 +158,11 @@ and add these three secrets:
 
 ```bash
 # Copy the full private key to your clipboard
-cat bsh_demo_cicd.p8 | pbcopy          # macOS
+cat bsh_demo_cicd.p8 | pbcopy                        # macOS
 cat bsh_demo_cicd.p8 | xclip -selection clipboard   # Linux
 ```
 
-### Step 5 — Test the connection
+### Step 4 — Test the connection
 
 Go to **Actions → Deploy S4.FIN.PNL — BSH P&L Demo → Run workflow**, choose `verify`, and run.
 If the connection step passes, the key pair is working and you are ready for a full deploy.
@@ -163,7 +170,7 @@ If the connection step passes, the key pair is working and you are ready for a f
 ### Rotating the key later
 
 ```sql
--- Generate a new key pair (repeat Step 2 with a new filename), then in Snowsight:
+-- Generate a new key pair (repeat Step 1 with a new filename), then in Snowsight:
 ALTER USER BSH_GITHUB_ACTIONS
     ROTATE KEY PAIR bsh_demo_github_actions
     PUBLIC_KEY = '<new_public_key_body>';
