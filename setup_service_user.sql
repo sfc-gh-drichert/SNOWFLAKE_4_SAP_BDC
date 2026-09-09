@@ -1,3 +1,5 @@
+USE ROLE ACCOUNTADMIN;
+
 -- ==============================================================================
 -- setup_service_user.sql
 -- Run ONCE on the target Snowflake account as ACCOUNTADMIN
@@ -24,9 +26,7 @@
 --   and add the three GitHub Secrets.
 -- ==============================================================================
 
-USE ROLE ACCOUNTADMIN;
-
--- Create the database and admin schema so the authentication policy has a home.
+USE DATABASE S4; so the authentication policy has a home.
 -- CREATE IF NOT EXISTS means this is safe to run even if S4 already exists.
 CREATE DATABASE IF NOT EXISTS S4;
 CREATE SCHEMA IF NOT EXISTS S4.ADMIN;
