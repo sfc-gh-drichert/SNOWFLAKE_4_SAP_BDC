@@ -40,9 +40,9 @@ S3_FINANCE_PNL  (base fact table)
 
    | Secret | Value |
    |--------|-------|
-   | `SNOWFLAKE_ACCOUNT` | Your account identifier (e.g. `abc12345.eu-west-1`) |
-   | `SNOWFLAKE_USER` | Snowflake user with ACCOUNTADMIN privileges |
-   | `SNOWFLAKE_PRIVATE_KEY` | RSA private key — PEM format, no passphrase (see below) |
+   | `SNOWFLAKE_ACCOUNT` | Account identifier for the target Snowflake account (e.g. `SFSEEUROPE-EU_DEMO47`) |
+   | `SNOWFLAKE_USER` | Snowflake username of the service user running the deployment |
+   | `SNOWFLAKE_PRIVATE_KEY` | Full contents of `bsh_demo_cicd.p8` including PEM headers — see setup guide below |
 
 3. Go to **Actions → Deploy S4.FIN.PNL — BSH P&L Demo → Run workflow**
 4. Choose `all` for a fresh install, fill in warehouse/database, click **Run workflow**
@@ -64,18 +64,83 @@ make install DEMO=S4/FIN/PNL CONNECTION=EU_DEMO47
 
 ## Setting Up Key Pair Authentication (for GitHub Actions)
 
+Key pair auth is **Snowflake-native** — it does not involve Okta, SSO, or any browser login.
+You generate the keys on your laptop, register the public half in Snowflake, and store the private
+half as a GitHub Secret. GitHub Actions then uses it to authenticate as the service user.
+
+### Step 1 — Generate the key pair (your laptop terminal)
+
+Run these two commands in a terminal. They create a private key file (`bsh_demo_cicd.p8`) and
+a matching public key file (`bsh_demo_cicd.pub`) in your current directory.
+
 ```bash
-# Generate private key (no passphrase)
-openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out rsa_key.p8 -nocrypt
+# Private key — PKCS8 format, no passphrase (required for unattended CI/CD)
+openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out bsh_demo_cicd.p8 -nocrypt
 
-# Derive public key
-openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub
+# Public key derived from the private key
+openssl rsa -in bsh_demo_cicd.p8 -pubout -out bsh_demo_cicd.pub
+```
 
-# Register public key in Snowflake (run as ACCOUNTADMIN)
-# ALTER USER <your_user> SET RSA_PUBLIC_KEY='<paste contents of rsa_key.pub, header/footer excluded>';
+> Keep `bsh_demo_cicd.p8` private. Do not commit it to any repo.
 
-# Copy the private key into GitHub Secret SNOWFLAKE_PRIVATE_KEY
-cat rsa_key.p8
+### Step 2 — Register the public key in Snowflake (Snowsight or SnowSQL)
+
+Open Snowsight on the **target account** (e.g. EU_DEMO47) and run as `ACCOUNTADMIN`:
+
+```sql
+-- Use the named key pair approach (recommended — supports rotation and expiry)
+-- Paste only the base64 body of bsh_demo_cicd.pub — omit the -----BEGIN/END----- lines
+
+ALTER USER <your_service_user>
+  ADD KEY PAIR bsh_demo_github_actions
+  PUBLIC_KEY = 'MIIBIjANBgkq...';   -- paste the body of bsh_demo_cicd.pub here
+```
+
+To get just the body without headers (copy the output of this command):
+
+```bash
+grep -v "BEGIN\|END" bsh_demo_cicd.pub | tr -d '\n'
+```
+
+Verify it registered correctly:
+
+```sql
+SHOW USER KEY PAIRS FOR USER <your_service_user>;
+-- Should list: bsh_demo_github_actions  ACTIVE
+```
+
+### Step 3 — Add secrets to GitHub (repo settings in your browser)
+
+Go to **your repo → Settings → Secrets and variables → Actions → New repository secret**
+and add these three secrets:
+
+| Secret name | Where to get the value |
+|---|---|
+| `SNOWFLAKE_ACCOUNT` | The account identifier for EU_DEMO47, e.g. `SFSEEUROPE-EU_DEMO47` |
+| `SNOWFLAKE_USER` | The Snowflake username you ran `ALTER USER` on above |
+| `SNOWFLAKE_PRIVATE_KEY` | The **full contents** of `bsh_demo_cicd.p8` — copy everything including the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines |
+
+```bash
+# On your laptop — copy the full private key to your clipboard (macOS)
+cat bsh_demo_cicd.p8 | pbcopy
+
+# Linux equivalent
+cat bsh_demo_cicd.p8 | xclip -selection clipboard
+```
+
+### Step 4 — Test it
+
+Go to **Actions → Deploy S4.FIN.PNL — BSH P&L Demo → Run workflow**, choose `verify`, and run.
+If the connection step passes, your key pair is working.
+
+### Rotating the key later
+
+```sql
+-- Generate a new key pair (Step 1 again with a new filename), then:
+ALTER USER <your_service_user>
+  ROTATE KEY PAIR bsh_demo_github_actions
+  PUBLIC_KEY = '<new_public_key_body>';
+-- The old key stays valid for 24 hours — update the GitHub Secret before it expires
 ```
 
 ---
