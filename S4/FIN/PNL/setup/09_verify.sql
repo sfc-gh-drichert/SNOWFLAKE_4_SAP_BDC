@@ -3,15 +3,15 @@
 --
 -- Run this after a full deployment to confirm:
 --   1. Row count is approximately 100,000
---   2. All 13 P&L categories are present with correct sign (positive = revenue)
+--   2. All 13 PnL categories are present with correct sign (positive = revenue)
 --   3. EBIT margin is in the expected 5.5-6.5% range
 --   4. RAP correctly limits each regional role to its authorised regions
 --   5. The global role sees all data
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -23,14 +23,14 @@ SELECT '1. Row count' AS test,
 FROM S3_FINANCE_PNL;
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- TEST 2: P&L category distribution — check all 9 categories present
+-- TEST 2: PnL category distribution — check all 9 categories present
 -- ─────────────────────────────────────────────────────────────────────────────
-SELECT '2. P&L categories' AS test,
+SELECT '2. PnL categories' AS test,
        COUNT(DISTINCT PNL_CATEGORY) AS distinct_categories,
        IFF(COUNT(DISTINCT PNL_CATEGORY) >= 9, 'PASS', 'FAIL') AS result
 FROM S3_FINANCE_PNL;
 
--- P&L line detail with amounts (expect revenue positive, costs negative)
+-- PnL line detail with amounts (expect revenue positive, costs negative)
 SELECT PNL_CATEGORY,
        ACDOCA_RACCT,
        COUNT(*)                          AS row_count,
@@ -114,7 +114,7 @@ SELECT '7. BSH_EUROPE_DEMO_ROLE regions' AS test,
            'PASS — Europe only',
            'FAIL — unexpected regions visible'
        ) AS result
-FROM IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL;
+FROM IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL;
 
 -- TEST 8: BSH_NA_DEMO_ROLE — must see N_AMERICA only
 USE ROLE BSH_NA_DEMO_ROLE;
@@ -125,7 +125,7 @@ SELECT '8. BSH_NA_DEMO_ROLE regions' AS test,
            'PASS — N_AMERICA only',
            'FAIL — unexpected regions visible'
        ) AS result
-FROM IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL;
+FROM IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL;
 
 -- TEST 9: BSH_APAC_DEMO_ROLE — must see APAC and EMERGING only
 USE ROLE BSH_APAC_DEMO_ROLE;
@@ -137,7 +137,7 @@ SELECT '9. BSH_APAC_DEMO_ROLE regions' AS test,
            'PASS — APAC + EMERGING only',
            'FAIL — unexpected regions visible'
        ) AS result
-FROM IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL;
+FROM IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL;
 
 -- TEST 10: BSH_DEMO_ROLE — must see all 6 BSH regions
 USE ROLE BSH_DEMO_ROLE;
@@ -145,14 +145,14 @@ SELECT '10. BSH_DEMO_ROLE regions' AS test,
        COUNT(DISTINCT REGION) AS region_count,
        LISTAGG(DISTINCT REGION, ', ') WITHIN GROUP (ORDER BY REGION) AS visible_regions,
        IFF(COUNT(DISTINCT REGION) = 6, 'PASS — all 6 regions', 'FAIL') AS result
-FROM IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL;
+FROM IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL;
 
 -- TEST 11: BSH_DEMO_GLOBAL_ROLE — full count
 USE ROLE BSH_DEMO_GLOBAL_ROLE;
 SELECT '11. BSH_DEMO_GLOBAL_ROLE row count' AS test,
        COUNT(*) AS row_count,
        IFF(COUNT(*) BETWEEN 90000 AND 110000, 'PASS — full dataset visible', 'FAIL') AS result
-FROM IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL;
+FROM IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL;
 
 -- Return to ACCOUNTADMIN
 USE ROLE ACCOUNTADMIN;

@@ -1,8 +1,8 @@
 -- =============================================================================
 -- 02_dimensions.sql — Reference / Dimension Tables
 --
--- Creates and populates all dimension tables used by the BSH P&L fact table:
---   DIM_GL_ACCOUNT   — P&L line classification (13 rows)
+-- Creates and populates all dimension tables used by the BSH PnL fact table:
+--   DIM_GL_ACCOUNT   — PnL line classification (13 rows)
 --   DIM_PRODUCT      — Real BSH product SKUs with model numbers (~52 rows)
 --   DIM_CUSTOMER     — Major retail and trade customers (44 rows)
 --   DIM_COMPANY      — SAP company codes / legal entities (6 rows)
@@ -10,13 +10,13 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 1. GL ACCOUNT DIMENSION
---    Maps SAP GL account numbers to P&L categories used in the semantic view.
+--    Maps SAP GL account numbers to PnL categories used in the semantic view.
 --    PNL_CATEGORY drives all metric calculations (GROSS_PROFIT, DB1, DB2, EBIT).
 -- ─────────────────────────────────────────────────────────────────────────────
 CREATE OR REPLACE TABLE DIM_GL_ACCOUNT (
@@ -25,17 +25,17 @@ CREATE OR REPLACE TABLE DIM_GL_ACCOUNT (
     GL_DESCRIPTION   VARCHAR(100)
                      COMMENT 'Human-readable account description',
     PNL_CATEGORY     VARCHAR(30)
-                     COMMENT 'P&L category used in semantic view metrics: '
+                     COMMENT 'PnL category used in semantic view metrics: '
                              'REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | '
                              'BRAND_ADP | SALES | RD | GA',
     PNL_LEVEL        VARCHAR(10)
-                     COMMENT 'First P&L level where this account appears: '
+                     COMMENT 'First PnL level where this account appears: '
                              'TOP=before Net Revenue, MC1=before DB1, MC2=before DB2, MC3=before EBIT',
     IS_CREDIT_NORMAL BOOLEAN
                      COMMENT 'TRUE = revenue account (credit balance = positive HSL); '
                              'FALSE = cost account (debit balance = negative HSL)'
 )
-COMMENT = 'SAP GL account master — maps account numbers to P&L waterfall categories';
+COMMENT = 'SAP GL account master — maps account numbers to PnL waterfall categories';
 
 INSERT INTO DIM_GL_ACCOUNT VALUES
 -- Revenue

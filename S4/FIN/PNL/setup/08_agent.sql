@@ -1,8 +1,8 @@
 -- =============================================================================
--- 08_agent.sql — BSH P&L Cortex Agent
+-- 08_agent.sql — BSH PnL Cortex Agent
 --
 -- Creates the Cortex Agent with two tools:
---   1. SQL tool  → BSH_PNL_ANALYTICS_SV (structured P&L queries)
+--   1. SQL tool  → BSH_PNL_ANALYTICS_SV (structured PnL queries)
 --   2. Search    → BSH_PNL_SEARCH_SVC   (qualitative/contextual questions)
 --
 -- The agent can answer questions like:
@@ -19,14 +19,14 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 CREATE OR REPLACE CORTEX AGENT BSH_PNL_AGENT
-    SEMANTIC_VIEWS  = (IDENTIFIER('&{db_name}').FIN.BSH_PNL_ANALYTICS_SV)
-    SEARCH_SERVICES = (IDENTIFIER('&{db_name}').FIN.BSH_PNL_SEARCH_SVC)
-    COMMENT = 'BSH Group financial P&L analysis agent. '
+    SEMANTIC_VIEWS  = (IDENTIFIER('<% db_name %>').FIN.BSH_PNL_ANALYTICS_SV)
+    SEARCH_SERVICES = (IDENTIFIER('<% db_name %>').FIN.BSH_PNL_SEARCH_SVC)
+    COMMENT = 'BSH Group financial PnL analysis agent. '
               'Answers structured margin questions via the Semantic View and qualitative '
               'market/product questions via the BSH document search service. '
               'Row Access Policy on the underlying table enforces data visibility per role — '
@@ -39,11 +39,11 @@ CREATE OR REPLACE CORTEX AGENT BSH_PNL_AGENT
 -- Use them in demos to show consistent, accurate responses.
 -- =============================================================================
 
--- VQ1: Full P&L waterfall by brand (2024 actuals)
+-- VQ1: Full PnL waterfall by brand (2024 actuals)
 -- Expected: table with BRAND, GROSS_REVENUE, NET_REVENUE, GROSS_PROFIT,
 --           DB1_MARGINAL_CONTRIBUTION, DB2_MARGINAL_CONTRIBUTION, EBIT,
 --           GP_MARGIN_PCT, EBIT_MARGIN_PCT, sorted by GROSS_REVENUE desc
--- Agent question: "Show me the full P&L waterfall for each brand in 2024,
+-- Agent question: "Show me the full PnL waterfall for each brand in 2024,
 --                  from gross revenue down to EBIT with margin percentages."
 
 -- VQ2: Category revenue YoY comparison (2023 vs 2024)

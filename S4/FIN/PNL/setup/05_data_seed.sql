@@ -5,7 +5,7 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Uses GENERATOR(ROWCOUNT=>100000) to produce exactly 100,000 rows.
 -- Each row is deterministically assigned to one of 12 GL account types
--- via MOD arithmetic, so all 12 P&L lines are evenly represented (~8,333
+-- via MOD arithmetic, so all 12 PnL lines are evenly represented (~8,333
 -- rows each). Within a GL type, amounts are seeded with RANDOM(rn*k)
 -- to produce row-specific values that are reproducible.
 --
@@ -48,8 +48,8 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 INSERT INTO S3_FINANCE_PNL (

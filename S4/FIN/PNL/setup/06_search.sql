@@ -13,8 +13,8 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -316,13 +316,13 @@ GRANT INSERT, TRUNCATE ON TABLE BSH_DOCUMENTS TO ROLE BSH_DATA_DEPLOY_ROLE;
 CREATE OR REPLACE CORTEX SEARCH SERVICE BSH_PNL_SEARCH_SVC
     ON document_text
     ATTRIBUTES title, document_type, year, source
-    WAREHOUSE = IDENTIFIER('&{wh_name}')
+    WAREHOUSE = IDENTIFIER('<% wh_name %>')
     TARGET_LAG = '1 day'
     COMMENT = 'BSH document corpus search service — press releases, product briefs, market context. '
-              'Used by BSH_PNL_AGENT for qualitative Q&A alongside structured P&L data.'
+              'Used by BSH_PNL_AGENT for qualitative Q&A alongside structured PnL data.'
     AS (
         SELECT document_text, title, document_type, year, source
-        FROM IDENTIFIER('&{db_name}').FIN.BSH_DOCUMENTS
+        FROM IDENTIFIER('<% db_name %>').FIN.BSH_DOCUMENTS
     );
 
 SELECT 'Documents indexed: ' || COUNT(*) AS status FROM BSH_DOCUMENTS;

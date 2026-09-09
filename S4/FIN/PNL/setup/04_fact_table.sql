@@ -20,8 +20,8 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 CREATE OR REPLACE TABLE S3_FINANCE_PNL (
@@ -47,17 +47,17 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     HSL                             NUMBER(18,2)
         COMMENT 'Amount in EUR (company code currency). '
                 'Positive = revenue/credit; negative = cost/debit. '
-                'This is the primary P&L value used in all metric calculations.',
+                'This is the primary PnL value used in all metric calculations.',
     CURRENCY                        VARCHAR(5)
         COMMENT 'Currency code (ISO 4217). EUR for all demo rows; '
                 'future: USD for COMPANYCODE=2000, CNY for 3000.',
     CURRENCYTYPE                    VARCHAR(2)
         COMMENT 'Currency type: 10=company code currency, 30=group currency',
 
-    -- ── GL ACCOUNT / P&L CLASSIFICATION ────────────────────────────────────
+    -- ── GL ACCOUNT / PnL CLASSIFICATION ────────────────────────────────────
     ACDOCA_RACCT                    VARCHAR(10)
         COMMENT 'GL account number — primary join key to DIM_GL_ACCOUNT '
-                'and the P&L hierarchy. See 02_dimensions.sql for mapping.',
+                'and the PnL hierarchy. See 02_dimensions.sql for mapping.',
     PNL_CATEGORY                    VARCHAR(30)
         COMMENT 'Denormalised from ACDOCA_RACCT: '
                 'REVENUE | TRADE_SPEND | RETURNS | COGS | LOGISTICS | '
@@ -260,7 +260,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
         COMMENT 'Central Finance delta timestamp — tracks source system change events'
 
 )
-COMMENT = 'BSH Group P&L fact table — ACDOCA/CO-PA profitability analysis structure. '
+COMMENT = 'BSH Group PnL fact table — ACDOCA/CO-PA profitability analysis structure. '
           '~100K rows, Jan 2023–Dec 2024 actuals. CLIENT_ID=BSH on all rows. '
           'Row Access Policy enforces CLIENT_ID + REGION isolation per role. '
           'Follows the Nestlé DefinePnLTable.txt template with BSH-specific extensions.';

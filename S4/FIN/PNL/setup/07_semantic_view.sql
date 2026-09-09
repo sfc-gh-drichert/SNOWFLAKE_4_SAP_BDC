@@ -1,14 +1,14 @@
 -- =============================================================================
--- 07_semantic_view.sql — BSH P&L Analytics Semantic View
+-- 07_semantic_view.sql — BSH PnL Analytics Semantic View
 --
 -- Creates the Snowflake Semantic View that the Cortex Agent (and Cortex Analyst)
--- uses to answer structured P&L questions.
+-- uses to answer structured PnL questions.
 --
 -- The view is built on S3_FINANCE_PNL, which has the Row Access Policy applied.
 -- The Semantic View INHERITS the RAP automatically — no WHERE filter is needed
 -- in the view DDL, and no agent query needs to include CLIENT_ID or REGION filters.
 --
--- P&L WATERFALL IMPLEMENTED:
+-- PnL WATERFALL IMPLEMENTED:
 --   GROSS_REVENUE
 --   └─ minus TRADE_DISCOUNTS + RETURNS
 --      = NET_REVENUE
@@ -30,13 +30,13 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
 CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
     TABLES (
-        PNL TABLE IDENTIFIER('&{db_name}').FIN.S3_FINANCE_PNL
+        PNL TABLE IDENTIFIER('<% db_name %>').FIN.S3_FINANCE_PNL
         PRIMARY KEY (SALESORDER, ACDOCA_RACCT, COMPANYCODE, POSTINGDATE, MATERIAL, CUSTOMER)
 
         DIMENSIONS (
@@ -72,10 +72,10 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
                             COMMENT 'Distribution channel: 10=Retail | 20=Built-in | '
                                     '30=E-Commerce | 40=B2B',
 
-            -- ── P&L CLASSIFICATION ────────────────────────────────────────
+            -- ── PnL CLASSIFICATION ────────────────────────────────────────
             ACDOCA_RACCT    COMMENT 'GL account number (e.g. 0800000=Gross Revenue, '
                                     '0500000=Material COGS)',
-            PNL_CATEGORY    COMMENT 'P&L category: REVENUE | TRADE_SPEND | RETURNS | '
+            PNL_CATEGORY    COMMENT 'PnL category: REVENUE | TRADE_SPEND | RETURNS | '
                                     'COGS | LOGISTICS | BRAND_ADP | SALES | RD | GA',
 
             -- ── TIME ──────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
             -- ── REVENUE ────────────────────────────────────────────────────
             GROSS_REVENUE = SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0))
                 COMMENT 'Gross Revenue before any trade deductions (EUR). '
-                        'Highest line in the P&L waterfall.',
+                        'Highest line in the PnL waterfall.',
 
             TRADE_DISCOUNTS = SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
                 COMMENT 'Total trade deductions: customer rebates, volume bonuses, listing fees (EUR). '
@@ -227,8 +227,8 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
                         'Monitor for mix shift from premium to entry tier.'
         )
     )
-COMMENT = 'BSH Group P&L Analytics Semantic View — ACDOCA/CO-PA profitability analysis. '
-          'Full P&L waterfall: Gross Revenue → Net Revenue → Gross Profit → DB1 → DB2 → EBIT. '
+COMMENT = 'BSH Group PnL Analytics Semantic View — ACDOCA/CO-PA profitability analysis. '
+          'Full PnL waterfall: Gross Revenue → Net Revenue → Gross Profit → DB1 → DB2 → EBIT. '
           'Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. '
           '2023-2024 actuals, ~100K rows. EUR currency throughout.';
 

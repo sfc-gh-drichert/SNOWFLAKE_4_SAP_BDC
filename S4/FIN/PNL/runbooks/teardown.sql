@@ -1,7 +1,7 @@
 -- =============================================================================
--- teardown.sql — Remove All BSH P&L Demo Objects
+-- teardown.sql — Remove All BSH PnL Demo Objects
 --
--- Drops all objects created by the BSH P&L demo setup (01-08 files).
+-- Drops all objects created by the BSH PnL demo setup (01-08 files).
 -- Does NOT drop the S4 database or FIN schema if they contain other objects.
 --
 -- SAFETY: This script will print a warning and require confirmation before
@@ -17,12 +17,12 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
-USE WAREHOUSE IDENTIFIER('&{wh_name}');
-USE DATABASE  IDENTIFIER('&{db_name}');
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
+USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
-SELECT '⚠  TEARDOWN: This will drop all BSH P&L demo objects.' AS warning,
-       'Database: &{db_name}  |  Schema: &{db_name}.FIN'       AS target,
+SELECT '⚠  TEARDOWN: This will drop all BSH PnL demo objects.' AS warning,
+       'Database: <% db_name %>  |  Schema: <% db_name %>.FIN'       AS target,
        'Review the DROP statements below before proceeding.'    AS action;
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -70,6 +70,6 @@ DROP ROLE IF EXISTS BSH_APAC_DEMO_ROLE;
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Optionally drop the warehouse (commented out — may be shared)
 -- ─────────────────────────────────────────────────────────────────────────────
--- DROP WAREHOUSE IF EXISTS IDENTIFIER('&{wh_name}');
+-- DROP WAREHOUSE IF EXISTS IDENTIFIER('<% wh_name %>');
 
 SELECT 'Teardown complete. All BSH PnL demo objects have been removed.' AS status;
