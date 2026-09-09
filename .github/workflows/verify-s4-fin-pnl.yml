@@ -1,0 +1,63 @@
+name: Verify S4.FIN.PNL — BSH P&L Demo
+
+# Run verification queries without touching any objects.
+# Use this after a deploy to confirm row counts, EBIT margins,
+# and role-based data isolation are all working correctly.
+on:
+  workflow_dispatch:
+    inputs:
+      warehouse:
+        description: 'Snowflake warehouse name'
+        required: true
+        default: 'BSH_DEMO_WH'
+      database:
+        description: 'Target Snowflake database'
+        required: true
+        default: 'S4'
+
+jobs:
+  verify:
+    name: Verify S4.FIN.PNL
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Snowflake CLI
+        uses: Snowflake-Labs/snowflake-cli-action@v2
+        with:
+          cli-version: latest
+
+      - name: Configure Snowflake connection
+        env:
+          SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER:        ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.snowflake
+          cat > ~/.snowflake/config.toml << EOF
+          [connections.default]
+          account          = "${SNOWFLAKE_ACCOUNT}"
+          user             = "${SNOWFLAKE_USER}"
+          authenticator    = "SNOWFLAKE_JWT"
+          private_key_path = "/tmp/rsa_key.p8"
+          role             = "ACCOUNTADMIN"
+          EOF
+          printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" > /tmp/rsa_key.p8
+          chmod 400 /tmp/rsa_key.p8
+
+      - name: Run verification
+        run: |
+          snow sql -f S4/FIN/PNL/setup/09_verify.sql \
+            --variable "db_name=${{ inputs.database }}" \
+            --variable "wh_name=${{ inputs.warehouse }}"
+
+      - name: Write summary
+        if: always()
+        run: |
+          echo "## S4.FIN.PNL Verification" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Database | \`${{ inputs.database }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | ${{ job.status }} |" >> "$GITHUB_STEP_SUMMARY"

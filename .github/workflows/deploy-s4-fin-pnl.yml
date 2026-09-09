@@ -1,0 +1,117 @@
+name: Deploy S4.FIN.PNL — BSH P&L Demo
+
+# Colleagues trigger this from the GitHub Actions UI:
+# Actions tab → "Deploy S4.FIN.PNL — BSH P&L Demo" → Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      warehouse:
+        description: 'Snowflake warehouse name'
+        required: true
+        default: 'BSH_DEMO_WH'
+      database:
+        description: 'Target Snowflake database'
+        required: true
+        default: 'S4'
+      action:
+        description: 'What to deploy'
+        required: true
+        type: choice
+        options:
+          - all               # Full setup: files 01–09
+          - rbac-only         # RBAC + Row Access Policy only (03)
+          - data-only         # Fact table + 100K row seed (04–05)
+          - search-agent-only # Documents, Semantic View, Agent (06–08)
+          - verify            # Verification queries only (09)
+          - teardown          # Drop all BSH demo objects
+        default: all
+
+jobs:
+  deploy:
+    name: Deploy (${{ inputs.action }}) → ${{ inputs.database }}.FIN
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Official Snowflake CLI action — installs `snow` on the runner
+      - name: Install Snowflake CLI
+        uses: Snowflake-Labs/snowflake-cli-action@v2
+        with:
+          cli-version: latest
+
+      # Build the connection config from GitHub Secrets.
+      # SNOWFLAKE_ACCOUNT   — account identifier (e.g. abc12345.eu-west-1)
+      # SNOWFLAKE_USER      — user with ACCOUNTADMIN privileges
+      # SNOWFLAKE_PRIVATE_KEY — RSA private key PEM (no passphrase)
+      # See README.md for key-pair generation steps.
+      - name: Configure Snowflake connection
+        env:
+          SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER:        ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.snowflake
+          cat > ~/.snowflake/config.toml << EOF
+          [connections.default]
+          account          = "${SNOWFLAKE_ACCOUNT}"
+          user             = "${SNOWFLAKE_USER}"
+          authenticator    = "SNOWFLAKE_JWT"
+          private_key_path = "/tmp/rsa_key.p8"
+          role             = "ACCOUNTADMIN"
+          EOF
+          printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" > /tmp/rsa_key.p8
+          chmod 400 /tmp/rsa_key.p8
+
+      - name: Run SQL files
+        run: |
+          DB="${{ inputs.database }}"
+          WH="${{ inputs.warehouse }}"
+          BASE="S4/FIN/PNL/setup"
+
+          run_sql() {
+            echo "  --> Running $1"
+            snow sql -f "$1" \
+              --variable "db_name=${DB}" \
+              --variable "wh_name=${WH}"
+          }
+
+          echo "==> Action: ${{ inputs.action }}  |  DB: ${DB}  |  WH: ${WH}"
+
+          case "${{ inputs.action }}" in
+            all)
+              for f in "${BASE}"/[0-9][0-9]_*.sql; do run_sql "$f"; done
+              ;;
+            rbac-only)
+              run_sql "${BASE}/03_rbac.sql"
+              ;;
+            data-only)
+              run_sql "${BASE}/04_fact_table.sql"
+              run_sql "${BASE}/05_data_seed.sql"
+              ;;
+            search-agent-only)
+              run_sql "${BASE}/06_search.sql"
+              run_sql "${BASE}/07_semantic_view.sql"
+              run_sql "${BASE}/08_agent.sql"
+              ;;
+            verify)
+              run_sql "${BASE}/09_verify.sql"
+              ;;
+            teardown)
+              run_sql "S4/FIN/PNL/runbooks/teardown.sql"
+              ;;
+          esac
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## S4.FIN.PNL — BSH P&L Demo Deployment" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Action | \`${{ inputs.action }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Database | \`${{ inputs.database }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Warehouse | \`${{ inputs.warehouse }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | ${{ job.status }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | @${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"

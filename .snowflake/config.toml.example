@@ -1,0 +1,19 @@
+[connections.EU_DEMO47]
+# Snowflake account identifier — find it in Snowsight under Admin > Accounts
+# Format examples:
+#   abc12345.eu-west-1              (AWS Frankfurt)
+#   xy98765.west-europe.azure       (Azure West Europe)
+#   orgname-accountname             (new org-based format)
+account = "YOUR_ACCOUNT_IDENTIFIER"
+
+# Snowflake user — must have ACCOUNTADMIN or equivalent for initial setup
+user = "YOUR_USERNAME"
+
+# Authentication — key pair is recommended for CI/CD and scripted runs
+# See README.md for key generation steps
+authenticator     = "SNOWFLAKE_JWT"
+private_key_path  = "~/.snowflake/rsa_key.p8"
+
+# Defaults (can be overridden per command)
+role      = "ACCOUNTADMIN"
+warehouse = "BSH_DEMO_WH"
