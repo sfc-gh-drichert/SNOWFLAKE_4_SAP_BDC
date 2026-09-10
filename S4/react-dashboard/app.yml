@@ -17,6 +17,10 @@ database:        S4
 schema:          FIN
 query_warehouse: BSH_DEMO_WH
 
+# EAI that allows the SAR builder to reach registry.npmjs.org during npm ci.
+# Must exist before running snow app deploy. Created by 10_dashboard_infra.sql.
+build_eai: PNL_BUILD_EAI
+
 auto_suspend_secs: 300     # suspend after 5 min idle
 
 default_target: dev

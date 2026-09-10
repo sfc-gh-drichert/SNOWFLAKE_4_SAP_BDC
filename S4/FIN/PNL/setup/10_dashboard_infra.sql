@@ -25,6 +25,22 @@ CREATE COMPUTE POOL IF NOT EXISTS PNL_DASHBOARD_CP
 CREATE IMAGE REPOSITORY IF NOT EXISTS IDENTIFIER('<% db_name %>.FIN.DASHBOARD_REGISTRY')
   COMMENT = 'Container image registry for PnL dashboard app builds.';
 
+-- Network rule: allow outbound HTTPS to the npm registry during build
+CREATE NETWORK RULE IF NOT EXISTS PNL_NPM_NETWORK_RULE
+  TYPE = HOST_PORT
+  MODE = EGRESS
+  VALUE_LIST = ('registry.npmjs.org:443')
+  COMMENT = 'Allows npm registry access during SAR app builds (npm ci step)';
+
+-- External Access Integration: grants the SAR builder egress to npm
+CREATE EXTERNAL ACCESS INTEGRATION IF NOT EXISTS PNL_BUILD_EAI
+  ALLOWED_NETWORK_RULES = (PNL_NPM_NETWORK_RULE)
+  ENABLED = TRUE
+  COMMENT = 'EAI for npm ci during PnL dashboard SAR builds';
+
+-- Grant the deploy role permission to reference the EAI
+GRANT USAGE ON INTEGRATION PNL_BUILD_EAI TO ROLE BSH_DATA_DEPLOY_ROLE;
+
 -- Grant compute pool usage to the deploy role so GitHub Actions can deploy
 GRANT USAGE ON COMPUTE POOL PNL_DASHBOARD_CP TO ROLE BSH_DATA_DEPLOY_ROLE;
 
