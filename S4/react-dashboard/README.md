@@ -43,19 +43,24 @@ The app auto-falls back to your `~/.snowflake/config.toml` default connection fo
 
 ## Deploy
 
-**Local** (requires `snow` CLI ≥ the version that supports `--target`):
+> **Build first, then deploy.** The SAR builder receives pre-built output and packages it — no network egress is required inside the builder container.
+
+**Local** (requires `snow` CLI):
 
 ```bash
-# First-time setup — creates the Snowflake app objects
-snow app deploy --target dev
+cd S4/react-dashboard
+npm install
+npm run build
+cp -r .next/static .next/standalone/.next/static
+cp -r public .next/standalone/public
 
-# Subsequent deploys
-snow app deploy --target dev
+snow app deploy --target dev              # or: make dashboard-install TARGET=dev
 ```
 
 **GitHub Actions** — trigger the workflow with `action: react-dashboard-only`:
+- `npm ci` + `npm run build` run on the GitHub Actions runner (internet available)
+- The pre-built output is uploaded and deployed — no EAI required
 - Set `deploy_target: customer` (or another target defined in `app.yml`)
-- The workflow runs `10_dashboard_infra.sql` first, then builds and deploys
 
 ## Adding a new deployment target
 

@@ -17,11 +17,13 @@ database:        S4
 schema:          FIN
 query_warehouse: BSH_DEMO_WH
 
-# EAI that allows the SAR builder to reach registry.npmjs.org during npm ci.
-# Must exist before running snow app deploy. Created by 10_dashboard_infra.sql.
-build_eai: PNL_BUILD_EAI
-
 auto_suspend_secs: 300     # suspend after 5 min idle
+
+# Files to exclude from the upload bundle.
+# .next/standalone IS included (pre-built by GitHub Actions or locally before deploying).
+ignore:
+  - node_modules
+  - ".next/cache"
 
 default_target: dev
 
@@ -44,18 +46,18 @@ environment_variables:
     value: "S4.FIN.BSH_PNL_AGENT"
 
 # ─── Builder phases ───────────────────────────────────────────────────────────
+# The app is built BEFORE snow app deploy runs:
+#   - GitHub Actions: npm ci + npm run build happen in the workflow (see deploy-s4-fin-pnl.yml)
+#   - Local: run  npm run build  in S4/react-dashboard/ before  snow app deploy
+# The SAR builder receives the pre-built .next/standalone directory and just
+# packages + runs it — no network egress or EAI required.
 install:
   commands:
-    - ["npm", "ci", "--include=dev"]
+    - ["echo", "Pre-built outside SAR builder — skipping npm ci"]
 
 build:
   commands:
-    - ["npm", "run", "build"]
-    # Standalone mode: copy static assets into the standalone output directory
-    - ["cp", "-r", ".next/static", ".next/standalone/.next/static"]
-    - ["cp", "-r", "public", ".next/standalone/public"]
-    # Drop the root node_modules — standalone includes its own copy
-    - ["rm", "-rf", "node_modules"]
+    - ["echo", "Pre-built outside SAR builder — skipping npm build"]
 
 run:
   command: ["node", ".next/standalone/server.js"]

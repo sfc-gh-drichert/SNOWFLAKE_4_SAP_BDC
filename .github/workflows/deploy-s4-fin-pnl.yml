@@ -104,10 +104,18 @@ jobs:
               for f in "${BASE}"/[0-9][0-9]_*.sql; do run_sql "$f"; done
               ;;
             react-dashboard-only)
-              echo "NOTE: Deploying React PnL Dashboard. Runs 10_dashboard_infra.sql then builds and deploys the SAR app."
+              echo "NOTE: Deploying React PnL Dashboard (pre-build strategy)."
+              echo "  Step 1: Snowflake infra (compute pool)..."
               run_sql "${BASE}/10_dashboard_infra.sql"
+              echo "  Step 2: npm install + build on this runner (internet available)..."
               cd S4/react-dashboard
               npm ci
+              npm run build
+              cp -r .next/static .next/standalone/.next/static
+              cp -r public .next/standalone/public
+              cd ../..
+              echo "  Step 3: Deploy pre-built app to Snowflake (no EAI needed)..."
+              cd S4/react-dashboard
               snow app deploy --target "${{ inputs.deploy_target }}" --verbose
               ;;
             rbac-only)
