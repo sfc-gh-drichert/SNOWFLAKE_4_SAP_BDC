@@ -111,12 +111,14 @@ jobs:
               cd S4/react-dashboard
               npm ci
               npm run build
-              cp -r .next/static .next/standalone/.next/static
-              cp -r public .next/standalone/public
-              echo "  Step 2b: Remove top-level node_modules before upload..."
-              echo "  (.next/standalone/node_modules/ is kept — it contains runtime deps)"
-              rm -rf node_modules
-              echo "  Step 3: Deploy pre-built app to Snowflake (no EAI needed)..."
+              # Copy static assets into the standalone output directory
+              cp -r .next/static  .next/standalone/.next/static
+              cp -r public        .next/standalone/public
+              # Copy app.yml into standalone — snow app deploy runs from there
+              # so server.js is at the root of the upload (not .next/standalone/server.js)
+              cp app.yml .next/standalone/app.yml
+              echo "  Step 3: Deploy from .next/standalone/ — runtime node_modules travel with it..."
+              cd .next/standalone
               snow app deploy --target "${{ inputs.deploy_target }}" --verbose
               ;;
             rbac-only)

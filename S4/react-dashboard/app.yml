@@ -13,19 +13,16 @@ icon: public/icon.svg
 #   2. Override database / schema / query_warehouse as needed
 #   3. Deploy with: snow app deploy --target <name>
 #
+# IMPORTANT: snow app deploy is run from inside .next/standalone/ (see the
+# GitHub Actions workflow and the local deploy instructions in README.md).
+# This manifest therefore lives in .next/standalone/ at deploy time, and
+# all paths (icon, run command) are relative to that directory.
+#
 database:        S4
 schema:          FIN
 query_warehouse: BSH_DEMO_WH
 
 auto_suspend_secs: 300     # suspend after 5 min idle
-
-# Files to exclude from the upload bundle.
-# node_modules is deleted BEFORE snow app deploy runs in GitHub Actions / locally,
-# so it is never present in the upload. .next/cache is large and not needed.
-# .next/standalone/node_modules IS kept — it contains the runtime dependencies
-# for the standalone Next.js server and must be present in the container.
-ignore:
-  - ".next/cache"
 
 default_target: dev
 
@@ -34,13 +31,10 @@ targets:
   dev: {}
 
   # Customer demo environment — override database/warehouse per engagement
-  # Typically triggered via GitHub Actions (workflow input: deploy_target=customer)
   customer:
     query_warehouse: BSH_DEMO_WH  # override if the target account uses a different name
 
 # ─── Environment variables available to the running service ──────────────────
-# These are read by lib/demo-config.ts to configure the data source.
-# Override NEXT_PUBLIC_SF_AGENT if the agent name differs in a new account.
 environment_variables:
   - name: NEXT_PUBLIC_SF_DATABASE
     value: "S4"
@@ -48,18 +42,17 @@ environment_variables:
     value: "S4.FIN.BSH_PNL_AGENT"
 
 # ─── Builder phases ───────────────────────────────────────────────────────────
-# The app is built BEFORE snow app deploy runs:
-#   - GitHub Actions: npm ci + npm run build happen in the workflow (see deploy-s4-fin-pnl.yml)
-#   - Local: run  npm run build  in S4/react-dashboard/ before  snow app deploy
-# The SAR builder receives the pre-built .next/standalone directory and just
-# packages + runs it — no network egress or EAI required.
+# snow app deploy is run from INSIDE .next/standalone/ after the build.
+# That directory already contains everything needed (server.js, node_modules/,
+# .next/static/, public/). No build steps required in the SAR builder.
 install:
   commands:
-    - ["echo", "Pre-built outside SAR builder — skipping npm ci"]
+    - ["echo", "Pre-built — skipping npm ci"]
 
 build:
   commands:
-    - ["echo", "Pre-built outside SAR builder — skipping npm build"]
+    - ["echo", "Pre-built — skipping npm build"]
 
+# server.js is at the root of the upload (which IS .next/standalone/)
 run:
-  command: ["node", ".next/standalone/server.js"]
+  command: ["node", "server.js"]
