@@ -20,9 +20,11 @@ query_warehouse: BSH_DEMO_WH
 auto_suspend_secs: 300     # suspend after 5 min idle
 
 # Files to exclude from the upload bundle.
-# .next/standalone IS included (pre-built by GitHub Actions or locally before deploying).
+# node_modules is deleted BEFORE snow app deploy runs in GitHub Actions / locally,
+# so it is never present in the upload. .next/cache is large and not needed.
+# .next/standalone/node_modules IS kept — it contains the runtime dependencies
+# for the standalone Next.js server and must be present in the container.
 ignore:
-  - node_modules
   - ".next/cache"
 
 default_target: dev

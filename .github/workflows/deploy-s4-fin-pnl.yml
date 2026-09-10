@@ -113,9 +113,10 @@ jobs:
               npm run build
               cp -r .next/static .next/standalone/.next/static
               cp -r public .next/standalone/public
-              cd ../..
+              echo "  Step 2b: Remove top-level node_modules before upload..."
+              echo "  (.next/standalone/node_modules/ is kept — it contains runtime deps)"
+              rm -rf node_modules
               echo "  Step 3: Deploy pre-built app to Snowflake (no EAI needed)..."
-              cd S4/react-dashboard
               snow app deploy --target "${{ inputs.deploy_target }}" --verbose
               ;;
             rbac-only)
