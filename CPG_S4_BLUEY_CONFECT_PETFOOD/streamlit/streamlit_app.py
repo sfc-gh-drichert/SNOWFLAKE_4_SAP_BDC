@@ -214,7 +214,7 @@ elif page == "Blue Yonder Planning":
     st.markdown("## Blue Yonder Planning")
     st.caption("Demand forecasts, consensus plans and transport execution from Blue Yonder IBP & TMS")
 
-    tab_d, tab_t, tab_p = st.tabs(["Demand & Consensus Plan", "Transport Execution", "Plan Overview"])
+    tab_d, tab_t, tab_p = st.tabs(["Demand & Consensus Plan", "Transport Execution", "Plan Override"])
 
     with tab_d:
         peak_kpi = run_query(f"""SELECT COUNT(DISTINCT PEAK_EVENT) AS peak_events,
@@ -275,11 +275,67 @@ elif page == "Blue Yonder Planning":
         st.dataframe(all_loads, use_container_width=True, hide_index=True)
 
     with tab_p:
-        plans = run_query(f"""SELECT cp.MATERIAL_ID, p.MATERIAL_DESC, p.DIVISION, p.BRAND,
-            cp.PLAN_VERSION, cp.COMMITTED_QTY, cp.REVENUE_PLAN_USD, cp.PLAN_CONFIDENCE
-            FROM {DB_SCHEMA}.BY_CONSENSUS_PLAN cp JOIN {DB_SCHEMA}.I_PRODUCT p ON p.MATERIAL_ID = cp.MATERIAL_ID
-            ORDER BY cp.REVENUE_PLAN_USD DESC""")
-        st.dataframe(plans, use_container_width=True, hide_index=True)
+        # Plan vs Forecast gap analysis
+        plan_gap = run_query(f"""
+            SELECT cp.MATERIAL_ID, p.MATERIAL_DESC, p.DIVISION, p.BRAND,
+                cp.COMMITTED_QTY, cp.REVENUE_PLAN_USD, cp.PLAN_CONFIDENCE,
+                COALESCE(SUM(f.FORECAST_QTY), 0) AS TOTAL_FORECAST_QTY,
+                (COALESCE(SUM(f.FORECAST_QTY), 0) - cp.COMMITTED_QTY) AS PLAN_GAP_QTY,
+                ROUND((COALESCE(SUM(f.FORECAST_QTY), 0) - cp.COMMITTED_QTY) * p.UNIT_WHOLESALE_USD, 0) AS GAP_REVENUE_USD
+            FROM {DB_SCHEMA}.BY_CONSENSUS_PLAN cp
+            JOIN {DB_SCHEMA}.I_PRODUCT p ON p.MATERIAL_ID = cp.MATERIAL_ID
+            LEFT JOIN {DB_SCHEMA}.BY_DEMAND_FORECAST f ON f.MATERIAL_ID = cp.MATERIAL_ID AND f.IS_PEAK_WEEK = TRUE
+            GROUP BY cp.MATERIAL_ID, p.MATERIAL_DESC, p.DIVISION, p.BRAND,
+                     cp.COMMITTED_QTY, cp.REVENUE_PLAN_USD, cp.PLAN_CONFIDENCE, p.UNIT_WHOLESALE_USD
+            ORDER BY PLAN_GAP_QTY DESC""")
+
+        # KPIs
+        total_committed = plan_gap["COMMITTED_QTY"].sum()
+        total_forecast = plan_gap["TOTAL_FORECAST_QTY"].sum()
+        total_gap = plan_gap["PLAN_GAP_QTY"].sum()
+        total_gap_rev = plan_gap["GAP_REVENUE_USD"].sum()
+
+        pk1, pk2, pk3, pk4 = st.columns(4)
+        with pk1: kpi_card("Committed (S&OP)", f"{int(total_committed):,}", "#00897b")
+        with pk2: kpi_card("Peak Forecast", f"{int(total_forecast):,}", "#1565c0")
+        with pk3: kpi_card("Plan Gap (units)", f"{int(total_gap):,}", "#d32f2f" if total_gap > 0 else "#388e3c")
+        with pk4: kpi_card("Gap Revenue Impact", f"${int(total_gap_rev):,}", "#d32f2f" if total_gap_rev > 0 else "#388e3c")
+
+        st.divider()
+
+        # Gap chart by material
+        gap_chart_data = plan_gap[plan_gap["PLAN_GAP_QTY"] != 0].head(15).copy()
+        if not gap_chart_data.empty:
+            gap_chart_data["label"] = gap_chart_data["MATERIAL_ID"] + " — " + gap_chart_data["MATERIAL_DESC"].str[:25]
+            gap_bar = alt.Chart(gap_chart_data).mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
+                y=alt.Y("label:N", sort="-x", title=""),
+                x=alt.X("PLAN_GAP_QTY:Q", title="Forecast − Committed (units)"),
+                color=alt.condition(
+                    alt.datum.PLAN_GAP_QTY > 0,
+                    alt.value("#d32f2f"),
+                    alt.value("#388e3c")
+                ),
+                tooltip=["MATERIAL_ID", "MATERIAL_DESC", "COMMITTED_QTY", "TOTAL_FORECAST_QTY", "PLAN_GAP_QTY",
+                          alt.Tooltip("GAP_REVENUE_USD:Q", format="$,.0f")],
+            ).properties(title="Plan Gap: Forecast vs S&OP Committed", height=max(300, len(gap_chart_data) * 26))
+            st.altair_chart(gap_bar, use_container_width=True)
+
+        # Confidence breakdown
+        cc1, cc2 = st.columns([1, 2])
+        with cc1:
+            conf = plan_gap.groupby("PLAN_CONFIDENCE").size().reset_index(name="COUNT")
+            conf_colors = {"HIGH": "#388e3c", "MEDIUM": "#fbc02d", "LOW": "#d32f2f"}
+            conf_donut = alt.Chart(conf).mark_arc(innerRadius=40).encode(
+                theta=alt.Theta("COUNT:Q"),
+                color=alt.Color("PLAN_CONFIDENCE:N", scale=alt.Scale(
+                    domain=list(conf_colors.keys()), range=list(conf_colors.values()))),
+                tooltip=["PLAN_CONFIDENCE", "COUNT"],
+            ).properties(title="Plan Confidence", height=240)
+            st.altair_chart(conf_donut, use_container_width=True)
+        with cc2:
+            st.dataframe(plan_gap[["MATERIAL_ID", "MATERIAL_DESC", "DIVISION", "COMMITTED_QTY",
+                                    "TOTAL_FORECAST_QTY", "PLAN_GAP_QTY", "GAP_REVENUE_USD", "PLAN_CONFIDENCE"]],
+                          use_container_width=True, hide_index=True)
 
 
 # ===================================================================
