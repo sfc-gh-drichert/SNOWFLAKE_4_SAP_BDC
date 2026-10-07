@@ -72,7 +72,7 @@ if page == "Supply Risk Command Center":
     c3.metric("Active Disruptions", int(alerts_df["CNT"].iloc[0] or 0))
     c4.metric("Suppliers at Risk", int(risk_df["SUPPLIERS_AT_RISK"].iloc[0] or 0))
 
-    st.divider()
+    st.markdown("---")
 
     # Data-source cards
     st.subheader("Data Sources Fused in Snowflake")
@@ -128,7 +128,7 @@ if page == "Supply Risk Command Center":
         - **{int(ext_counts['NEWS_EVENTS'].iloc[0])}** News Risk Events
         """)
 
-    st.divider()
+    st.markdown("---")
 
     # Fusion diagram
     st.subheader("Data Fusion Architecture")
@@ -186,7 +186,7 @@ elif page == "SAP BDC Zero Copy":
     mc4.metric("Purchase Orders", int(m["POS"].iloc[0]))
     mc5.metric("Open PO Value", f"${m['OPEN_PO_VAL'].iloc[0]:,.0f}")
 
-    st.divider()
+    st.markdown("---")
     tab1, tab2, tab3, tab4 = st.tabs(["Products", "Suppliers", "Inventory & Coverage", "Purchase Orders"])
 
     with tab1:
@@ -211,7 +211,7 @@ elif page == "SAP BDC Zero Copy":
                 Avg_Price=("UNIT_WHOLESALE_USD", "mean"),
             ).reset_index().sort_values(["DIVISION", "BRAND"])
             brand_summary["Avg_Price"] = brand_summary["Avg_Price"].map("${:,.2f}".format)
-            st.dataframe(brand_summary, use_container_width=True, hide_index=True)
+            st.dataframe(brand_summary, use_container_width=True)
 
     with tab2:
         suppliers = run_query(f"""
@@ -220,7 +220,7 @@ elif page == "SAP BDC Zero Copy":
             FROM {DB_SCHEMA}.I_SUPPLIER WHERE IS_ACTIVE=TRUE
             ORDER BY CREDIT_RATING DESC, SUPPLIER_NAME
         """)
-        st.dataframe(suppliers, use_container_width=True, hide_index=True)
+        st.dataframe(suppliers, use_container_width=True)
 
     with tab3:
         inv = run_query(f"""
@@ -247,7 +247,7 @@ elif page == "SAP BDC Zero Copy":
             tooltip=["MATERIAL_ID", "Metric", "Days"],
         ).properties(title="Days of Supply vs Safety Stock (top 15 gap)", height=320)
         st.altair_chart(bar, use_container_width=True)
-        st.dataframe(inv, use_container_width=True, hide_index=True)
+        st.dataframe(inv, use_container_width=True)
 
     with tab4:
         pos = run_query(f"""
@@ -256,7 +256,7 @@ elif page == "SAP BDC Zero Copy":
             FROM {DB_SCHEMA}.M_V_POH_AGGR
             ORDER BY DELIVERY_DATE DESC
         """)
-        st.dataframe(pos, use_container_width=True, hide_index=True)
+        st.dataframe(pos, use_container_width=True)
 
 
 # ===================================================================
@@ -283,7 +283,7 @@ elif page == "Blue Yonder Planning":
         k2.metric("Peak Forecast Units", f"{int(peak_kpi['PEAK_FORECAST_UNITS'].iloc[0]):,}")
         k3.metric("Avg Seasonal Lift", f"{peak_kpi['AVG_LIFT'].iloc[0]}%")
 
-        st.divider()
+        st.markdown("---")
 
         # Peak event selector
         events = run_query(f"SELECT DISTINCT PEAK_EVENT FROM {DB_SCHEMA}.BY_DEMAND_FORECAST WHERE PEAK_EVENT IS NOT NULL ORDER BY 1")
@@ -372,7 +372,7 @@ elif page == "Blue Yonder Planning":
                    SHIP_DATE, DELIVERY_DATE, LOAD_STATUS, ON_TIME_FLAG
             FROM {DB_SCHEMA}.BY_LOADS ORDER BY SHIP_DATE DESC
         """)
-        st.dataframe(all_loads, use_container_width=True, hide_index=True)
+        st.dataframe(all_loads, use_container_width=True)
 
     with tab_p:
         st.subheader("Consensus Plans (S&OP)")
@@ -383,7 +383,7 @@ elif page == "Blue Yonder Planning":
             JOIN {DB_SCHEMA}.I_PRODUCT p ON p.MATERIAL_ID = cp.MATERIAL_ID
             ORDER BY cp.REVENUE_PLAN_USD DESC
         """)
-        st.dataframe(plans, use_container_width=True, hide_index=True)
+        st.dataframe(plans, use_container_width=True)
 
 
 # ===================================================================
@@ -406,13 +406,13 @@ elif page == "External Signals":
         for _, row in alerts.iterrows():
             level = row["RISK_LEVEL"]
             icon = "🔴" if level == "CRITICAL" else "🟠" if level == "HIGH" else "🟡"
-            with st.container(border=True):
+            with st.container():
                 st.markdown(f"{icon} **{row['DISEASE_NAME']}** — {row['COUNTRY']}, {row['REGION']}")
                 st.caption(f"{level} | Species: {row['AFFECTED_SPECIES']} | Since: {row['DISCOVERY_DATE']}")
     else:
         st.success("No active biosecurity alerts.")
 
-    st.divider()
+    st.markdown("---")
     tab_c, tab_n, tab_pv = st.tabs(["Commodity Prices", "News & Risk Events", "Ports & Vessels"])
 
     with tab_c:
@@ -444,7 +444,7 @@ elif page == "External Signals":
                   AND COMMODITY IN ({in_list})
                 ORDER BY COMMODITY
             """)
-            st.dataframe(latest, use_container_width=True, hide_index=True)
+            st.dataframe(latest, use_container_width=True)
 
     with tab_n:
         news = run_query(f"""
@@ -453,7 +453,7 @@ elif page == "External Signals":
             FROM {DB_SCHEMA}.EXT_NEWS_RISK_EVENTS
             ORDER BY EVENT_DATE DESC
         """)
-        st.dataframe(news, use_container_width=True, hide_index=True)
+        st.dataframe(news, use_container_width=True)
 
     with tab_pv:
         col_port, col_vessel = st.columns(2)
@@ -466,7 +466,7 @@ elif page == "External Signals":
                 WHERE REPORT_DATE = (SELECT MAX(REPORT_DATE) FROM {DB_SCHEMA}.EXT_PORT_CONGESTION)
                 ORDER BY CONGESTION_SCORE DESC
             """)
-            st.dataframe(ports, use_container_width=True, hide_index=True)
+            st.dataframe(ports, use_container_width=True)
 
         with col_vessel:
             st.subheader("Vessel Tracker")
@@ -477,7 +477,7 @@ elif page == "External Signals":
                 FROM {DB_SCHEMA}.EXT_VESSEL_TRACKER
                 ORDER BY DELAY_DAYS DESC
             """)
-            st.dataframe(vessels, use_container_width=True, hide_index=True)
+            st.dataframe(vessels, use_container_width=True)
 
 
 # ===================================================================
@@ -513,7 +513,7 @@ elif page == "Risk Command Center":
     ).properties(height=max(400, len(top20) * 24))
     st.altair_chart(leaderboard, use_container_width=True)
 
-    st.divider()
+    st.markdown("---")
     col_tier, col_div = st.columns(2)
 
     with col_tier:
@@ -545,7 +545,7 @@ elif page == "Risk Command Center":
         st.altair_chart(hbar, use_container_width=True)
 
     # Drill-down
-    st.divider()
+    st.markdown("---")
     st.subheader("Material Drill-Down")
     material_options = risk["MATERIAL_ID"].tolist()
     selected_material = st.selectbox("Select Material", material_options)
