@@ -42,7 +42,6 @@ def source_card(title, color, items):
 
 
 # ── sidebar ──
-st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/f/ff/Snowflake_Logo.svg/220px-Snowflake_Logo.svg.png", width=160)
 st.sidebar.title("Navigation")
 PAGES = ["Overview", "SAP BDC Zero Copy", "Blue Yonder Planning", "External Signals", "Risk Command Center"]
 page = st.sidebar.radio("", PAGES, label_visibility="collapsed")
