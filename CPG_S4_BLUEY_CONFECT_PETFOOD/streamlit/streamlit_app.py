@@ -34,7 +34,9 @@ def kpi_card(label, value, color="#29B5E8"):
 
 
 def source_card(title, color, items):
-    bullet_html = "".join(f"<div style='padding:3px 0;font-size:0.9rem;'>{i}</div>" for i in items)
+    import re
+    def md_bold_to_html(s): return re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
+    bullet_html = "".join(f"<div style='padding:3px 0;font-size:0.9rem;'>{md_bold_to_html(i)}</div>" for i in items)
     st.markdown(f"""<div style="border:1px solid {color}44;border-top:4px solid {color};
         border-radius:8px;padding:20px;background:{color}06;height:100%;">
         <div style="font-size:1.1rem;font-weight:700;color:{color};margin-bottom:12px;">{title}</div>
