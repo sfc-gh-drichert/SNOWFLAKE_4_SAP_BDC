@@ -200,7 +200,7 @@ elif page == "SAP BDC Zero Copy":
         st.dataframe(inv, use_container_width=True, hide_index=True)
 
     with tab4:
-        pos = run_query(f"""SELECT PO_NUMBER, MATERIAL_ID, SUPPLIER_ID, PO_QTY, NET_VALUE_USD, PO_STATUS, DELIVERY_DATE, GR_DATE
+        pos = run_query(f"""SELECT PO_NUMBER, MATERIAL_ID, SUPPLIER_ID, ORDER_QTY, NET_VALUE_USD, PO_STATUS, DELIVERY_DATE, GR_DATE
             FROM {DB_SCHEMA}.M_V_POH_AGGR ORDER BY DELIVERY_DATE DESC""")
         st.dataframe(pos, use_container_width=True, hide_index=True)
 
@@ -268,8 +268,8 @@ elif page == "Blue Yonder Planning":
             ).properties(title="Tender Responses", height=280)
             st.altair_chart(tender_bar, use_container_width=True)
 
-        all_loads = run_query(f"""SELECT LOAD_ID, LANE_ID, RELATED_PO, CARRIER_ID, SHIP_DATE, DELIVERY_DATE, LOAD_STATUS, ON_TIME_FLAG
-            FROM {DB_SCHEMA}.BY_LOADS ORDER BY SHIP_DATE DESC""")
+        all_loads = run_query(f"""SELECT LOAD_ID, LANE_ID, RELATED_PO, CARRIER_ID, SHIPMENT_DATE, DELIVERY_DATE, LOAD_STATUS, WEIGHT_KG
+            FROM {DB_SCHEMA}.BY_LOADS ORDER BY SHIPMENT_DATE DESC""")
         st.dataframe(all_loads, use_container_width=True, hide_index=True)
 
     with tab_p:
@@ -288,7 +288,7 @@ elif page == "External Signals":
     st.caption("Real-time market, geopolitical and biosecurity intelligence")
 
     alerts = run_query(f"""SELECT ALERT_ID, DISEASE_NAME, COUNTRY, REGION, RISK_LEVEL, STATUS,
-        AFFECTED_SPECIES, DISCOVERY_DATE, LAST_UPDATED
+        AFFECTED_SPECIES, ALERT_DATE, STATUS
         FROM {DB_SCHEMA}.EXT_OUTBREAK_ALERTS WHERE STATUS = 'ACTIVE' ORDER BY RISK_LEVEL DESC""")
 
     if not alerts.empty:
@@ -304,7 +304,7 @@ elif page == "External Signals":
                     <div style="margin-top:8px;"><span style="background:{color};color:white;
                     padding:2px 10px;border-radius:12px;font-size:0.8rem;font-weight:600;">{row['RISK_LEVEL']}</span>
                     &nbsp; {row['AFFECTED_SPECIES']}</div>
-                    <div style="color:#999;font-size:0.75rem;margin-top:6px;">Since {row['DISCOVERY_DATE']}</div>
+                    <div style="color:#999;font-size:0.75rem;margin-top:6px;">Since {row['ALERT_DATE']}</div>
                     </div>""", unsafe_allow_html=True)
     else:
         st.success("No active biosecurity alerts.")
@@ -332,7 +332,7 @@ elif page == "External Signals":
             st.dataframe(latest, use_container_width=True, hide_index=True)
 
     with tab_n:
-        news = run_query(f"""SELECT EVENT_DATE, HEADLINE, RISK_CATEGORY, SEVERITY, SOURCE, RELATED_SUPPLIER, RELATED_COMMODITY
+        news = run_query(f"""SELECT EVENT_DATE, HEADLINE, RISK_CATEGORY, SEVERITY, SOURCE, RELATED_SUPPLIER, AFFECTED_COMMODITY
             FROM {DB_SCHEMA}.EXT_NEWS_RISK_EVENTS ORDER BY EVENT_DATE DESC""")
         st.dataframe(news, use_container_width=True, hide_index=True)
 
