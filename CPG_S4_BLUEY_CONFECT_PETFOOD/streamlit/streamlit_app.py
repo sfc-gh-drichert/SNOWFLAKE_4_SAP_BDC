@@ -337,6 +337,74 @@ elif page == "Blue Yonder Planning":
                                     "TOTAL_FORECAST_QTY", "PLAN_GAP_QTY", "GAP_REVENUE_USD", "PLAN_CONFIDENCE"]],
                           use_container_width=True, hide_index=True)
 
+        # ── Interactive Plan Override ──
+        st.divider()
+        st.markdown("### Adjust Plan")
+        st.caption("Override the S&OP committed quantity for a material. Saved overrides persist in BY_PLAN_OVERRIDES.")
+
+        ov_col1, ov_col2 = st.columns([1, 2])
+        with ov_col1:
+            materials = plan_gap["MATERIAL_ID"].tolist()
+            sel_mat = st.selectbox("Material to override", materials, key="plan_override_mat")
+            mat_row = plan_gap[plan_gap["MATERIAL_ID"] == sel_mat].iloc[0]
+
+            current_committed = int(mat_row["COMMITTED_QTY"])
+            forecast = int(mat_row["TOTAL_FORECAST_QTY"])
+
+            st.markdown(f"**Current S&OP Committed:** {current_committed:,}")
+            st.markdown(f"**Peak Forecast:** {forecast:,}")
+            st.markdown(f"**Gap:** {int(mat_row['PLAN_GAP_QTY']):,} units")
+
+            max_val = max(forecast * 2, current_committed * 2, 1)
+            new_qty = st.slider("New committed quantity", min_value=0, max_value=max_val,
+                                value=current_committed, step=500, key="plan_override_qty")
+            reason = st.selectbox("Reason", ["Demand surge", "Supply constraint", "Safety stock build",
+                                              "Seasonal adjustment", "Customer escalation", "Other"],
+                                  key="plan_override_reason")
+
+        with ov_col2:
+            new_gap = forecast - new_qty
+            st.markdown("")
+            st.markdown("")
+            compare_data = pd.DataFrame({
+                "Measure": ["S&OP Committed", "Override Qty", "Peak Forecast"],
+                "Quantity": [current_committed, new_qty, forecast],
+                "Type": ["Original", "Override", "Forecast"]
+            })
+            compare_bar = alt.Chart(compare_data).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4).encode(
+                x=alt.X("Measure:N", sort=["S&OP Committed", "Override Qty", "Peak Forecast"], title=""),
+                y=alt.Y("Quantity:Q", title="Units"),
+                color=alt.Color("Type:N", scale=alt.Scale(
+                    domain=["Original", "Override", "Forecast"],
+                    range=["#9e9e9e", "#1565c0", "#ef6c00"]
+                )),
+                tooltip=["Measure", "Quantity"],
+            ).properties(height=260, title=f"{sel_mat} — Plan Comparison")
+            st.altair_chart(compare_bar, use_container_width=True)
+
+            gap_color = "#d32f2f" if new_gap > 0 else "#388e3c"
+            st.markdown(f"**New gap:** <span style='color:{gap_color};font-weight:700;'>{new_gap:,} units</span>",
+                        unsafe_allow_html=True)
+
+        if new_qty != current_committed:
+            if st.button("Save Override", type="primary", key="save_override"):
+                safe_reason = reason.replace("'", "''")
+                conn.query(f"""
+                    MERGE INTO {DB_SCHEMA}.BY_PLAN_OVERRIDES t
+                    USING (SELECT '{sel_mat}' AS MATERIAL_ID) s ON t.MATERIAL_ID = s.MATERIAL_ID
+                    WHEN MATCHED THEN UPDATE SET OVERRIDE_QTY = {new_qty}, OVERRIDE_REASON = '{safe_reason}',
+                        OVERRIDDEN_BY = CURRENT_USER(), OVERRIDE_TIMESTAMP = CURRENT_TIMESTAMP()
+                    WHEN NOT MATCHED THEN INSERT (MATERIAL_ID, OVERRIDE_QTY, OVERRIDE_REASON)
+                        VALUES ('{sel_mat}', {new_qty}, '{safe_reason}')
+                """)
+                st.success(f"Override saved: {sel_mat} → {new_qty:,} units ({reason})")
+
+        # Show existing overrides
+        existing = run_query(f"SELECT * FROM {DB_SCHEMA}.BY_PLAN_OVERRIDES ORDER BY OVERRIDE_TIMESTAMP DESC")
+        if not existing.empty:
+            st.markdown("#### Saved Overrides")
+            st.dataframe(existing, use_container_width=True, hide_index=True)
+
 
 # ===================================================================
 # PAGE 4 — External Signals

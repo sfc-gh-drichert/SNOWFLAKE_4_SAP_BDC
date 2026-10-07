@@ -881,6 +881,16 @@ INSERT INTO EXT_NEWS_RISK_EVENTS VALUES
 -- Snowflake computes the "so what" SAP and BY cannot see alone.
 -- =============================================================
 
+-- Plan overrides table (written by Streamlit dashboard)
+CREATE TABLE IF NOT EXISTS BY_PLAN_OVERRIDES (
+    MATERIAL_ID         VARCHAR     NOT NULL,
+    OVERRIDE_QTY        NUMBER(12,0),
+    OVERRIDE_REASON     VARCHAR,
+    OVERRIDDEN_BY       VARCHAR     DEFAULT CURRENT_USER(),
+    OVERRIDE_TIMESTAMP  TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+    PRIMARY KEY (MATERIAL_ID)
+);
+
 CREATE OR REPLACE VIEW V_BOM_RISK_EXPLOSION AS
 SELECT
     s.SUPPLIER_ID, s.SUPPLIER_NAME,
