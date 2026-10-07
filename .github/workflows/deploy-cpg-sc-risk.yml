@@ -74,6 +74,7 @@ jobs:
             echo "--> Uploading Streamlit app to stage"
             snow sql -q "USE DATABASE CONFECT_PETFOOD_DEMO; USE SCHEMA SC_RISK_DEMO; USE WAREHOUSE CONFECT_PETFOOD_WH; CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);" --enable-templating NONE
             snow stage copy "${BASE}/streamlit/streamlit_app.py" @STREAMLIT_STAGE --overwrite --database CONFECT_PETFOOD_DEMO --schema SC_RISK_DEMO
+            snow stage copy "${BASE}/streamlit/pyproject.toml" @STREAMLIT_STAGE --overwrite --database CONFECT_PETFOOD_DEMO --schema SC_RISK_DEMO
             echo "--> Creating Streamlit object"
             run_sql "${BASE}/03_confect_petfood_streamlit.sql"
           }
