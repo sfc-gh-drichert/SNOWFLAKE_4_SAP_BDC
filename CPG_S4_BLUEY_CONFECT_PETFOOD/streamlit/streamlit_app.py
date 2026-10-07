@@ -389,14 +389,14 @@ elif page == "Blue Yonder Planning":
         if new_qty != current_committed:
             if st.button("Save Override", type="primary", key="save_override"):
                 safe_reason = reason.replace("'", "''")
-                conn.query(f"""
+                conn.session().sql(f"""
                     MERGE INTO {DB_SCHEMA}.BY_PLAN_OVERRIDES t
                     USING (SELECT '{sel_mat}' AS MATERIAL_ID) s ON t.MATERIAL_ID = s.MATERIAL_ID
                     WHEN MATCHED THEN UPDATE SET OVERRIDE_QTY = {new_qty}, OVERRIDE_REASON = '{safe_reason}',
                         OVERRIDDEN_BY = CURRENT_USER(), OVERRIDE_TIMESTAMP = CURRENT_TIMESTAMP()
                     WHEN NOT MATCHED THEN INSERT (MATERIAL_ID, OVERRIDE_QTY, OVERRIDE_REASON)
                         VALUES ('{sel_mat}', {new_qty}, '{safe_reason}')
-                """)
+                """).collect()
                 st.success(f"Override saved: {sel_mat} → {new_qty:,} units ({reason})")
 
         # Show existing overrides
