@@ -1,0 +1,141 @@
+name: Deploy World Delivery ESG Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      warehouse:
+        description: 'Snowflake warehouse name'
+        required: true
+        default: 'WORLD_DELIVERY_WH'
+      database:
+        description: 'Target Snowflake database'
+        required: true
+        default: 'WORLD_DELIVERY'
+      action:
+        description: 'What to deploy'
+        required: true
+        type: choice
+        options:
+          - ping               # Connection test only
+          - all                # Full setup: files 01-11
+          - data-only          # DDL + data seed (02-06)
+          - views-only         # Analytics views (07)
+          - agent-only         # Semantic view + agent (08-09)
+          - dashboard-only     # Streamlit app (10)
+          - verify             # Verification queries (11)
+          - teardown           # Drop all demo objects
+        default: ping
+
+jobs:
+  deploy:
+    name: Deploy (${{ inputs.action }}) → ${{ inputs.database }}.ESG
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Snowflake CLI
+        run: |
+          pip install snowflake-cli
+          snow --version
+
+      - name: Configure Snowflake connection
+        env:
+          SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER:        ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.snowflake
+          cat > ~/.snowflake/config.toml << TOMLEOF
+          [connections.default]
+          account          = "${SNOWFLAKE_ACCOUNT}"
+          user             = "${SNOWFLAKE_USER}"
+          authenticator    = "SNOWFLAKE_JWT"
+          private_key_path = "/tmp/rsa_key.p8"
+          role             = "ACCOUNTADMIN"
+          TOMLEOF
+          printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" > /tmp/rsa_key.p8
+          chmod 0600 /tmp/rsa_key.p8
+          chmod 0600 ~/.snowflake/config.toml
+
+      - name: Test connection
+        run: |
+          echo "==> Testing connection to Snowflake..."
+          snow sql -q "SELECT CURRENT_USER() AS user, CURRENT_ACCOUNT() AS account, CURRENT_ROLE() AS role"
+          echo "==> Connection OK"
+
+      - name: Run SQL files
+        run: |
+          DB="${{ inputs.database }}"
+          WH="${{ inputs.warehouse }}"
+          BASE="WORLD_DELIVERY/ESG/EMISSIONS/setup"
+          APP_DIR="WORLD_DELIVERY/ESG/EMISSIONS"
+
+          run_sql() {
+            echo ""
+            echo "--> Running $(basename $1)"
+            snow sql -f "$1" \
+              --variable "db_name=${DB}" \
+              --variable "wh_name=${WH}"
+          }
+
+          deploy_streamlit() {
+            echo "--> Uploading Streamlit app to stage..."
+            snow sql -q "USE ROLE ACCOUNTADMIN; USE DATABASE ${DB}; USE SCHEMA ESG; CREATE STAGE IF NOT EXISTS WORLD_DELIVERY_ESG_STG;" \
+              --variable "db_name=${DB}" --variable "wh_name=${WH}"
+            snow stage copy "${APP_DIR}/streamlit_app.py" "@${DB}.ESG.WORLD_DELIVERY_ESG_STG" --overwrite
+            snow stage copy "${APP_DIR}/environment.yml" "@${DB}.ESG.WORLD_DELIVERY_ESG_STG" --overwrite
+            run_sql "${BASE}/10_streamlit.sql"
+          }
+
+          echo "==> Action: ${{ inputs.action }}  |  DB: ${DB}  |  WH: ${WH}"
+
+          case "${{ inputs.action }}" in
+            ping)
+              echo "Connection test passed in previous step. No SQL files to run."
+              ;;
+            all)
+              for f in "${BASE}"/[0-9][0-9]_*.sql; do
+                # Skip 10_streamlit.sql — handle separately for file upload
+                if [[ "$(basename $f)" == "10_streamlit.sql" ]]; then
+                  deploy_streamlit
+                else
+                  run_sql "$f"
+                fi
+              done
+              ;;
+            data-only)
+              for f in "${BASE}"/0[2-6]_*.sql; do run_sql "$f"; done
+              ;;
+            views-only)
+              run_sql "${BASE}/07_views.sql"
+              ;;
+            agent-only)
+              run_sql "${BASE}/08_semantic_view.sql"
+              run_sql "${BASE}/09_agent.sql"
+              ;;
+            dashboard-only)
+              deploy_streamlit
+              ;;
+            verify)
+              echo "NOTE: verify requires 'all' to have been run first."
+              run_sql "${BASE}/11_verify.sql"
+              ;;
+            teardown)
+              run_sql "WORLD_DELIVERY/ESG/EMISSIONS/runbooks/teardown.sql"
+              ;;
+          esac
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## World Delivery ESG Demo" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Action | \`${{ inputs.action }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Database | \`${{ inputs.database }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Warehouse | \`${{ inputs.warehouse }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | ${{ job.status }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | @${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"

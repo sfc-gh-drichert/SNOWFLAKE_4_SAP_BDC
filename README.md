@@ -9,6 +9,7 @@ Each demo lives under a folder path that mirrors the Snowflake database/schema h
 |------|----------|--------|--------|-------------|
 | [`S4/FIN/PNL`](S4/FIN/PNL/README.md) | S4 | FIN | PNL | R.Daneel Inc. — Financial P&L with marginal contribution (DB1/DB2/EBIT) |
 | [`CPG_S4_BLUEY_CONFECT_PETFOOD`](CPG_S4_BLUEY_CONFECT_PETFOOD/README.md) | CONFECT_PETFOOD_DEMO | SC_RISK_DEMO | Supply Chain Risk | Multi-division CPG supply chain risk intelligence (SAP + Blue Yonder + external signals) |
+| [`WORLD_DELIVERY/ESG/EMISSIONS`](WORLD_DELIVERY/ESG/EMISSIONS/README.md) | WORLD_DELIVERY | ESG | Emissions & Sustainability | Global logistics ESG: GHG emissions (Scope 1/2/3), ESRS E1, SBTi tracking, fleet electrification, GoGreen Plus, workforce KPIs + Streamlit CxO dashboard |
 
 > More demos coming: `S4/FIN/AP`, `S4/FIN/AR`, `S4/SD/ORDER_TO_CASH`, `S4/MM/PROCUREMENT`
 
@@ -36,17 +37,29 @@ S3_FINANCE_PNL  (base fact table)
 
 ### Option A — GitHub Actions (no CLI required)
 
-1. Fork or get access to this repo
-2. Go to **Settings → Secrets and variables → Actions** and add three secrets:
+**Important: fork first, then add your own secrets.**
+
+This repo has no secrets configured — it is code only. Each person deploys to
+their own Snowflake account by forking and adding their own credentials. This
+keeps accounts isolated: your fork's secrets only ever touch your account.
+
+1. **Fork** this repo to your own GitHub account (or your org)
+2. On **your fork**, go to **Settings → Secrets and variables → Actions** and add three secrets:
 
    | Secret | Value |
    |--------|-------|
-   | `SNOWFLAKE_ACCOUNT` | Account identifier for the target Snowflake account (e.g. `orgname-accountname`) |
+   | `SNOWFLAKE_ACCOUNT` | Account identifier for **your** target Snowflake account (e.g. `orgname-accountname`) |
    | `SNOWFLAKE_USER` | Snowflake username of the service user running the deployment |
    | `SNOWFLAKE_PRIVATE_KEY` | Full contents of `demo_cicd.p8` including PEM headers — see setup guide below |
 
-3. Go to **Actions → Deploy S4.FIN.PNL — R.Daneel P&L Demo → Run workflow**
+3. On **your fork**, go to **Actions → Deploy S4.FIN.PNL — R.Daneel P&L Demo → Run workflow**
 4. Choose `all` for a fresh install, fill in warehouse/database, click **Run workflow**
+
+> **Why fork?** GitHub Actions secrets are scoped to the repo they are stored in.
+> Anyone with write access to a repo can trigger `workflow_dispatch` workflows
+> that run with that repo's secrets. By forking and adding your own secrets, you
+> ensure that only you control which Snowflake account gets deployed to. The
+> upstream repo stays clean with no credentials attached.
 
 ### Option B — Local Snowflake CLI
 
