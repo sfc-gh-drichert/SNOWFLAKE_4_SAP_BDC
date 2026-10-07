@@ -18,13 +18,19 @@ CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE
   DIRECTORY = (ENABLE = TRUE)
   COMMENT = 'Stage for Confect PetFood Streamlit dashboard files';
 
+-- EAI for PyPI — container runtime needs this to resolve pyproject.toml
+-- Uses Snowflake's built-in managed network rule (exists in every account)
+CREATE EXTERNAL ACCESS INTEGRATION IF NOT EXISTS CONFECT_PETFOOD_PYPI_EAI
+  ALLOWED_NETWORK_RULES = (snowflake.external_access.pypi_rule)
+  ENABLED = true;
+
 -- Create the Streamlit app (container runtime — modern Streamlit)
 CREATE OR REPLACE STREAMLIT SC_RISK_DASHBOARD
   FROM '@CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.STREAMLIT_STAGE'
   MAIN_FILE = 'streamlit_app.py'
   QUERY_WAREHOUSE = CONFECT_PETFOOD_WH
   RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
-  EXTERNAL_ACCESS_INTEGRATIONS = (PYPI_ACCESS_INTEGRATION)
+  EXTERNAL_ACCESS_INTEGRATIONS = (CONFECT_PETFOOD_PYPI_EAI)
   TITLE = 'Supply Risk Command Center'
   COMMENT = 'Confect PetFood supply chain risk intelligence dashboard — 5-page SiS app';
 
