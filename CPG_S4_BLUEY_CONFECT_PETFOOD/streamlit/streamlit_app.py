@@ -9,12 +9,10 @@ import altair as alt
 
 st.set_page_config(page_title="Supply Risk Command Center", layout="wide")
 
-# -- Snowflake connection (works in SiS and locally) --
-import os
-conn = st.connection(
-    "snowflake",
-    account=os.getenv("SNOWFLAKE_ACCOUNT"),
-)
+# -- Snowflake connection --
+# In SiS warehouse runtime: uses embedded session automatically.
+# Locally: picks up from ~/.snowflake/config.toml or .streamlit/secrets.toml.
+conn = st.connection("snowflake")
 
 DB_SCHEMA = "CONFECT_PETFOOD_DEMO.SC_RISK_DEMO"
 
@@ -293,7 +291,8 @@ elif page == "Blue Yonder Planning":
 
         where_clause = ""
         if selected_event != "ALL":
-            where_clause = f"AND (PEAK_EVENT = '{selected_event}' OR PEAK_EVENT IS NULL)"
+            safe_event = selected_event.replace("'", "''")
+            where_clause = f"AND (PEAK_EVENT = '{safe_event}' OR PEAK_EVENT IS NULL)"
 
         # Weekly forecast curve
         weekly = run_query(f"""
@@ -405,15 +404,11 @@ elif page == "External Signals":
     if not alerts.empty:
         st.subheader(f"Active Biosecurity Alerts ({len(alerts)})")
         for _, row in alerts.iterrows():
-            color = RISK_COLORS.get(row["RISK_LEVEL"], "#757575")
-            st.markdown(
-                f"""<div style="border-left: 4px solid {color}; padding: 8px 12px; margin-bottom: 8px; background: rgba(0,0,0,0.03); border-radius: 4px;">
-                <strong>{row['DISEASE_NAME']}</strong> — {row['COUNTRY']}, {row['REGION']}<br/>
-                <span style="color:{color}; font-weight:bold;">⚠ {row['RISK_LEVEL']}</span> &nbsp;|&nbsp;
-                Species: {row['AFFECTED_SPECIES']} &nbsp;|&nbsp; Since: {row['DISCOVERY_DATE']}
-                </div>""",
-                unsafe_allow_html=True,
-            )
+            level = row["RISK_LEVEL"]
+            icon = "🔴" if level == "CRITICAL" else "🟠" if level == "HIGH" else "🟡"
+            with st.container(border=True):
+                st.markdown(f"{icon} **{row['DISEASE_NAME']}** — {row['COUNTRY']}, {row['REGION']}")
+                st.caption(f"{level} | Species: {row['AFFECTED_SPECIES']} | Since: {row['DISCOVERY_DATE']}")
     else:
         st.success("No active biosecurity alerts.")
 
@@ -427,7 +422,7 @@ elif page == "External Signals":
             default=commodities["COMMODITY"].tolist()[:3],
         )
         if selected_commodities:
-            in_list = ",".join([f"'{c}'" for c in selected_commodities])
+            in_list = ",".join([f"'{c.replace(chr(39), chr(39)*2)}'" for c in selected_commodities])
             prices = run_query(f"""
                 SELECT PRICE_DATE, COMMODITY, SPOT_PRICE, SUPPLY_TIGHTNESS, YOY_CHANGE_PCT
                 FROM {DB_SCHEMA}.EXT_COMMODITY_PRICES
