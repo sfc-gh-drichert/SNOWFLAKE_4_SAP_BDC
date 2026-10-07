@@ -22,11 +22,12 @@ CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE
 -- The Python file must be uploaded to the stage before this step.
 -- GH Actions workflow does: snow stage copy streamlit/streamlit_app.py @STREAMLIT_STAGE/
 
--- Create the Streamlit app (warehouse runtime — no compute pool needed)
+-- Create the Streamlit app (warehouse runtime — no compute pool or EAI needed)
 CREATE OR REPLACE STREAMLIT SC_RISK_DASHBOARD
   FROM '@CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.STREAMLIT_STAGE'
   MAIN_FILE = 'streamlit_app.py'
   QUERY_WAREHOUSE = CONFECT_PETFOOD_WH
+  RUNTIME_NAME = 'SYSTEM$WAREHOUSE_RUNTIME'
   TITLE = 'Supply Risk Command Center'
   COMMENT = 'Confect PetFood supply chain risk intelligence dashboard — 5-page SiS app';
 
