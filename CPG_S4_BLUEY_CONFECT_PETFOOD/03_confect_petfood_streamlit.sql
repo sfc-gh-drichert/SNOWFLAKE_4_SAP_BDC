@@ -1,12 +1,11 @@
 -- =============================================================
 -- Confect PetFood — Supply Risk Command Center
--- Streamlit-in-Snowflake Dashboard
+-- Streamlit-in-Snowflake Dashboard (Container Runtime)
 -- =============================================================
--- Prerequisite: run 01_confect_petfood_demo_sc_risk_ice.sql first
--- (tables, views, and data must exist).
+-- Prerequisite: run 01_confect_petfood_demo_sc_risk_ice.sql first.
 --
 -- Deployment:
---   1. Upload streamlit/streamlit_app.py to the stage (GH Actions does this)
+--   1. Upload streamlit/ files to the stage (GH Actions does this)
 --   2. Run this file with: snow sql -f <this_file> --enable-templating NONE
 -- =============================================================
 
@@ -19,19 +18,17 @@ CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE
   DIRECTORY = (ENABLE = TRUE)
   COMMENT = 'Stage for Confect PetFood Streamlit dashboard files';
 
--- The Python file must be uploaded to the stage before this step.
--- GH Actions workflow does: snow stage copy streamlit/streamlit_app.py @STREAMLIT_STAGE/
-
--- Create the Streamlit app (warehouse runtime — no compute pool or EAI needed)
+-- Create the Streamlit app (container runtime — modern Streamlit)
 CREATE OR REPLACE STREAMLIT SC_RISK_DASHBOARD
   FROM '@CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.STREAMLIT_STAGE'
   MAIN_FILE = 'streamlit_app.py'
   QUERY_WAREHOUSE = CONFECT_PETFOOD_WH
-  RUNTIME_NAME = 'SYSTEM$WAREHOUSE_RUNTIME'
+  RUNTIME_NAME = 'SYSTEM$ST_CONTAINER_RUNTIME_PY3_11'
+  EXTERNAL_ACCESS_INTEGRATIONS = (PYPI_ACCESS_INTEGRATION)
   TITLE = 'Supply Risk Command Center'
   COMMENT = 'Confect PetFood supply chain risk intelligence dashboard — 5-page SiS app';
 
--- Make the app live (required after CREATE STREAMLIT)
+-- Make the app live
 ALTER STREAMLIT SC_RISK_DASHBOARD ADD LIVE VERSION FROM LAST;
 
 -- Grant access

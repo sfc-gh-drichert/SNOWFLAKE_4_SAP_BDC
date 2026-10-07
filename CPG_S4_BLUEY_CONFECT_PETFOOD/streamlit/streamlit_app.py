@@ -9,16 +9,14 @@ import altair as alt
 
 st.set_page_config(page_title="Supply Risk Command Center", layout="wide")
 
-# -- Snowflake session --
-# Warehouse runtime uses get_active_session() (works with all SiS Streamlit versions).
-from snowflake.snowpark.context import get_active_session
-session = get_active_session()
+# -- Snowflake connection (container runtime) --
+conn = st.connection("snowflake")
 
 DB_SCHEMA = "CONFECT_PETFOOD_DEMO.SC_RISK_DEMO"
 
 
 def run_query(sql: str) -> pd.DataFrame:
-    return session.sql(sql).to_pandas()
+    return conn.query(sql)
 
 
 # ── colour palette ──
@@ -72,7 +70,7 @@ if page == "Supply Risk Command Center":
     c3.metric("Active Disruptions", int(alerts_df["CNT"].iloc[0] or 0))
     c4.metric("Suppliers at Risk", int(risk_df["SUPPLIERS_AT_RISK"].iloc[0] or 0))
 
-    st.markdown("---")
+    st.divider()
 
     # Data-source cards
     st.subheader("Data Sources Fused in Snowflake")
@@ -87,14 +85,15 @@ if page == "Supply Risk Command Center":
                 (SELECT COUNT(*) FROM {DB_SCHEMA}.M_V_POH_AGGR)  AS pos,
                 (SELECT SUM(NET_VALUE_USD) FROM {DB_SCHEMA}.M_V_POH_AGGR WHERE GR_DATE IS NULL) AS open_po_val
         """)
-        st.markdown("#### SAP BDC")
-        st.markdown(f"""
-        - **{int(counts['PRODUCTS'].iloc[0])}** Products
-        - **{int(counts['SUPPLIERS'].iloc[0])}** Suppliers
-        - **{int(counts['BOM_ITEMS'].iloc[0])}** BOM Components
-        - **{int(counts['POS'].iloc[0])}** Purchase Orders
-        - **${counts['OPEN_PO_VAL'].iloc[0]:,.0f}** Open PO Value
-        """)
+        with st.container(border=True):
+            st.markdown("#### SAP BDC")
+            st.markdown(f"""
+- **{int(counts['PRODUCTS'].iloc[0])}** Products
+- **{int(counts['SUPPLIERS'].iloc[0])}** Suppliers
+- **{int(counts['BOM_ITEMS'].iloc[0])}** BOM Components
+- **{int(counts['POS'].iloc[0])}** Purchase Orders
+- **${counts['OPEN_PO_VAL'].iloc[0]:,.0f}** Open PO Value
+            """)
 
     with s2:
         by_counts = run_query(f"""
@@ -104,13 +103,14 @@ if page == "Supply Risk Command Center":
                 (SELECT COUNT(*) FROM {DB_SCHEMA}.BY_CONSENSUS_PLAN)   AS plans,
                 (SELECT COUNT(*) FROM {DB_SCHEMA}.BY_TENDER_EVENTS)    AS tenders
         """)
-        st.markdown("#### Blue Yonder")
-        st.markdown(f"""
-        - **{int(by_counts['FORECASTS'].iloc[0])}** Forecast Records
-        - **{int(by_counts['LOADS'].iloc[0])}** Shipment Loads
-        - **{int(by_counts['PLANS'].iloc[0])}** Consensus Plans
-        - **{int(by_counts['TENDERS'].iloc[0])}** Tender Events
-        """)
+        with st.container(border=True):
+            st.markdown("#### Blue Yonder")
+            st.markdown(f"""
+- **{int(by_counts['FORECASTS'].iloc[0])}** Forecast Records
+- **{int(by_counts['LOADS'].iloc[0])}** Shipment Loads
+- **{int(by_counts['PLANS'].iloc[0])}** Consensus Plans
+- **{int(by_counts['TENDERS'].iloc[0])}** Tender Events
+            """)
 
     with s3:
         ext_counts = run_query(f"""
@@ -120,47 +120,46 @@ if page == "Supply Risk Command Center":
                 (SELECT COUNT(*) FROM {DB_SCHEMA}.EXT_OUTBREAK_ALERTS WHERE STATUS='ACTIVE') AS alerts,
                 (SELECT COUNT(*) FROM {DB_SCHEMA}.EXT_NEWS_RISK_EVENTS)                   AS news_events
         """)
-        st.markdown("#### External Signals")
-        st.markdown(f"""
-        - **{int(ext_counts['COMMODITIES'].iloc[0])}** Commodity Feeds
-        - **{int(ext_counts['PORTS'].iloc[0])}** Ports Monitored
-        - **{int(ext_counts['ALERTS'].iloc[0])}** Active Biosecurity Alerts
-        - **{int(ext_counts['NEWS_EVENTS'].iloc[0])}** News Risk Events
-        """)
+        with st.container(border=True):
+            st.markdown("#### External Signals")
+            st.markdown(f"""
+- **{int(ext_counts['COMMODITIES'].iloc[0])}** Commodity Feeds
+- **{int(ext_counts['PORTS'].iloc[0])}** Ports Monitored
+- **{int(ext_counts['ALERTS'].iloc[0])}** Active Biosecurity Alerts
+- **{int(ext_counts['NEWS_EVENTS'].iloc[0])}** News Risk Events
+            """)
 
-    st.markdown("---")
+    st.divider()
 
     # Fusion diagram
     st.subheader("Data Fusion Architecture")
-    st.markdown("""
-    ```
-    ┌──────────────┐   ┌──────────────────┐   ┌────────────────────┐
-    │  SAP S/4HANA │   │  Blue Yonder     │   │  External Signals  │
-    │  via BDC     │   │  IBP + TMS       │   │  Market / Geo      │
-    │              │   │                  │   │                    │
-    │ • Products   │   │ • Demand Forecast│   │ • Commodity Prices │
-    │ • Suppliers  │   │ • Consensus Plan │   │ • Port Congestion  │
-    │ • BOMs       │   │ • Loads / Lanes  │   │ • Outbreak Alerts  │
-    │ • POs        │   │ • Tender Events  │   │ • News & Risk      │
-    │ • Stock      │   │                  │   │ • Vessel Tracker   │
-    └──────┬───────┘   └────────┬─────────┘   └─────────┬──────────┘
-           │                    │                        │
-           └────────────────────┼────────────────────────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │      Snowflake        │
-                    │   Iceberg Tables +    │
-                    │   Analytic Views      │
-                    │                       │
-                    │  COMPOSITE RISK SCORE │
-                    │  = Supplier   × 30%   │
-                    │  + Transport  × 25%   │
-                    │  + Coverage   × 25%   │
-                    │  + External   × 10%   │
-                    │  + Commodity  × 10%   │
-                    └───────────────────────┘
-    ```
-    """)
+    st.code("""
+┌──────────────┐   ┌──────────────────┐   ┌────────────────────┐
+│  SAP S/4HANA │   │  Blue Yonder     │   │  External Signals  │
+│  via BDC     │   │  IBP + TMS       │   │  Market / Geo      │
+│              │   │                  │   │                    │
+│ • Products   │   │ • Demand Forecast│   │ • Commodity Prices │
+│ • Suppliers  │   │ • Consensus Plan │   │ • Port Congestion  │
+│ • BOMs       │   │ • Loads / Lanes  │   │ • Outbreak Alerts  │
+│ • POs        │   │ • Tender Events  │   │ • News & Risk      │
+│ • Stock      │   │                  │   │ • Vessel Tracker   │
+└──────┬───────┘   └────────┬─────────┘   └─────────┬──────────┘
+       │                    │                        │
+       └────────────────────┼────────────────────────┘
+                            │
+                ┌───────────▼───────────┐
+                │      Snowflake        │
+                │   Iceberg Tables +    │
+                │   Analytic Views      │
+                │                       │
+                │  COMPOSITE RISK SCORE │
+                │  = Supplier   × 30%   │
+                │  + Transport  × 25%   │
+                │  + Coverage   × 25%   │
+                │  + External   × 10%   │
+                │  + Commodity  × 10%   │
+                └───────────────────────┘
+    """, language=None)
 
 
 # ===================================================================
@@ -186,7 +185,7 @@ elif page == "SAP BDC Zero Copy":
     mc4.metric("Purchase Orders", int(m["POS"].iloc[0]))
     mc5.metric("Open PO Value", f"${m['OPEN_PO_VAL'].iloc[0]:,.0f}")
 
-    st.markdown("---")
+    st.divider()
     tab1, tab2, tab3, tab4 = st.tabs(["Products", "Suppliers", "Inventory & Coverage", "Purchase Orders"])
 
     with tab1:
@@ -211,7 +210,7 @@ elif page == "SAP BDC Zero Copy":
                 Avg_Price=("UNIT_WHOLESALE_USD", "mean"),
             ).reset_index().sort_values(["DIVISION", "BRAND"])
             brand_summary["Avg_Price"] = brand_summary["Avg_Price"].map("${:,.2f}".format)
-            st.dataframe(brand_summary, use_container_width=True)
+            st.dataframe(brand_summary, use_container_width=True, hide_index=True)
 
     with tab2:
         suppliers = run_query(f"""
@@ -220,7 +219,7 @@ elif page == "SAP BDC Zero Copy":
             FROM {DB_SCHEMA}.I_SUPPLIER WHERE IS_ACTIVE=TRUE
             ORDER BY CREDIT_RATING DESC, SUPPLIER_NAME
         """)
-        st.dataframe(suppliers, use_container_width=True)
+        st.dataframe(suppliers, use_container_width=True, hide_index=True)
 
     with tab3:
         inv = run_query(f"""
@@ -247,7 +246,7 @@ elif page == "SAP BDC Zero Copy":
             tooltip=["MATERIAL_ID", "Metric", "Days"],
         ).properties(title="Days of Supply vs Safety Stock (top 15 gap)", height=320)
         st.altair_chart(bar, use_container_width=True)
-        st.dataframe(inv, use_container_width=True)
+        st.dataframe(inv, use_container_width=True, hide_index=True)
 
     with tab4:
         pos = run_query(f"""
@@ -256,7 +255,7 @@ elif page == "SAP BDC Zero Copy":
             FROM {DB_SCHEMA}.M_V_POH_AGGR
             ORDER BY DELIVERY_DATE DESC
         """)
-        st.dataframe(pos, use_container_width=True)
+        st.dataframe(pos, use_container_width=True, hide_index=True)
 
 
 # ===================================================================
@@ -283,7 +282,7 @@ elif page == "Blue Yonder Planning":
         k2.metric("Peak Forecast Units", f"{int(peak_kpi['PEAK_FORECAST_UNITS'].iloc[0]):,}")
         k3.metric("Avg Seasonal Lift", f"{peak_kpi['AVG_LIFT'].iloc[0]}%")
 
-        st.markdown("---")
+        st.divider()
 
         # Peak event selector
         events = run_query(f"SELECT DISTINCT PEAK_EVENT FROM {DB_SCHEMA}.BY_DEMAND_FORECAST WHERE PEAK_EVENT IS NOT NULL ORDER BY 1")
@@ -372,7 +371,7 @@ elif page == "Blue Yonder Planning":
                    SHIP_DATE, DELIVERY_DATE, LOAD_STATUS, ON_TIME_FLAG
             FROM {DB_SCHEMA}.BY_LOADS ORDER BY SHIP_DATE DESC
         """)
-        st.dataframe(all_loads, use_container_width=True)
+        st.dataframe(all_loads, use_container_width=True, hide_index=True)
 
     with tab_p:
         st.subheader("Consensus Plans (S&OP)")
@@ -383,7 +382,7 @@ elif page == "Blue Yonder Planning":
             JOIN {DB_SCHEMA}.I_PRODUCT p ON p.MATERIAL_ID = cp.MATERIAL_ID
             ORDER BY cp.REVENUE_PLAN_USD DESC
         """)
-        st.dataframe(plans, use_container_width=True)
+        st.dataframe(plans, use_container_width=True, hide_index=True)
 
 
 # ===================================================================
@@ -406,13 +405,13 @@ elif page == "External Signals":
         for _, row in alerts.iterrows():
             level = row["RISK_LEVEL"]
             icon = "🔴" if level == "CRITICAL" else "🟠" if level == "HIGH" else "🟡"
-            with st.container():
+            with st.container(border=True):
                 st.markdown(f"{icon} **{row['DISEASE_NAME']}** — {row['COUNTRY']}, {row['REGION']}")
                 st.caption(f"{level} | Species: {row['AFFECTED_SPECIES']} | Since: {row['DISCOVERY_DATE']}")
     else:
         st.success("No active biosecurity alerts.")
 
-    st.markdown("---")
+    st.divider()
     tab_c, tab_n, tab_pv = st.tabs(["Commodity Prices", "News & Risk Events", "Ports & Vessels"])
 
     with tab_c:
@@ -444,7 +443,7 @@ elif page == "External Signals":
                   AND COMMODITY IN ({in_list})
                 ORDER BY COMMODITY
             """)
-            st.dataframe(latest, use_container_width=True)
+            st.dataframe(latest, use_container_width=True, hide_index=True)
 
     with tab_n:
         news = run_query(f"""
@@ -453,7 +452,7 @@ elif page == "External Signals":
             FROM {DB_SCHEMA}.EXT_NEWS_RISK_EVENTS
             ORDER BY EVENT_DATE DESC
         """)
-        st.dataframe(news, use_container_width=True)
+        st.dataframe(news, use_container_width=True, hide_index=True)
 
     with tab_pv:
         col_port, col_vessel = st.columns(2)
@@ -466,7 +465,7 @@ elif page == "External Signals":
                 WHERE REPORT_DATE = (SELECT MAX(REPORT_DATE) FROM {DB_SCHEMA}.EXT_PORT_CONGESTION)
                 ORDER BY CONGESTION_SCORE DESC
             """)
-            st.dataframe(ports, use_container_width=True)
+            st.dataframe(ports, use_container_width=True, hide_index=True)
 
         with col_vessel:
             st.subheader("Vessel Tracker")
@@ -477,7 +476,7 @@ elif page == "External Signals":
                 FROM {DB_SCHEMA}.EXT_VESSEL_TRACKER
                 ORDER BY DELAY_DAYS DESC
             """)
-            st.dataframe(vessels, use_container_width=True)
+            st.dataframe(vessels, use_container_width=True, hide_index=True)
 
 
 # ===================================================================
@@ -513,7 +512,7 @@ elif page == "Risk Command Center":
     ).properties(height=max(400, len(top20) * 24))
     st.altair_chart(leaderboard, use_container_width=True)
 
-    st.markdown("---")
+    st.divider()
     col_tier, col_div = st.columns(2)
 
     with col_tier:
@@ -545,7 +544,7 @@ elif page == "Risk Command Center":
         st.altair_chart(hbar, use_container_width=True)
 
     # Drill-down
-    st.markdown("---")
+    st.divider()
     st.subheader("Material Drill-Down")
     material_options = risk["MATERIAL_ID"].tolist()
     selected_material = st.selectbox("Select Material", material_options)
@@ -560,15 +559,15 @@ elif page == "Risk Command Center":
         d5.metric("Safety Target", int(row["SAFETY_STOCK_DAYS"]))
 
         st.markdown(f"""
-        | Field | Value |
-        |-------|-------|
-        | **Material** | {row['MATERIAL_ID']} — {row['MATERIAL_DESC']} |
-        | **Division / Brand** | {row['DIVISION']} / {row['BRAND']} |
-        | **Plant** | {row['PLANT']} |
-        | **Peak Event** | {row['PEAK_EVENT'] or 'N/A'} |
-        | **At-Risk Suppliers** | {row['AT_RISK_SUPPLIERS']} |
-        | **Biosecurity Alert** | {row['BIOSECURITY_ALERT']} |
-        | **Supply Shortfall** | {int(row['SUPPLY_SHORTFALL_QTY']):,} units |
-        | **Disrupted Loads** | {int(row['DISRUPTED_LOAD_COUNT'])} |
-        | **Commodity YoY Change** | {row['COMMODITY_YOY_CHANGE_PCT']:.1f}% |
+| Field | Value |
+|-------|-------|
+| **Material** | {row['MATERIAL_ID']} — {row['MATERIAL_DESC']} |
+| **Division / Brand** | {row['DIVISION']} / {row['BRAND']} |
+| **Plant** | {row['PLANT']} |
+| **Peak Event** | {row['PEAK_EVENT'] or 'N/A'} |
+| **At-Risk Suppliers** | {row['AT_RISK_SUPPLIERS']} |
+| **Biosecurity Alert** | {row['BIOSECURITY_ALERT']} |
+| **Supply Shortfall** | {int(row['SUPPLY_SHORTFALL_QTY']):,} units |
+| **Disrupted Loads** | {int(row['DISRUPTED_LOAD_COUNT'])} |
+| **Commodity YoY Change** | {row['COMMODITY_YOY_CHANGE_PCT']:.1f}% |
         """)
