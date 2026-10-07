@@ -11,9 +11,10 @@ on:
         type: choice
         options:
           - ping              # Connection test only — no SQL, no objects needed
-          - all               # Full setup: Iceberg tables + semantic view + agent
+          - all               # Full setup: tables + agent + dashboard
           - tables-only       # Just Iceberg tables and views (file 01)
           - agent-only        # Just semantic view and Cortex Agent (file 02)
+          - dashboard-only    # Just the Streamlit dashboard (file 03)
           - teardown          # Drop database + warehouse
         default: ping
 
@@ -68,6 +69,15 @@ jobs:
             snow sql -f "$1" --enable-templating NONE
           }
 
+          deploy_streamlit() {
+            echo ""
+            echo "--> Uploading Streamlit app to stage"
+            snow sql -q "USE DATABASE CONFECT_PETFOOD_DEMO; USE SCHEMA SC_RISK_DEMO; CREATE STAGE IF NOT EXISTS STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);" --enable-templating NONE
+            snow stage copy "${BASE}/streamlit/streamlit_app.py" "@CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.STREAMLIT_STAGE" --overwrite --database CONFECT_PETFOOD_DEMO --schema SC_RISK_DEMO
+            echo "--> Creating Streamlit object"
+            run_sql "${BASE}/03_confect_petfood_streamlit.sql"
+          }
+
           echo "==> Action: ${{ inputs.action }}"
 
           case "${{ inputs.action }}" in
@@ -77,6 +87,7 @@ jobs:
             all)
               run_sql "${BASE}/01_confect_petfood_demo_sc_risk_ice.sql"
               run_sql "${BASE}/02_confect_petfood_demo_yaml.sql"
+              deploy_streamlit
               ;;
             tables-only)
               run_sql "${BASE}/01_confect_petfood_demo_sc_risk_ice.sql"
@@ -84,6 +95,10 @@ jobs:
             agent-only)
               echo "NOTE: Requires tables-only or all to have been run first."
               run_sql "${BASE}/02_confect_petfood_demo_yaml.sql"
+              ;;
+            dashboard-only)
+              echo "NOTE: Requires tables-only or all to have been run first."
+              deploy_streamlit
               ;;
             teardown)
               snow sql -q "DROP DATABASE IF EXISTS CONFECT_PETFOOD_DEMO; DROP WAREHOUSE IF EXISTS CONFECT_PETFOOD_WH;"
