@@ -65,7 +65,7 @@ jobs:
           run_sql() {
             echo ""
             echo "--> Running $(basename $1)"
-            snow sql -f "$1" --enable-templating false
+            snow sql -f "$1" --enable-templating NONE
           }
 
           echo "==> Action: ${{ inputs.action }}"
