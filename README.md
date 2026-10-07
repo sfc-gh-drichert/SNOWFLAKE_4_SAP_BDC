@@ -7,7 +7,7 @@ Each demo lives under a folder path that mirrors the Snowflake database/schema h
 
 | Path | Database | Schema | Module | Description |
 |------|----------|--------|--------|-------------|
-| [`S4/FIN/PNL`](S4/FIN/PNL/README.md) | S4 | FIN | PNL | BSH Group — Financial P&L with marginal contribution (DB1/DB2/EBIT) |
+| [`S4/FIN/PNL`](S4/FIN/PNL/README.md) | S4 | FIN | PNL | R.Daneel Inc. — Financial P&L with marginal contribution (DB1/DB2/EBIT) |
 | [`CPG_S4_BLUEY_CONFECT_PETFOOD`](CPG_S4_BLUEY_CONFECT_PETFOOD/README.md) | CONFECT_PETFOOD_DEMO | SC_RISK_DEMO | Supply Chain Risk | Multi-division CPG supply chain risk intelligence (SAP + Blue Yonder + external signals) |
 
 > More demos coming: `S4/FIN/AP`, `S4/FIN/AR`, `S4/SD/ORDER_TO_CASH`, `S4/MM/PROCUREMENT`
@@ -22,12 +22,12 @@ S3_FINANCE_PNL  (base fact table)
   ├── CLIENT_ID + REGION
   │       └── Row Access Policy  ←  data isolation enforced at DB layer
   │
-  └── BSH_PNL_ANALYTICS_SV  (Semantic View — inherits RAP)
+  └── S4_FIN_PNL_ANALYTICS_SV  (Semantic View — inherits RAP)
           ├── Metrics: GROSS_REVENUE → NET_REVENUE → GROSS_PROFIT
           │           → DB1 → DB2 → EBIT
-          └── BSH_PNL_AGENT  (Cortex Agent)
+          └── S4_FIN_PNL_AGENT  (Cortex Agent)
                   ├── SQL tool  →  Semantic View
-                  └── Search    →  BSH_PNL_SEARCH_SVC (press releases, product docs)
+                  └── Search    →  S4_FIN_PNL_SEARCH_SVC (press releases, product docs)
 ```
 
 ---
@@ -43,9 +43,9 @@ S3_FINANCE_PNL  (base fact table)
    |--------|-------|
    | `SNOWFLAKE_ACCOUNT` | Account identifier for the target Snowflake account (e.g. `orgname-accountname`) |
    | `SNOWFLAKE_USER` | Snowflake username of the service user running the deployment |
-   | `SNOWFLAKE_PRIVATE_KEY` | Full contents of `bsh_demo_cicd.p8` including PEM headers — see setup guide below |
+   | `SNOWFLAKE_PRIVATE_KEY` | Full contents of `demo_cicd.p8` including PEM headers — see setup guide below |
 
-3. Go to **Actions → Deploy S4.FIN.PNL — BSH P&L Demo → Run workflow**
+3. Go to **Actions → Deploy S4.FIN.PNL — R.Daneel P&L Demo → Run workflow**
 4. Choose `all` for a fresh install, fill in warehouse/database, click **Run workflow**
 
 ### Option B — Local Snowflake CLI
@@ -57,7 +57,7 @@ cd SNOWFLAKE_4_SAP_BDC
 # Configure your connection (copy and edit the example)
 cp .snowflake/config.toml.example ~/.snowflake/config.toml
 
-# Deploy the BSH PnL demo
+# Deploy the R.Daneel PnL demo
 make install DEMO=S4/FIN/PNL CONNECTION=my_snowflake
 ```
 
@@ -68,7 +68,7 @@ make install DEMO=S4/FIN/PNL CONNECTION=my_snowflake
 ### Use a dedicated service user (not your personal account)
 
 Never use your personal Snowflake user for CI/CD. A service user:
-- Leaves a clean audit trail (`BSH_GITHUB_ACTIONS` vs your name in query history)
+- Leaves a clean audit trail (`DEMO_GITHUB_ACTIONS` vs your name in query history)
 - Can be revoked independently without affecting your own access
 - Can be locked to key pair only — no password, no Okta/SSO
 
@@ -80,10 +80,10 @@ It creates the service user, the low-privilege deployment role, and the authenti
 | Action | Role used | When |
 |--------|-----------|------|
 | First-time full deploy (`action: all`) | `ACCOUNTADMIN` | Once — creates roles, grants, RAP, warehouse |
-| Ongoing data runs (`action: data-only`) | `BSH_DATA_DEPLOY_ROLE` | Repeatable — no elevated privileges |
-| Verification (`action: verify`) | `BSH_DATA_DEPLOY_ROLE` | Repeatable |
+| Ongoing data runs (`action: data-only`) | `DEMO_DATA_DEPLOY_ROLE` | Repeatable — no elevated privileges |
+| Verification (`action: verify`) | `DEMO_DATA_DEPLOY_ROLE` | Repeatable |
 
-The service user's **default role** is `BSH_DATA_DEPLOY_ROLE` (low privilege). The setup scripts
+The service user's **default role** is `DEMO_DATA_DEPLOY_ROLE` (low privilege). The setup scripts
 call `USE ROLE ACCOUNTADMIN` explicitly for the steps that need it. `ACCOUNTADMIN` is never
 used automatically — only when a script asks for it.
 
@@ -97,18 +97,18 @@ Do this first so you can paste the public key directly into `setup_service_user.
 
 ```bash
 # Private key — PKCS8 format, no passphrase (required for unattended CI/CD)
-openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out bsh_demo_cicd.p8 -nocrypt
+openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out demo_cicd.p8 -nocrypt
 
 # Public key derived from the private key
-openssl rsa -in bsh_demo_cicd.p8 -pubout -out bsh_demo_cicd.pub
+openssl rsa -in demo_cicd.p8 -pubout -out demo_cicd.pub
 ```
 
-> Keep `bsh_demo_cicd.p8` private. Do not commit it to any repo.
+> Keep `demo_cicd.p8` private. Do not commit it to any repo.
 
 Get the public key body — one long base64 string, no headers, no line breaks:
 
 ```bash
-grep -v "BEGIN\|END" bsh_demo_cicd.pub | tr -d '\n'
+grep -v "BEGIN\|END" demo_cicd.pub | tr -d '\n'
 # Copy this output — you will paste it into the setup script in the next step
 ```
 
@@ -117,16 +117,16 @@ grep -v "BEGIN\|END" bsh_demo_cicd.pub | tr -d '\n'
 Open `setup_service_user.sql` from the repo root. Find the key registration block near the bottom:
 
 ```sql
--- ALTER USER BSH_GITHUB_ACTIONS
---     ADD KEY PAIR bsh_demo_github_actions
+-- ALTER USER DEMO_GITHUB_ACTIONS
+--     ADD KEY PAIR demo_github_actions
 --     PUBLIC_KEY = '...';
 ```
 
 Uncomment those three lines and replace `'...'` with the public key body you copied in Step 1:
 
 ```sql
-ALTER USER BSH_GITHUB_ACTIONS
-    ADD KEY PAIR bsh_demo_github_actions
+ALTER USER DEMO_GITHUB_ACTIONS
+    ADD KEY PAIR demo_github_actions
     PUBLIC_KEY = 'MIIBIjANBgkq...';   -- your key body here
 ```
 
@@ -142,8 +142,8 @@ snow sql -f setup_service_user.sql --connection my_snowflake
 Verify the key registered:
 
 ```sql
-SHOW USER KEY PAIRS FOR USER BSH_GITHUB_ACTIONS;
--- Should show: bsh_demo_github_actions   ACTIVE
+SHOW USER KEY PAIRS FOR USER DEMO_GITHUB_ACTIONS;
+-- Should show: demo_github_actions   ACTIVE
 ```
 
 ### Step 3 — Add secrets to GitHub (repo settings in your browser)
@@ -154,26 +154,26 @@ and add these three secrets:
 | Secret name | Where to get the value |
 |---|---|
 | `SNOWFLAKE_ACCOUNT` | Your Snowflake account identifier, e.g. `orgname-accountname` |
-| `SNOWFLAKE_USER` | `BSH_GITHUB_ACTIONS` |
-| `SNOWFLAKE_PRIVATE_KEY` | Full contents of `bsh_demo_cicd.p8` — include the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines |
+| `SNOWFLAKE_USER` | `DEMO_GITHUB_ACTIONS` |
+| `SNOWFLAKE_PRIVATE_KEY` | Full contents of `demo_cicd.p8` — include the `-----BEGIN PRIVATE KEY-----` and `-----END PRIVATE KEY-----` lines |
 
 ```bash
 # Copy the full private key to your clipboard
-cat bsh_demo_cicd.p8 | pbcopy                        # macOS
-cat bsh_demo_cicd.p8 | xclip -selection clipboard   # Linux
+cat demo_cicd.p8 | pbcopy                        # macOS
+cat demo_cicd.p8 | xclip -selection clipboard   # Linux
 ```
 
 ### Step 4 — Test the connection
 
-Go to **Actions → Deploy S4.FIN.PNL — BSH P&L Demo → Run workflow**, choose `verify`, and run.
+Go to **Actions → Deploy S4.FIN.PNL — R.Daneel P&L Demo → Run workflow**, choose `verify`, and run.
 If the connection step passes, the key pair is working and you are ready for a full deploy.
 
 ### Rotating the key later
 
 ```sql
 -- Generate a new key pair (repeat Step 1 with a new filename), then in Snowsight:
-ALTER USER BSH_GITHUB_ACTIONS
-    ROTATE KEY PAIR bsh_demo_github_actions
+ALTER USER DEMO_GITHUB_ACTIONS
+    ROTATE KEY PAIR demo_github_actions
     PUBLIC_KEY = '<new_public_key_body>';
 -- The old key stays valid for 24 hours — update the GitHub Secret before it expires
 ```
@@ -185,11 +185,11 @@ ALTER USER BSH_GITHUB_ACTIONS
 | Role | Companies visible | Regions visible | Use case |
 |------|-------------------|-----------------|----------|
 | `ACCOUNTADMIN` / `SYSADMIN` | All | All | Admin / setup only |
-| `BSH_DEMO_GLOBAL_ROLE` | All | All | Multi-company exec demo |
-| `BSH_DEMO_ROLE` | BSH | All | Full BSH P&L story |
-| `BSH_EUROPE_DEMO_ROLE` | BSH | DACH, W_EUROPE, E_EUROPE | European operations focus |
-| `BSH_NA_DEMO_ROLE` | BSH | N_AMERICA | North America growth story |
-| `BSH_APAC_DEMO_ROLE` | BSH | APAC, EMERGING | Asia-Pacific expansion |
+| `S4_FIN_DEMO_GLOBAL_ROLE` | All | All | Multi-company exec demo |
+| `S4_FIN_DEMO_ROLE` | R.Daneel | All | Full R.Daneel P&L story |
+| `S4_FIN_EUROPE_DEMO_ROLE` | R.Daneel | DACH, W_EUROPE, E_EUROPE | European operations focus |
+| `S4_FIN_NA_DEMO_ROLE` | R.Daneel | N_AMERICA | North America growth story |
+| `S4_FIN_APAC_DEMO_ROLE` | R.Daneel | APAC, EMERGING | Asia-Pacific expansion |
 
 Data isolation is enforced by a **Row Access Policy** on `(CLIENT_ID, REGION)` — not a WHERE clause in a report. A role that doesn't have access to a region physically cannot retrieve those rows, regardless of how the query is written.
 
@@ -201,12 +201,12 @@ This explains what "adding a company" actually means, and what you have to do st
 
 ### What is a "company" in this model?
 
-Every row in `S3_FINANCE_PNL` has a `CLIENT_ID` column — for BSH all rows have `CLIENT_ID = 'BSH'`.
+Every row in `S3_FINANCE_PNL` has a `CLIENT_ID` column — for R.Daneel all rows have `CLIENT_ID = 'RDANEEL'`.
 Adding a new company means loading rows with a different `CLIENT_ID` (e.g. `'HENKEL'`).
 The table, semantic view, and isolation policy are all shared — no DDL changes are needed.
 
 Note: `CLIENT_ID` is the **tenant** identifier. `COMPANYCODE` is something different — it is
-BSH's *internal* SAP org breakdown (1000 = BSH Germany, 2000 = BSH North America, etc.).
+R.Daneel's *internal* SAP org breakdown (1000 = R.Daneel Germany, 2000 = R.Daneel North America, etc.).
 Do not confuse the two.
 
 ### What you have to do (example: adding Henkel)
@@ -225,7 +225,7 @@ workflow option, or just run the runbook directly:
 snow sql -f S4/FIN/PNL/runbooks/add_company.sql \
   --connection my_snowflake \
   --variable db_name=S4 \
-  --variable wh_name=BSH_DEMO_WH \
+  --variable wh_name=S4_FIN_DEMO_WH \
   --variable company_id=HENKEL
 ```
 
@@ -238,7 +238,7 @@ This creates `HENKEL_DEMO_ROLE` and adds this row to `ROLE_ACCESS_MAPPING`:
 **Step 2 — Load Henkel's data**
 
 Insert rows into `S3_FINANCE_PNL` with `CLIENT_ID = 'HENKEL'`. The simplest approach is to
-copy and adapt `05_data_seed.sql` — change the literal `'BSH'` to `'HENKEL'` and adjust
+copy and adapt `05_data_seed.sql` — change the literal `'RDANEEL'` to `'HENKEL'` and adjust
 product names, brands, and amounts to match the new company's profile.
 
 ```sql
@@ -259,20 +259,20 @@ USE ROLE HENKEL_DEMO_ROLE;
 SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
 -- Returns: HENKEL
 
--- As BSH role: should NOT see HENKEL rows
-USE ROLE BSH_DEMO_ROLE;
+-- As R.Daneel role: should NOT see HENKEL rows
+USE ROLE S4_FIN_DEMO_ROLE;
 SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
--- Returns: BSH only
+-- Returns: R.Daneel only
 
 -- As global role: sees both
-USE ROLE BSH_DEMO_GLOBAL_ROLE;
+USE ROLE S4_FIN_DEMO_GLOBAL_ROLE;
 SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
--- Returns: BSH, HENKEL
+-- Returns: RDANEEL, HENKEL
 ```
 
 **Step 4 — Create a Henkel Cortex Agent (optional)**
 
-The existing `BSH_PNL_AGENT` already works for Henkel data (the semantic view is shared),
+The existing `S4_FIN_PNL_AGENT` already works for Henkel data (the semantic view is shared),
 but a company-specific agent lets you tailor the system prompt with Henkel context:
 
 ```sql
@@ -280,8 +280,8 @@ USE ROLE ACCOUNTADMIN;
 USE DATABASE S4; USE SCHEMA FIN;
 
 CREATE OR REPLACE CORTEX AGENT HENKEL_PNL_AGENT
-    SEMANTIC_VIEWS  = (S4.FIN.BSH_PNL_ANALYTICS_SV)
-    SEARCH_SERVICES = (S4.FIN.BSH_PNL_SEARCH_SVC)
+    SEMANTIC_VIEWS  = (S4.FIN.S4_FIN_PNL_ANALYTICS_SV)
+    SEARCH_SERVICES = (S4.FIN.S4_FIN_PNL_SEARCH_SVC)
     COMMENT = 'Henkel P&L analysis agent';
 
 GRANT USAGE ON CORTEX AGENT HENKEL_PNL_AGENT TO ROLE HENKEL_DEMO_ROLE;
@@ -293,7 +293,7 @@ GRANT USAGE ON CORTEX AGENT HENKEL_PNL_AGENT TO ROLE HENKEL_DEMO_ROLE;
 |--------|-----------------|
 | `S3_FINANCE_PNL` table DDL | No — same table, new rows |
 | `PNL_CLIENT_ISOLATION_POLICY` RAP | No — reads `ROLE_ACCESS_MAPPING` dynamically |
-| `BSH_PNL_ANALYTICS_SV` semantic view | No — shared across all companies |
+| `S4_FIN_PNL_ANALYTICS_SV` semantic view | No — shared across all companies |
 | `ROLE_ACCESS_MAPPING` | Yes — one INSERT row per new company |
 
 See [`S4/FIN/PNL/runbooks/add_company.sql`](S4/FIN/PNL/runbooks/add_company.sql) for the

@@ -23,7 +23,7 @@ on:
       warehouse:
         description: 'Snowflake warehouse name'
         required: true
-        default: 'BSH_DEMO_WH'
+        default: 'S4_FIN_DEMO_WH'
       database:
         description: 'Target Snowflake database'
         required: true
@@ -65,7 +65,7 @@ jobs:
           snow --version
 
       # Same auth pattern as deploy-s4-fin-pnl.yml — see README for service
-      # user setup (BSH_GITHUB_ACTIONS, key pair auth, no Okta/SSO).
+      # user setup (DEMO_GITHUB_ACTIONS, key pair auth, no Okta/SSO).
       - name: Configure Snowflake connection
         env:
           SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}

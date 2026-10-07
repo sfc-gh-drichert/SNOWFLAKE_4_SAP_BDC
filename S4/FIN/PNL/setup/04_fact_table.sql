@@ -2,11 +2,11 @@
 -- 04_fact_table.sql — S3_FINANCE_PNL Fact Table DDL
 --
 -- This table follows the Nestlé/SAP ACDOCA-style CO-PA structure
--- (DefinePnLTable.txt template) with BSH-specific extensions:
+-- (DefinePnLTable.txt template) with RD-specific extensions:
 --
 --   NEW columns added on top of the Nestlé template:
---     CLIENT_ID       — tenant discriminator (BSH, HENKEL, …); RAP fires here
---     BRAND           — denormalised BSH brand name
+--     CLIENT_ID       — tenant discriminator (RDANEEL, HENKEL, …); RAP fires here
+--     BRAND           — denormalised R.Daneel brand name
 --     CATEGORY        — denormalised product category
 --     SUBCATEGORY     — denormalised product sub-category
 --     PRODUCT_TIER    — denormalised product tier (PREMIUM / MID / ENTRY)
@@ -28,7 +28,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
 
     -- ── TENANT ISOLATION ───────────────────────────────────────────────────
     CLIENT_ID                       VARCHAR(50)
-        COMMENT 'Tenant identifier — Row Access Policy enforces visibility per role. BSH = BSH Group. HENKEL, etc. for future companies.',
+        COMMENT 'Tenant identifier — Row Access Policy enforces visibility per role. R.Daneel = R.Daneel Inc.. HENKEL, etc. for future companies.',
 
     -- ── PERIOD / TIME ──────────────────────────────────────────────────────
     MONTHYEAR                       NUMBER(38,0)
@@ -60,7 +60,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
 
     -- ── ORGANISATIONAL DIMENSIONS ───────────────────────────────────────────
     COMPANYCODE                     VARCHAR(4)
-        COMMENT 'SAP company code (BUKRS). BSH-internal entity: 1000=Germany, 1100=W_Europe, 1200=E_Europe, 2000=NA (USD), 3000=China (CNY), 4000=Emerging. NOT the same as CLIENT_ID — see design notes in 03_rbac.sql.',
+        COMMENT 'SAP company code (BUKRS). RD-internal entity: 1000=Germany, 1100=W_Europe, 1200=E_Europe, 2000=NA (USD), 3000=China (CNY), 4000=Emerging. NOT the same as CLIENT_ID — see design notes in 03_rbac.sql.',
     COUNTRY                         VARCHAR(3)
         COMMENT 'Country of the company code (ISO 3166-1 alpha-3)',
     COUNTRY_SOLD_TO                 VARCHAR(3)
@@ -72,7 +72,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     REPORTINGUNITASREALIGNED        VARCHAR(10)
         COMMENT 'Reporting unit after realignment adjustments',
     CONTROLLINGAREA                 VARCHAR(4)
-        COMMENT 'SAP controlling area (BSH0 for all BSH entities)',
+        COMMENT 'SAP controlling area (RD00 for all R.Daneel entities)',
     REGION                          VARCHAR(20)
         COMMENT 'Sales region: DACH | W_EUROPE | E_EUROPE | N_AMERICA | APAC | EMERGING. SECOND column in the Row Access Policy — controls regional visibility.',
     SALESDISTRICT                   VARCHAR(6)
@@ -142,7 +142,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     PRODUCT_NAME                    VARCHAR(100)
         COMMENT 'Full product name (denormalised from DIM_PRODUCT for agent readability)',
     BRAND                           VARCHAR(20)
-        COMMENT 'BSH brand (denormalised): BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
+        COMMENT 'R.Daneel brand (denormalised): BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
     CATEGORY                        VARCHAR(30)
         COMMENT 'Product category (denormalised): COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
     SUBCATEGORY                     VARCHAR(50)
@@ -237,7 +237,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
         COMMENT 'Central Finance delta timestamp — tracks source system change events'
 
 )
-COMMENT = 'BSH Group PnL fact table — ACDOCA/CO-PA profitability analysis structure. ~100K rows, Jan 2023–Sep 2026 (2026 partial). CLIENT_ID=BSH on all rows. Row Access Policy enforces CLIENT_ID + REGION isolation per role. Follows the Nestlé DefinePnLTable.txt template with BSH-specific extensions.';
+COMMENT = 'R.Daneel Inc. PnL fact table — ACDOCA/CO-PA profitability analysis structure. ~100K rows, Jan 2023–Sep 2026 (2026 partial). CLIENT_ID=R.Daneel on all rows. Row Access Policy enforces CLIENT_ID + REGION isolation per role. Follows the Nestlé DefinePnLTable.txt template with RD-specific extensions.';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Apply the Row Access Policy (created in 03_rbac.sql)
@@ -247,11 +247,11 @@ ALTER TABLE S3_FINANCE_PNL
     ADD ROW ACCESS POLICY PNL_CLIENT_ISOLATION_POLICY ON (CLIENT_ID, REGION);
 
 -- Grant SELECT to leaf demo roles (parent roles inherit via hierarchy)
-GRANT SELECT ON TABLE S3_FINANCE_PNL TO ROLE BSH_EUROPE_DEMO_ROLE;
-GRANT SELECT ON TABLE S3_FINANCE_PNL TO ROLE BSH_NA_DEMO_ROLE;
-GRANT SELECT ON TABLE S3_FINANCE_PNL TO ROLE BSH_APAC_DEMO_ROLE;
+GRANT SELECT ON TABLE S3_FINANCE_PNL TO ROLE S4_FIN_EUROPE_DEMO_ROLE;
+GRANT SELECT ON TABLE S3_FINANCE_PNL TO ROLE S4_FIN_NA_DEMO_ROLE;
+GRANT SELECT ON TABLE S3_FINANCE_PNL TO ROLE S4_FIN_APAC_DEMO_ROLE;
 -- Grant INSERT/TRUNCATE to the CI/CD service role for data refresh runs
-GRANT INSERT, TRUNCATE ON TABLE S3_FINANCE_PNL TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT INSERT, TRUNCATE ON TABLE S3_FINANCE_PNL TO ROLE DEMO_DATA_DEPLOY_ROLE;
 
 -- Confirm table was created with RAP applied
 DESCRIBE TABLE S3_FINANCE_PNL;

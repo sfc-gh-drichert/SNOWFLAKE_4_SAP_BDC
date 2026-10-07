@@ -16,4 +16,4 @@ private_key_path  = "~/.snowflake/rsa_key.p8"
 
 # Defaults (can be overridden per command)
 role      = "ACCOUNTADMIN"
-warehouse = "BSH_DEMO_WH"
+warehouse = "S4_FIN_DEMO_WH"

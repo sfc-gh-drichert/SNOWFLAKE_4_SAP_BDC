@@ -1,4 +1,4 @@
-# Hydrate BSH: SAP BDC → Gold Layer Data Lineage
+# Hydrate R.Daneel: SAP BDC → Gold Layer Data Lineage
 
 ## Purpose
 

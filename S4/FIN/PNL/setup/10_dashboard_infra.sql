@@ -39,10 +39,10 @@ CREATE EXTERNAL ACCESS INTEGRATION IF NOT EXISTS PNL_BUILD_EAI
   COMMENT = 'EAI for npm ci during PnL dashboard SAR builds';
 
 -- Grant the deploy role permission to reference the EAI
-GRANT USAGE ON INTEGRATION PNL_BUILD_EAI TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT USAGE ON INTEGRATION PNL_BUILD_EAI TO ROLE DEMO_DATA_DEPLOY_ROLE;
 
 -- Grant compute pool usage to the deploy role so GitHub Actions can deploy
-GRANT USAGE ON COMPUTE POOL PNL_DASHBOARD_CP TO ROLE BSH_DATA_DEPLOY_ROLE;
+GRANT USAGE ON COMPUTE POOL PNL_DASHBOARD_CP TO ROLE DEMO_DATA_DEPLOY_ROLE;
 
 SELECT 'Dashboard infrastructure ready.' AS status,
        'Compute pool:  PNL_DASHBOARD_CP (CPU_X64_XS, 1 node, auto-suspend 300s)' AS compute_pool,

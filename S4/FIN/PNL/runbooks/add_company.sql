@@ -7,13 +7,13 @@
 -- Variables:
 --   <% company_id %>  - company identifier (e.g. HENKEL, BAYER, MIELE)
 --   <% db_name %>     - target database (default: S4)
---   <% wh_name %>     - warehouse name (default: BSH_DEMO_WH)
+--   <% wh_name %>     - warehouse name (default: S4_FIN_DEMO_WH)
 --
 -- Usage:
 --   snow sql -f runbooks/add_company.sql \
 --     --connection my_snowflake \
 --     --variable db_name=S4 \
---     --variable wh_name=BSH_DEMO_WH \
+--     --variable wh_name=S4_FIN_DEMO_WH \
 --     --variable company_id=HENKEL
 --   -- or --
 --   make add-company COMPANY=HENKEL
@@ -44,7 +44,7 @@ GRANT USAGE ON SCHEMA    IDENTIFIER('<% db_name %>.FIN')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
 GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.S3_FINANCE_PNL')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.BSH_DOCUMENTS')
+GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.S4_FIN_DOCUMENTS')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
 GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.DIM_GL_ACCOUNT')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
@@ -53,13 +53,13 @@ GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.DIM_PRODUCT')
 GRANT SELECT ON TABLE IDENTIFIER('<% db_name %>.FIN.DIM_CUSTOMER')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
 -- REFERENCES + SELECT both required for Cortex Agent usage of the semantic view
-GRANT REFERENCES, SELECT ON SEMANTIC VIEW IDENTIFIER('<% db_name %>.FIN.BSH_PNL_ANALYTICS_SV')
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW IDENTIFIER('<% db_name %>.FIN.S4_FIN_PNL_ANALYTICS_SV')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
-GRANT USAGE ON AGENT IDENTIFIER('<% db_name %>.FIN.BSH_PNL_AGENT')
+GRANT USAGE ON AGENT IDENTIFIER('<% db_name %>.FIN.S4_FIN_PNL_AGENT')
     TO ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE');
 
--- Add new role under BSH_DEMO_GLOBAL_ROLE so multi-company execs see all data
-GRANT ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE') TO ROLE BSH_DEMO_GLOBAL_ROLE;
+-- Add new role under S4_FIN_DEMO_GLOBAL_ROLE so multi-company execs see all data
+GRANT ROLE IDENTIFIER('<% company_id %>_DEMO_ROLE') TO ROLE S4_FIN_DEMO_GLOBAL_ROLE;
 
 -- ==============================================================================
 -- STEP 3: Register in ROLE_ACCESS_MAPPING

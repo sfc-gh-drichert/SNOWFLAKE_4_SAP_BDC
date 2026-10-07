@@ -32,7 +32,7 @@ jobs:
           snow --version
 
       # Build the connection config from GitHub Secrets.
-      # Uses the same secrets as the BSH demo — see root README for setup.
+      # Uses the same secrets as the S4 FIN demo — see root README for setup.
       - name: Configure Snowflake connection
         env:
           SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}

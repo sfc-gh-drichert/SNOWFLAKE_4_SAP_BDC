@@ -20,7 +20,7 @@ icon: public/icon.svg
 #
 database:        S4
 schema:          FIN
-query_warehouse: BSH_DEMO_WH
+query_warehouse: S4_FIN_DEMO_WH
 
 auto_suspend_secs: 300     # suspend after 5 min idle
 
@@ -32,14 +32,14 @@ targets:
 
   # Customer demo environment — override database/warehouse per engagement
   customer:
-    query_warehouse: BSH_DEMO_WH  # override if the target account uses a different name
+    query_warehouse: S4_FIN_DEMO_WH  # override if the target account uses a different name
 
 # ─── Environment variables available to the running service ──────────────────
 environment_variables:
   - name: NEXT_PUBLIC_SF_DATABASE
     value: "S4"
   - name: NEXT_PUBLIC_SF_AGENT
-    value: "S4.FIN.BSH_PNL_AGENT"
+    value: "S4.FIN.S4_FIN_PNL_AGENT"
 
 # ─── Builder phases ───────────────────────────────────────────────────────────
 # snow app deploy is run from INSIDE .next/standalone/ after the build.

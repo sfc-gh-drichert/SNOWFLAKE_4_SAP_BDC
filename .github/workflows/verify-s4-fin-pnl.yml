@@ -1,4 +1,4 @@
-name: Verify S4.FIN.PNL — BSH P&L Demo
+name: Verify S4.FIN.PNL — S4 FIN PNL Demo
 
 # Run verification queries without touching any objects.
 # Use this after a deploy to confirm row counts, EBIT margins,
@@ -9,7 +9,7 @@ on:
       warehouse:
         description: 'Snowflake warehouse name'
         required: true
-        default: 'BSH_DEMO_WH'
+        default: 'S4_FIN_DEMO_WH'
       database:
         description: 'Target Snowflake database'
         required: true

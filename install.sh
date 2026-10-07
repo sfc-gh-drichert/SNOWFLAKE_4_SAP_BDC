@@ -8,12 +8,12 @@
 # Arguments (all optional, defaults shown):
 #   CONNECTION   Snowflake CLI connection name    (default: my_snowflake)
 #   DATABASE     Target Snowflake database        (default: S4)
-#   WAREHOUSE    Warehouse to use/create          (default: BSH_DEMO_WH)
+#   WAREHOUSE    Warehouse to use/create          (default: S4_FIN_DEMO_WH)
 #   DEMO_PATH    Path to demo setup/ folder       (default: S4/FIN/PNL)
 #
 # Examples:
 #   ./install.sh                                        # defaults
-#   ./install.sh my_snowflake S4 BSH_DEMO_WH S4/FIN/PNL  # explicit
+#   ./install.sh my_snowflake S4 S4_FIN_DEMO_WH S4/FIN/PNL  # explicit
 #   ./install.sh MY_CONN S4 DEMO_WH S4/FIN/AP          # different demo
 #
 # Prerequisites:
@@ -26,7 +26,7 @@ set -euo pipefail
 
 CONNECTION="${1:-my_snowflake}"
 DATABASE="${2:-S4}"
-WAREHOUSE="${3:-BSH_DEMO_WH}"
+WAREHOUSE="${3:-S4_FIN_DEMO_WH}"
 DEMO_PATH="${4:-S4/FIN/PNL}"
 SETUP_DIR="${DEMO_PATH}/setup"
 

@@ -116,9 +116,9 @@ ORDER BY 2;
 -- Switch roles and verify each role sees ONLY its authorised regions.
 -- ─────────────────────────────────────────────────────────────────────────────
 
--- TEST 7: BSH_EUROPE_DEMO_ROLE — must see DACH, W_EUROPE, E_EUROPE only
-USE ROLE BSH_EUROPE_DEMO_ROLE;
-SELECT '7. BSH_EUROPE_DEMO_ROLE regions' AS test,
+-- TEST 7: S4_FIN_EUROPE_DEMO_ROLE — must see DACH, W_EUROPE, E_EUROPE only
+USE ROLE S4_FIN_EUROPE_DEMO_ROLE;
+SELECT '7. S4_FIN_EUROPE_DEMO_ROLE regions' AS test,
        LISTAGG(DISTINCT REGION, ', ') WITHIN GROUP (ORDER BY REGION) AS visible_regions,
        IFF(
            MAX(IFF(REGION IN ('DACH','W_EUROPE','E_EUROPE'), 1, 0)) = 1
@@ -128,9 +128,9 @@ SELECT '7. BSH_EUROPE_DEMO_ROLE regions' AS test,
        ) AS result
 FROM IDENTIFIER('<% db_name %>.FIN.S3_FINANCE_PNL');
 
--- TEST 8: BSH_NA_DEMO_ROLE — must see N_AMERICA only
-USE ROLE BSH_NA_DEMO_ROLE;
-SELECT '8. BSH_NA_DEMO_ROLE regions' AS test,
+-- TEST 8: S4_FIN_NA_DEMO_ROLE — must see N_AMERICA only
+USE ROLE S4_FIN_NA_DEMO_ROLE;
+SELECT '8. S4_FIN_NA_DEMO_ROLE regions' AS test,
        LISTAGG(DISTINCT REGION, ', ') WITHIN GROUP (ORDER BY REGION) AS visible_regions,
        IFF(
            COUNT(DISTINCT REGION) = 1 AND MAX(REGION) = 'N_AMERICA',
@@ -139,9 +139,9 @@ SELECT '8. BSH_NA_DEMO_ROLE regions' AS test,
        ) AS result
 FROM IDENTIFIER('<% db_name %>.FIN.S3_FINANCE_PNL');
 
--- TEST 9: BSH_APAC_DEMO_ROLE — must see APAC and EMERGING only
-USE ROLE BSH_APAC_DEMO_ROLE;
-SELECT '9. BSH_APAC_DEMO_ROLE regions' AS test,
+-- TEST 9: S4_FIN_APAC_DEMO_ROLE — must see APAC and EMERGING only
+USE ROLE S4_FIN_APAC_DEMO_ROLE;
+SELECT '9. S4_FIN_APAC_DEMO_ROLE regions' AS test,
        LISTAGG(DISTINCT REGION, ', ') WITHIN GROUP (ORDER BY REGION) AS visible_regions,
        IFF(
            MAX(IFF(REGION IN ('APAC','EMERGING'), 1, 0)) = 1
@@ -151,17 +151,17 @@ SELECT '9. BSH_APAC_DEMO_ROLE regions' AS test,
        ) AS result
 FROM IDENTIFIER('<% db_name %>.FIN.S3_FINANCE_PNL');
 
--- TEST 10: BSH_DEMO_ROLE — must see all 6 BSH regions
-USE ROLE BSH_DEMO_ROLE;
-SELECT '10. BSH_DEMO_ROLE regions' AS test,
+-- TEST 10: S4_FIN_DEMO_ROLE — must see all 6 R.Daneel regions
+USE ROLE S4_FIN_DEMO_ROLE;
+SELECT '10. S4_FIN_DEMO_ROLE regions' AS test,
        TO_VARCHAR(COUNT(DISTINCT REGION), 'FM9')                          AS region_count,
        LISTAGG(DISTINCT REGION, ', ') WITHIN GROUP (ORDER BY REGION)      AS visible_regions,
        IFF(COUNT(DISTINCT REGION) = 6, 'PASS — all 6 regions', 'FAIL')   AS result
 FROM IDENTIFIER('<% db_name %>.FIN.S3_FINANCE_PNL');
 
--- TEST 11: BSH_DEMO_GLOBAL_ROLE — full count
-USE ROLE BSH_DEMO_GLOBAL_ROLE;
-SELECT '11. BSH_DEMO_GLOBAL_ROLE row count' AS test,
+-- TEST 11: S4_FIN_DEMO_GLOBAL_ROLE — full count
+USE ROLE S4_FIN_DEMO_GLOBAL_ROLE;
+SELECT '11. S4_FIN_DEMO_GLOBAL_ROLE row count' AS test,
        TO_VARCHAR(COUNT(*), 'FM999,999,999')                               AS row_count,
        IFF(COUNT(*) BETWEEN 90000 AND 110000, 'PASS — full dataset visible', 'FAIL') AS result
 FROM IDENTIFIER('<% db_name %>.FIN.S3_FINANCE_PNL');

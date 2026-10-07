@@ -23,7 +23,7 @@
 --
 -- Variables:
 --   <% db_name %>        — target database (default: S4)
---   <% wh_name %>        — warehouse name (default: BSH_DEMO_WH)
+--   <% wh_name %>        — warehouse name (default: S4_FIN_DEMO_WH)
 --   <% connector_fqn %>  — fully-qualified zero-copy connector name,
 --                          e.g. SAP_BDC_DB.SAP_SCHEMA.SAP_CONNECTOR
 -- =============================================================================

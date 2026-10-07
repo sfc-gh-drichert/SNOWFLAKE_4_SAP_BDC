@@ -11,18 +11,18 @@
 
 export const DEMO_CONFIG = {
   company: {
-    name:           "BSH Group",
-    shortName:      "BSH",
+    name:           "R.Daneel Inc.",
+    shortName:      "R.Daneel",
     tagline:        "Europe's largest home appliance manufacturer",
-    primaryColor:   "#003087",   // BSH dark blue — change for new customer
-    accentColor:    "#E30613",   // BSH red
+    primaryColor:   "#003087",   // brand dark blue — change for new customer
+    accentColor:    "#E30613",   // brand red
     currency:       "EUR",
     currencySymbol: "€",
   },
 
   snowflake: {
     /** Fully-qualified agent name — override with NEXT_PUBLIC_SF_AGENT env var */
-    agentFqn: process.env.NEXT_PUBLIC_SF_AGENT ?? "S4.FIN.BSH_PNL_AGENT",
+    agentFqn: process.env.NEXT_PUBLIC_SF_AGENT ?? "S4.FIN.S4_FIN_PNL_AGENT",
     /** Database holding the PnL fact table */
     database: process.env.NEXT_PUBLIC_SF_DATABASE ?? "S4",
     schema:   "FIN",

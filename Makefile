@@ -2,7 +2,7 @@
 # Makefile — Snowflake Demo Accelerators
 #
 # Usage:
-#   make install                              # Deploy BSH PnL with defaults
+#   make install                              # Deploy S4 FIN PNL with defaults
 #   make install DEMO=S4/FIN/PNL             # Explicit demo path
 #   make install CONNECTION=MY_CONN          # Different Snowflake connection
 #   make verify                              # Run verification queries
@@ -18,7 +18,7 @@
 
 CONNECTION ?= my_snowflake
 DATABASE   ?= S4
-WAREHOUSE  ?= BSH_DEMO_WH
+WAREHOUSE  ?= S4_FIN_DEMO_WH
 DEMO       ?= S4/FIN/PNL
 TARGET     ?= dev    # app.yml target for snow app deploy
 

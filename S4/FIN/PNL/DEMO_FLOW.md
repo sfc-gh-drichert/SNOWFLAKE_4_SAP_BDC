@@ -1,6 +1,6 @@
-# BSH Group P&L Demo — Demo Flow Guide
+# R.Daneel Inc. P&L Demo — Demo Flow Guide
 
-A complete narrative for running the BSH Group financial P&L demo in Snowflake.
+A complete narrative for running the R.Daneel Inc. financial P&L demo in Snowflake.
 Covers setup context, role demonstrations, Cortex Agent QA, and a sample question bank.
 
 ---
@@ -15,7 +15,7 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
      │                                           Enforces data boundaries per role.
      │                                           The Semantic View inherits this.
      │
-     └── S4.FIN.BSH_PNL_ANALYTICS_SV  (Semantic View)
+     └── S4.FIN.S4_FIN_PNL_ANALYTICS_SV  (Semantic View)
               Dimensions: BRAND, CATEGORY, REGION, COMPANYCODE,
                           DISTRIBUTIONCHANNEL, PRODUCT_TIER, FISCALYEAR, …
               Metrics:    GROSS_REVENUE → NET_REVENUE → GROSS_PROFIT
@@ -24,9 +24,9 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
                           → EBIT, EBIT_MARGIN_PCT, GP_MARGIN_PCT
                           → TOTAL_UNITS, AVG_SELLING_PRICE_EUR
               │
-              └── S4.FIN.BSH_PNL_AGENT  (Cortex Agent)
-                       SQL tool  →  BSH_PNL_ANALYTICS_SV   (structured queries)
-                       Search    →  BSH_PNL_SEARCH_SVC     (press releases, product docs)
+              └── S4.FIN.S4_FIN_PNL_AGENT  (Cortex Agent)
+                       SQL tool  →  S4_FIN_PNL_ANALYTICS_SV   (structured queries)
+                       Search    →  S4_FIN_PNL_SEARCH_SVC     (press releases, product docs)
 ```
 
 ---
@@ -36,11 +36,11 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
 | Role | Companies | Regions | Use Case |
 |------|-----------|---------|----------|
 | `ACCOUNTADMIN` / `SYSADMIN` | All | All | Admin / setup only — do not use in demos |
-| `BSH_DEMO_GLOBAL_ROLE` | All | All | Multi-company executive demo |
-| `BSH_DEMO_ROLE` | BSH | All 6 | Full BSH P&L story — recommended primary demo role |
-| `BSH_EUROPE_DEMO_ROLE` | BSH | DACH, W_EUROPE, E_EUROPE | European operations focus |
-| `BSH_NA_DEMO_ROLE` | BSH | N_AMERICA | North America growth story |
-| `BSH_APAC_DEMO_ROLE` | BSH | APAC, EMERGING | Asia-Pacific e-commerce story |
+| `S4_FIN_DEMO_GLOBAL_ROLE` | All | All | Multi-company executive demo |
+| `S4_FIN_DEMO_ROLE` | R.Daneel | All 6 | Full R.Daneel P&L story — recommended primary demo role |
+| `S4_FIN_EUROPE_DEMO_ROLE` | R.Daneel | DACH, W_EUROPE, E_EUROPE | European operations focus |
+| `S4_FIN_NA_DEMO_ROLE` | R.Daneel | N_AMERICA | North America growth story |
+| `S4_FIN_APAC_DEMO_ROLE` | R.Daneel | APAC, EMERGING | Asia-Pacific e-commerce story |
 
 **How isolation works:** The Row Access Policy fires on every query — including Cortex Agent queries. A role that is not registered in `ROLE_ACCESS_MAPPING` for a given CLIENT_ID + REGION combination cannot retrieve those rows, regardless of what SQL is written or what the agent is asked.
 
@@ -48,9 +48,9 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
 
 ## Demo Acts (5–15 minutes total)
 
-### Act 1 — BSH Context (2 minutes)
+### Act 1 — R.Daneel Context (2 minutes)
 
-> "BSH is Europe's largest home appliance manufacturer — EUR 15.3 billion in revenue (2024 reference year),
+> "R.Daneel is Europe's largest home appliance manufacturer — EUR 15.3 billion in revenue (2024 reference year),
 > owned by Bosch since 2015. They make the brands in most European kitchens:
 > Bosch, Siemens, Gaggenau, NEFF, Thermador.
 >
@@ -59,9 +59,9 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
 > specifically the ACDOCA CO-PA profitability table — into Snowflake, populate it with
 > realistic synthetic data, and put an AI layer on top."
 
-**Switch to BSH_DEMO_ROLE:**
+**Switch to S4_FIN_DEMO_ROLE:**
 ```sql
-USE ROLE BSH_DEMO_ROLE;
+USE ROLE S4_FIN_DEMO_ROLE;
 ```
 
 ---
@@ -73,18 +73,18 @@ USE ROLE BSH_DEMO_ROLE;
 
 **Show Europe-only view:**
 ```sql
-USE ROLE BSH_EUROPE_DEMO_ROLE;
+USE ROLE S4_FIN_EUROPE_DEMO_ROLE;
 SELECT DISTINCT REGION FROM S4.FIN.S3_FINANCE_PNL ORDER BY 1;
 -- Returns: DACH, E_EUROPE, W_EUROPE  (N_AMERICA, APAC, EMERGING are invisible)
 ```
 
-> "The BSH Europe analyst role physically cannot see North American or APAC rows.
+> "The R.Daneel Europe analyst role physically cannot see North American or APAC rows.
 > This isn't a WHERE clause in a report — it's a Snowflake Row Access Policy on the base table.
 > The Cortex Agent inherits it automatically. An adversarial prompt cannot bypass it."
 
 **Compare with global role:**
 ```sql
-USE ROLE BSH_DEMO_GLOBAL_ROLE;
+USE ROLE S4_FIN_DEMO_GLOBAL_ROLE;
 SELECT DISTINCT REGION FROM S4.FIN.S3_FINANCE_PNL ORDER BY 1;
 -- Returns: all 6 regions
 ```
@@ -96,16 +96,16 @@ SELECT DISTINCT REGION FROM S4.FIN.S3_FINANCE_PNL ORDER BY 1;
 
 ### Act 3 — The P&L Waterfall (4 minutes)
 
-> "Now let's ask the agent to tell us the BSH P&L story."
+> "Now let's ask the agent to tell us the R.Daneel P&L story."
 
-**Switch back to full BSH role:**
+**Switch back to full R.Daneel role:**
 ```sql
-USE ROLE BSH_DEMO_ROLE;
+USE ROLE S4_FIN_DEMO_ROLE;
 ```
 
 **Suggested agent questions:**
 
-1. *"Show me the BSH Group P&L waterfall for 2025 — from gross revenue down to EBIT, for each brand."*
+1. *"Show me the R.Daneel Inc. P&L waterfall for 2025 — from gross revenue down to EBIT, for each brand."*
 
    Expected: table with BRAND | GROSS_REVENUE | NET_REVENUE | GROSS_PROFIT | DB1 | DB2 | EBIT | EBIT_MARGIN_PCT
 
@@ -118,7 +118,7 @@ USE ROLE BSH_DEMO_ROLE;
 
 ### Act 4 — Premium Brand Story (3 minutes)
 
-> "Gaggenau is a small brand by volume — only 7% of BSH's revenue.
+> "Gaggenau is a small brand by volume — only 7% of R.Daneel's revenue.
 > But watch what it does to the margin picture."
 
 **Suggested agent questions:**
@@ -155,10 +155,10 @@ USE ROLE BSH_DEMO_ROLE;
 ## Sample Cortex Agent Question Bank
 
 ### Brand Performance
-- "What was BSH's total gross revenue in 2025 by brand?"
+- "What was R.Daneel's total gross revenue in 2025 by brand?"
 - "Compare Bosch and Siemens: revenue, gross margin, and EBIT margin side by side."
 - "Which brand contributes most to group EBIT in absolute euros?"
-- "What is Thermador's EBIT margin compared to BSH's overall EBIT margin?"
+- "What is Thermador's EBIT margin compared to R.Daneel's overall EBIT margin?"
 - "Show the DB2 margin waterfall for Gaggenau from gross revenue to DB2."
 
 ### Category Analysis
@@ -170,29 +170,29 @@ USE ROLE BSH_DEMO_ROLE;
 
 ### Regional Deep Dive
 - "How does the DACH region P&L compare to Western Europe?"
-- "What is BSH's APAC revenue and EBIT margin?"
+- "What is R.Daneel's APAC revenue and EBIT margin?"
 - "Which regions are above and below the group average EBIT margin?"
 - "Show revenue by region from 2023 to 2026 — which grew fastest?"
 - "What is the distribution channel mix in North America versus Europe?"
 
 ### Channel Strategy
-- "What percentage of BSH revenue comes from E-Commerce versus Retail?"
+- "What percentage of R.Daneel revenue comes from E-Commerce versus Retail?"
 - "Compare trade discount rates across channels — which channel has the lowest discounts?"
 - "The Built-in channel was under pressure. By how much did it decline and why?"
 - "Which combination of brand and distribution channel has the highest DB2 margin?"
 
 ### Cost Structure and Margins
-- "Break down BSH's cost structure as a percentage of net revenue (COGS, Advertising and Promotion, Sales, Research and Development, General and Administrative)."
-- "BSH invested EUR 835 million in Research and Development (2024 reference). What is that as a percentage of revenue?"
+- "Break down R.Daneel's cost structure as a percentage of net revenue (COGS, Advertising and Promotion, Sales, Research and Development, General and Administrative)."
+- "R.Daneel invested EUR 835 million in Research and Development (2024 reference). What is that as a percentage of revenue?"
 - "How does trade marketing spend compare across brands?"
 - "What would EBIT be if trade discounts were reduced by 2 percentage points?"
 
 ### Contextual / Qualitative (uses search tool)
 - "What is the Slide-Hide oven? Why is it a signature NEFF product?"
 - "What is Home Connect and how many appliances is it connected to?"
-- "What is zeolite technology in BSH dishwashers?"
-- "Explain BSH's sustainability commitment — are they carbon neutral?"
-- "Why does BSH invest so heavily in Research and Development compared to competitors?"
+- "What is zeolite technology in R.Daneel dishwashers?"
+- "Explain R.Daneel's sustainability commitment — are they carbon neutral?"
+- "Why does R.Daneel invest so heavily in Research and Development compared to competitors?"
 
 ---
 
@@ -200,12 +200,12 @@ USE ROLE BSH_DEMO_ROLE;
 
 ### What does "a company" mean here?
 
-Every row in `S3_FINANCE_PNL` has a `CLIENT_ID` column. All BSH rows have `CLIENT_ID = 'BSH'`.
+Every row in `S3_FINANCE_PNL` has a `CLIENT_ID` column. All R.Daneel rows have `CLIENT_ID = 'RDANEEL'`.
 A "new company" is simply a set of rows with a different `CLIENT_ID` — for example `'HENKEL'`.
 
 > `CLIENT_ID` is the **tenant** identifier.
 > `COMPANYCODE` is different — it is the SAP-internal entity within a company
-> (BSH uses 1000=Germany, 2000=North America, 3000=APAC, etc.).
+> (R.Daneel uses 1000=Germany, 2000=North America, 3000=APAC, etc.).
 > Do not confuse the two.
 
 The table, semantic view, and Row Access Policy are **shared** across all companies.
@@ -229,7 +229,7 @@ This creates `HENKEL_DEMO_ROLE` and inserts one row into `ROLE_ACCESS_MAPPING`:
 ### Step 2 — Load Henkel's data
 
 Insert rows into `S3_FINANCE_PNL` with `CLIENT_ID = 'HENKEL'`.
-The easiest path is to copy `05_data_seed.sql`, replace `'BSH'` with `'HENKEL'`, and adapt the
+The easiest path is to copy `05_data_seed.sql`, replace `'RDANEEL'` with `'HENKEL'`, and adapt the
 product names, brand names, and amount ranges to match Henkel's business profile.
 
 For a quick isolation test before building a full dataset, one row is enough:
@@ -255,20 +255,20 @@ USE ROLE HENKEL_DEMO_ROLE;
 SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
 -- Expected: HENKEL
 
--- BSH role: must not see HENKEL rows
-USE ROLE BSH_DEMO_ROLE;
+-- R.Daneel role: must not see HENKEL rows
+USE ROLE S4_FIN_DEMO_ROLE;
 SELECT DISTINCT CLIENT_ID FROM S4.FIN.S3_FINANCE_PNL;
--- Expected: BSH only
+-- Expected: R.Daneel only
 
 -- Global role: sees both companies side by side
-USE ROLE BSH_DEMO_GLOBAL_ROLE;
+USE ROLE S4_FIN_DEMO_GLOBAL_ROLE;
 SELECT CLIENT_ID, COUNT(*) AS rows FROM S4.FIN.S3_FINANCE_PNL GROUP BY 1;
--- Expected: BSH ~100,000 rows  |  HENKEL however many you loaded
+-- Expected: R.Daneel ~100,000 rows  |  HENKEL however many you loaded
 ```
 
 ### Step 4 — Create a Henkel Cortex Agent (optional)
 
-The shared `BSH_PNL_ANALYTICS_SV` semantic view already works for Henkel data.
+The shared `S4_FIN_PNL_ANALYTICS_SV` semantic view already works for Henkel data.
 A company-specific agent just lets you tailor the system prompt:
 
 ```sql
@@ -276,8 +276,8 @@ USE ROLE ACCOUNTADMIN;
 USE DATABASE S4; USE SCHEMA FIN;
 
 CREATE OR REPLACE CORTEX AGENT HENKEL_PNL_AGENT
-    SEMANTIC_VIEWS  = (S4.FIN.BSH_PNL_ANALYTICS_SV)
-    SEARCH_SERVICES = (S4.FIN.BSH_PNL_SEARCH_SVC)
+    SEMANTIC_VIEWS  = (S4.FIN.S4_FIN_PNL_ANALYTICS_SV)
+    SEARCH_SERVICES = (S4.FIN.S4_FIN_PNL_SEARCH_SVC)
     COMMENT = 'Henkel P&L analysis agent';
 
 GRANT USAGE ON CORTEX AGENT HENKEL_PNL_AGENT TO ROLE HENKEL_DEMO_ROLE;
@@ -289,7 +289,7 @@ GRANT USAGE ON CORTEX AGENT HENKEL_PNL_AGENT TO ROLE HENKEL_DEMO_ROLE;
 |--------|-----------------|
 | `S3_FINANCE_PNL` table DDL | No — same table, new rows with new `CLIENT_ID` |
 | `PNL_CLIENT_ISOLATION_POLICY` RAP | No — reads `ROLE_ACCESS_MAPPING` dynamically |
-| `BSH_PNL_ANALYTICS_SV` semantic view | No — shared, works for any company |
+| `S4_FIN_PNL_ANALYTICS_SV` semantic view | No — shared, works for any company |
 | `ROLE_ACCESS_MAPPING` | Yes — one `INSERT` row via `make add-company` |
 | New company's data | Yes — you need to create the data rows |
 
@@ -306,27 +306,27 @@ Database/Schema:
 Tables:
   S4.FIN.S3_FINANCE_PNL         Main P&L fact (~100K rows, RAP applied)
   S4.FIN.DIM_GL_ACCOUNT         GL account / P&L line master (13 rows)
-  S4.FIN.DIM_PRODUCT            BSH product catalogue (52 SKUs)
+  S4.FIN.DIM_PRODUCT            R.Daneel product catalogue (52 SKUs)
   S4.FIN.DIM_CUSTOMER           Retail customer master (44 rows)
   S4.FIN.DIM_COMPANY            SAP company code master (6 rows)
   S4.FIN.DIM_PLANT              Manufacturing plant master (8 rows)
   S4.FIN.ROLE_ACCESS_MAPPING    Role → CLIENT_ID + REGION access registry
-  S4.FIN.BSH_DOCUMENTS          Document corpus for Cortex Search (~20 rows)
+  S4.FIN.S4_FIN_DOCUMENTS          Document corpus for Cortex Search (~20 rows)
 
 Policies:
   S4.FIN.PNL_CLIENT_ISOLATION_POLICY   Two-column RAP on (CLIENT_ID, REGION)
 
 AI Objects:
-  S4.FIN.BSH_PNL_SEARCH_SVC      Cortex Search on BSH_DOCUMENTS
-  S4.FIN.BSH_PNL_ANALYTICS_SV    Semantic View (P&L waterfall)
-  S4.FIN.BSH_PNL_AGENT           Cortex Agent (SQL + Search)
+  S4.FIN.S4_FIN_PNL_SEARCH_SVC      Cortex Search on S4_FIN_DOCUMENTS
+  S4.FIN.S4_FIN_PNL_ANALYTICS_SV    Semantic View (P&L waterfall)
+  S4.FIN.S4_FIN_PNL_AGENT           Cortex Agent (SQL + Search)
 
 Roles:
-  BSH_DEMO_GLOBAL_ROLE    All clients, all regions
-  BSH_DEMO_ROLE           BSH, all regions
-  BSH_EUROPE_DEMO_ROLE    BSH: DACH + W_EUROPE + E_EUROPE
-  BSH_NA_DEMO_ROLE        BSH: N_AMERICA
-  BSH_APAC_DEMO_ROLE      BSH: APAC + EMERGING
+  S4_FIN_DEMO_GLOBAL_ROLE    All clients, all regions
+  S4_FIN_DEMO_ROLE           RDANEEL, all regions
+  S4_FIN_EUROPE_DEMO_ROLE    RDANEEL: DACH + W_EUROPE + E_EUROPE
+  S4_FIN_NA_DEMO_ROLE        RDANEEL: N_AMERICA
+  S4_FIN_APAC_DEMO_ROLE      RDANEEL: APAC + EMERGING
 ```
 
 ### P&L Metric Quick Reference

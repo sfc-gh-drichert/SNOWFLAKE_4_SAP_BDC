@@ -1,14 +1,14 @@
-name: Deploy S4.FIN.PNL — BSH P&L Demo
+name: Deploy S4.FIN.PNL — S4 FIN PNL Demo
 
 # Colleagues trigger this from the GitHub Actions UI:
-# Actions tab → "Deploy S4.FIN.PNL — BSH P&L Demo" → Run workflow
+# Actions tab → "Deploy S4.FIN.PNL — S4 FIN PNL Demo" → Run workflow
 on:
   workflow_dispatch:
     inputs:
       warehouse:
         description: 'Snowflake warehouse name'
         required: true
-        default: 'BSH_DEMO_WH'
+        default: 'S4_FIN_DEMO_WH'
       database:
         description: 'Target Snowflake database'
         required: true
@@ -25,7 +25,7 @@ on:
           - search-agent-only  # Documents, Semantic View, Agent (06–08)
           - react-dashboard-only  # Build + deploy the React dashboard (SAR)
           - verify             # Full verification queries (09) — run after 'all'
-          - teardown           # Drop all BSH demo objects
+          - teardown           # Drop all S4 FIN demo objects
         default: ping
       deploy_target:
         description: 'app.yml target for react-dashboard-only (e.g. customer, dev)'
@@ -48,8 +48,8 @@ jobs:
 
       # Build the connection config from GitHub Secrets.
       # SNOWFLAKE_ACCOUNT     — account identifier (e.g. orgname-accountname)
-      # SNOWFLAKE_USER        — service user, e.g. BSH_GITHUB_ACTIONS
-      # SNOWFLAKE_PRIVATE_KEY — full PEM contents of bsh_demo_cicd.p8,
+      # SNOWFLAKE_USER        — service user, e.g. DEMO_GITHUB_ACTIONS
+      # SNOWFLAKE_PRIVATE_KEY — full PEM contents of demo_cicd.p8,
       #                         including -----BEGIN PRIVATE KEY----- headers
       # Key pair auth (SNOWFLAKE_JWT) does not go through Okta/SSO.
       - name: Configure Snowflake connection
@@ -73,7 +73,7 @@ jobs:
 
       # Confirms key pair auth is working before running any SQL files.
       # Uses CURRENT_USER() — a metadata query that needs no warehouse,
-      # so this works even before the first deploy creates BSH_DEMO_WH.
+      # so this works even before the first deploy creates S4_FIN_DEMO_WH.
       - name: Test connection
         run: |
           echo "==> Testing connection to Snowflake..."
@@ -145,7 +145,7 @@ jobs:
       - name: Write deployment summary
         if: always()
         run: |
-          echo "## S4.FIN.PNL — BSH P&L Demo" >> "$GITHUB_STEP_SUMMARY"
+          echo "## S4.FIN.PNL — S4 FIN PNL Demo" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"

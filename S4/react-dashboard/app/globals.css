@@ -11,7 +11,7 @@
 @layer base {
   :root {
     /* Brand tokens */
-    --brand-primary: #003087; /* BSH dark blue — change here to rebrand */
+    --brand-primary: #003087; /* brand dark blue -- change here to rebrand */
     --brand-primary-foreground: #ffffff;
     --brand-nav-bg: #0a2f5a;
     --brand-nav-fg: #ffffff;

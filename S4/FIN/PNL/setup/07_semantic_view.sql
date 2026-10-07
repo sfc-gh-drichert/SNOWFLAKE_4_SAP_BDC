@@ -1,5 +1,5 @@
 -- ==============================================================================
--- 07_semantic_view.sql - BSH PnL Analytics Semantic View
+-- 07_semantic_view.sql - R.Daneel PnL Analytics Semantic View
 --
 -- DDL structure (from Snowflake docs):
 --   TABLES (...), DIMENSIONS (...), METRICS (...) are top-level sibling clauses.
@@ -15,19 +15,19 @@ USE WAREHOUSE IDENTIFIER('<% wh_name %>');
 USE DATABASE  IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
-CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
+CREATE OR REPLACE SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV
 
   TABLES (
     PNL AS <% db_name %>.FIN.S3_FINANCE_PNL
       PRIMARY KEY (SALESORDER, ACDOCA_RACCT, COMPANYCODE, POSTINGDATE, MATERIAL, CUSTOMER)
-      COMMENT = 'BSH Group PnL fact table. Row Access Policy on (CLIENT_ID, REGION) enforces data visibility.'
+      COMMENT = 'R.Daneel Inc. PnL fact table. Row Access Policy on (CLIENT_ID, REGION) enforces data visibility.'
   )
 
   DIMENSIONS (
     PNL.CLIENT_ID           AS CLIENT_ID
       COMMENT = 'Tenant identifier. Row Access Policy enforces visibility per role.',
     PNL.BRAND               AS BRAND
-      COMMENT = 'BSH brand: BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
+      COMMENT = 'R.Daneel brand: BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
     PNL.CATEGORY            AS CATEGORY
       COMMENT = 'Product category: COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
     PNL.SUBCATEGORY         AS SUBCATEGORY,
@@ -44,7 +44,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
     PNL.CUSTOMER            AS CUSTOMER
       COMMENT = 'SAP customer number',
     PNL.MATERIAL            AS MATERIAL
-      COMMENT = 'BSH material/SKU number (e.g. BSH-DW-B6000)',
+      COMMENT = 'R.Daneel material/SKU number (e.g. RD-DW-B6000)',
     PNL.PRODUCT_NAME        AS PRODUCT_NAME
       COMMENT = 'Full product name (e.g. Bosch Serie 6 PerfectDry SMV6ZCX00E)',
     PNL.ACDOCA_RACCT        AS ACDOCA_RACCT
@@ -96,7 +96,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
                       - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
                       - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
                       - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-      COMMENT = 'Gross Profit = Net Revenue minus COGS and logistics (EUR). Typically 34% of net for BSH. Gaggenau ~46%.',
+      COMMENT = 'Gross Profit = Net Revenue minus COGS and logistics (EUR). Typically 34% of net for R.Daneel. Gaggenau ~46%.',
 
     -- ── MARGINAL CONTRIBUTION 1 (DB1) ────────────────────────────────────────
     PNL.BRAND_ADP AS SUM(IFF(PNL_CATEGORY = 'BRAND_ADP', -HSL, 0))
@@ -122,7 +122,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
 
     -- ── EBIT ──────────────────────────────────────────────────────────────────
     PNL.RD_EXPENSE AS SUM(IFF(PNL_CATEGORY = 'RD', -HSL, 0))
-      COMMENT = 'Research and Development expense (EUR). BSH spends ~5.5-6% of net revenue on Research and Development — above industry average. EUR 835M in 2024 (reference year).',
+      COMMENT = 'Research and Development expense (EUR). R.Daneel spends ~5.5-6% of net revenue on Research and Development — above industry average. EUR 835M in 2024 (reference year).',
 
     PNL.GA_EXPENSE AS SUM(IFF(PNL_CATEGORY = 'GA', -HSL, 0))
       COMMENT = 'General and Administrative expenses (EUR). Typically 3.5% of net revenue.',
@@ -133,7 +133,7 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
               - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
               - SUM(IFF(PNL_CATEGORY IN ('BRAND_ADP','SALES'), -HSL, 0))
               - SUM(IFF(PNL_CATEGORY IN ('RD','GA'), -HSL, 0))
-      COMMENT = 'EBIT - Earnings Before Interest and Tax (EUR). BSH 2024 reference: approx EUR 918M (6% of EUR 15.3B net revenue). Dataset covers 2023-2026.',
+      COMMENT = 'EBIT - Earnings Before Interest and Tax (EUR). R.Daneel 2024 reference: approx EUR 918M (6% of EUR 15.3B net revenue). Dataset covers 2023-2026.',
 
     -- ── VOLUME ────────────────────────────────────────────────────────────────
     PNL.TOTAL_UNITS AS SUM(IFF(ACDOCA_RACCT = '0800000', SALESVOLUME, 0))
@@ -142,10 +142,10 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
     -- ── DERIVED METRICS (ratios) - no table prefix ────────────────────────────
     -- These reference the table-scoped metrics above using the PNL.<name> notation.
     EBIT_MARGIN_PCT AS PNL.EBIT / NULLIF(PNL.NET_REVENUE, 0) * 100
-      COMMENT = 'EBIT Margin % of Net Revenue. BSH 2024 reference: ~6%. Dataset covers 2023-2026 with category-level adjustors applied each year.',
+      COMMENT = 'EBIT Margin % of Net Revenue. R.Daneel 2024 reference: ~6%. Dataset covers 2023-2026 with category-level adjustors applied each year.',
 
     GP_MARGIN_PCT AS PNL.GROSS_PROFIT / NULLIF(PNL.NET_REVENUE, 0) * 100
-      COMMENT = 'Gross Profit Margin % of Net Revenue. BSH avg ~34%. Gaggenau ~46%.',
+      COMMENT = 'Gross Profit Margin % of Net Revenue. R.Daneel avg ~34%. Gaggenau ~46%.',
 
     DB2_MARGIN_PCT AS PNL.DB2_MARGINAL_CONTRIBUTION / NULLIF(PNL.NET_REVENUE, 0) * 100
       COMMENT = 'DB2 Marginal Contribution Margin % of Net Revenue. Typically 15.5%.',
@@ -154,12 +154,12 @@ CREATE OR REPLACE SEMANTIC VIEW BSH_PNL_ANALYTICS_SV
       COMMENT = 'Average Selling Price in EUR = Gross Revenue / Units Sold. Gaggenau ASP is 4-6x higher than Bosch.'
   )
 
-  COMMENT = 'BSH Group PnL Analytics Semantic View. Full PnL waterfall: Gross Revenue to DB1 to DB2 to EBIT. Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. 2023-2026 (2026 partial through Sep), ~100K rows. EUR currency throughout.';
+  COMMENT = 'R.Daneel Inc. PnL Analytics Semantic View. Full PnL waterfall: Gross Revenue to DB1 to DB2 to EBIT. Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. 2023-2026 (2026 partial through Sep), ~100K rows. EUR currency throughout.';
 
 -- Grant REFERENCES + SELECT (REFERENCES is required for Cortex Agent usage)
-GRANT REFERENCES, SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_EUROPE_DEMO_ROLE;
-GRANT REFERENCES, SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_NA_DEMO_ROLE;
-GRANT REFERENCES, SELECT ON SEMANTIC VIEW BSH_PNL_ANALYTICS_SV TO ROLE BSH_APAC_DEMO_ROLE;
--- BSH_DATA_DEPLOY_ROLE inherits via BSH_DEMO_GLOBAL_ROLE chain
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV TO ROLE S4_FIN_EUROPE_DEMO_ROLE;
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV TO ROLE S4_FIN_NA_DEMO_ROLE;
+GRANT REFERENCES, SELECT ON SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV TO ROLE S4_FIN_APAC_DEMO_ROLE;
+-- DEMO_DATA_DEPLOY_ROLE inherits via S4_FIN_DEMO_GLOBAL_ROLE chain
 
-SELECT 'Semantic view created: BSH_PNL_ANALYTICS_SV' AS status;
+SELECT 'Semantic view created: S4_FIN_PNL_ANALYTICS_SV' AS status;

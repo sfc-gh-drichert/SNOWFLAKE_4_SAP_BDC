@@ -7,7 +7,7 @@ Snowflake App Runtime (SAR) app: a two-panel financial dashboard over SAP-source
 | Panel | Content |
 |-------|---------|
 | Left (60%) | KPI cards, P&L waterfall chart, EBIT margin by brand, category revenue trends 2023–2026 |
-| Right (40%) | Streaming Cortex Agent chat (`BSH_PNL_AGENT`) with generated-SQL display |
+| Right (40%) | Streaming Cortex Agent chat (`S4_FIN_PNL_AGENT`) with generated-SQL display |
 
 Filters (Year / Brand / Region) drive all four chart panels independently.
 All SQL queries run with **caller's rights** so the Row Access Policy on `S3_FINANCE_PNL` is enforced — each user's role sees only their authorised regions.
@@ -82,5 +82,5 @@ Then deploy with `snow app deploy --target new_account`.
 | Object | Purpose |
 |--------|---------|
 | `S4.FIN.S3_FINANCE_PNL` | PnL fact table (ACDOCA/CO-PA structure, 100K rows, Jan 2023–Sep 2026) |
-| `S4.FIN.BSH_PNL_ANALYTICS_SV` | Semantic View used by Cortex Analyst |
-| `S4.FIN.BSH_PNL_AGENT` | Cortex Agent (PnL_Analyst + BSH_Docs_Search tools) |
+| `S4.FIN.S4_FIN_PNL_ANALYTICS_SV` | Semantic View used by Cortex Analyst |
+| `S4.FIN.S4_FIN_PNL_AGENT` | Cortex Agent (PnL_Analyst + Docs_Search tools) |

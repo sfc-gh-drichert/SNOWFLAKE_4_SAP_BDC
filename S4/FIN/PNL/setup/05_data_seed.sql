@@ -9,7 +9,7 @@
 -- rows each). Within a GL type, amounts are seeded with RANDOM(rn*k)
 -- to produce row-specific values that are reproducible.
 --
--- COST STRUCTURE (calibrated to BSH 2024 actuals: EBIT ~6% of net revenue)
+-- COST STRUCTURE (calibrated to R.Daneel 2024 actuals: EBIT ~6% of net revenue)
 -- ─────────────────────────────────────────────────────────────────────────────
 -- All pct_factor values are expressed as a fraction of GROSS REVENUE:
 --
@@ -27,7 +27,7 @@
 --   DB1 Marginal Contrib   = 20.6% of gross = 22.5% of net
 --   Sales Costs            -0.064  ( -7.0% of net)
 --   DB2 Marginal Contrib   = 14.2% of gross = 15.5% of net
---   Research and Development                    -0.055  ( -6.0% of net) ← BSH actual €835M/€15.3B
+--   Research and Development                    -0.055  ( -6.0% of net) ← R.Daneel actual €835M/€15.3B
 --   General and Administrative                    -0.032  ( -3.5% of net)
 --   EBIT                   =  5.5% of gross =  6.0% of net ✓
 --
@@ -284,41 +284,41 @@ enriched AS (
         -- ── Material number (brand + category → specific SKU) ─────────────────
         CASE
             WHEN a.brand = 'BOSCH'    AND a.category = 'DISH_CARE'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'BSH-DW-B8000' WHEN 1 THEN 'BSH-DW-B6000' WHEN 2 THEN 'BSH-DW-B4000' ELSE 'BSH-DW-B2000' END
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-DW-B8000' WHEN 1 THEN 'RD-DW-B6000' WHEN 2 THEN 'RD-DW-B4000' ELSE 'RD-DW-B2000' END
             WHEN a.brand = 'BOSCH'    AND a.category = 'LAUNDRY_CARE'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'BSH-WM-B8100' WHEN 1 THEN 'BSH-WM-B6100' WHEN 2 THEN 'BSH-WM-B4100' ELSE 'BSH-TD-B8100' END
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-WM-B8100' WHEN 1 THEN 'RD-WM-B6100' WHEN 2 THEN 'RD-WM-B4100' ELSE 'RD-TD-B8100' END
             WHEN a.brand = 'BOSCH'    AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'BSH-OV-B8000' WHEN 1 THEN 'BSH-OV-B6000' WHEN 2 THEN 'BSH-OV-B4000' ELSE 'BSH-IH-B6000' END
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-B8000' WHEN 1 THEN 'RD-OV-B6000' WHEN 2 THEN 'RD-OV-B4000' ELSE 'RD-IH-B6000' END
             WHEN a.brand = 'BOSCH'    AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'BSH-FF-B8000' WHEN 1 THEN 'BSH-FF-B6000' ELSE 'BSH-FF-B4000' END
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-FF-B8000' WHEN 1 THEN 'RD-FF-B6000' ELSE 'RD-FF-B4000' END
             WHEN a.brand = 'BOSCH'    AND a.category = 'CONSUMER_PRODUCTS'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'BSH-CF-B8000' WHEN 1 THEN 'BSH-CF-B6000' ELSE 'BSH-VC-B6000' END
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-CF-B8000' WHEN 1 THEN 'RD-CF-B6000' ELSE 'RD-VC-B6000' END
             WHEN a.brand = 'SIEMENS'  AND a.category = 'DISH_CARE'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'BSH-DW-S7000' WHEN 1 THEN 'BSH-DW-S5000' ELSE 'BSH-DW-S3000' END
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-DW-S7000' WHEN 1 THEN 'RD-DW-S5000' ELSE 'RD-DW-S3000' END
             WHEN a.brand = 'SIEMENS'  AND a.category = 'LAUNDRY_CARE'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'BSH-WM-S7100' WHEN 1 THEN 'BSH-WM-S5100' ELSE 'BSH-TD-S7100' END
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-WM-S7100' WHEN 1 THEN 'RD-WM-S5100' ELSE 'RD-TD-S7100' END
             WHEN a.brand = 'SIEMENS'  AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'BSH-OV-S9000' WHEN 1 THEN 'BSH-OV-S7000' ELSE 'BSH-IH-S7000' END
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-OV-S9000' WHEN 1 THEN 'RD-OV-S7000' ELSE 'RD-IH-S7000' END
             WHEN a.brand = 'SIEMENS'  AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'BSH-FF-S7000' ELSE 'BSH-FF-S5000' END
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-FF-S7000' ELSE 'RD-FF-S5000' END
             WHEN a.brand = 'SIEMENS'  AND a.category = 'CONSUMER_PRODUCTS'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'BSH-CF-S9000' ELSE 'BSH-CF-S7000' END
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-CF-S9000' ELSE 'RD-CF-S7000' END
             WHEN a.brand = 'GAGGENAU' AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'BSH-OV-G4800' WHEN 1 THEN 'BSH-OV-G4700' WHEN 2 THEN 'BSH-IH-G4820' ELSE 'BSH-IH-G4250' END
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-G4800' WHEN 1 THEN 'RD-OV-G4700' WHEN 2 THEN 'RD-IH-G4820' ELSE 'RD-IH-G4250' END
             WHEN a.brand = 'GAGGENAU' AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'BSH-RF-G4920' ELSE 'BSH-FZ-G4910' END
-            WHEN a.brand = 'GAGGENAU' AND a.category = 'DISH_CARE'  THEN 'BSH-DW-G2870'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-RF-G4920' ELSE 'RD-FZ-G4910' END
+            WHEN a.brand = 'GAGGENAU' AND a.category = 'DISH_CARE'  THEN 'RD-DW-G2870'
             WHEN a.brand = 'NEFF'     AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'BSH-OV-N5770' WHEN 1 THEN 'BSH-OV-N6900' WHEN 2 THEN 'BSH-OV-N4700' ELSE 'BSH-IH-N4600' END
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-N5770' WHEN 1 THEN 'RD-OV-N6900' WHEN 2 THEN 'RD-OV-N4700' ELSE 'RD-IH-N4600' END
             WHEN a.brand = 'NEFF'     AND a.category = 'DISH_CARE'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'BSH-DW-N5850' ELSE 'BSH-DW-N8970' END
-            WHEN a.brand = 'NEFF'     AND a.category = 'LAUNDRY_CARE' THEN 'BSH-WM-N7100'
-            WHEN a.brand = 'THERMADOR' AND a.category = 'COOKING'     THEN 'BSH-OV-T3600'
-            WHEN a.brand = 'THERMADOR' AND a.category = 'DISH_CARE'   THEN 'BSH-DW-T3000'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-DW-N5850' ELSE 'RD-DW-N8970' END
+            WHEN a.brand = 'NEFF'     AND a.category = 'LAUNDRY_CARE' THEN 'RD-WM-N7100'
+            WHEN a.brand = 'THERMADOR' AND a.category = 'COOKING'     THEN 'RD-OV-T3600'
+            WHEN a.brand = 'THERMADOR' AND a.category = 'DISH_CARE'   THEN 'RD-DW-T3000'
             WHEN a.brand = 'THERMADOR' AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'BSH-FF-T3600' ELSE 'BSH-FZ-T3600' END
-            -- Fallback for brand/category combos not in BSH's portfolio (e.g. Gaggenau laundry)
-            ELSE 'BSH-DW-B4000'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-FF-T3600' ELSE 'RD-FZ-T3600' END
+            -- Fallback for brand/category combos not in R.Daneel's portfolio (e.g. Gaggenau laundry)
+            ELSE 'RD-DW-B4000'
         END AS mat_code,
 
         -- ── Customer (region-aware assignment) ───────────────────────────────
@@ -377,7 +377,7 @@ enriched AS (
 
 -- ─── Final SELECT joining product dimension for denormalised columns ────────
 SELECT
-    'BSH'                                                        AS CLIENT_ID,
+    'RDANEEL'                                                        AS CLIENT_ID,
     CAST(e.fy * 1000 + e.fp AS NUMBER(38,0))                    AS MONTHYEAR,
     LPAD(CAST(e.fy AS VARCHAR) || LPAD(CAST(e.fp AS VARCHAR),3,'0'),7,'0') AS DATAENTRYPERIOD,
     e.fy                                                         AS FISCALYEAR,
@@ -394,7 +394,7 @@ SELECT
     e.country_code                                               AS COUNTRY_SOLD_TO,
     e.sales_org                                                  AS SALESORGANISATION,
     e.dist_ch                                                    AS DISTRIBUTIONCHANNEL,
-    'BSH0'                                                       AS CONTROLLINGAREA,
+    'RD00'                                                       AS CONTROLLINGAREA,
     e.region_name                                                AS REGION,
     e.plant_code                                                 AS PLANT,
     e.func_area                                                  AS FUNCTIONALAREA,
