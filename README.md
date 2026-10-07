@@ -8,6 +8,7 @@ Each demo lives under a folder path that mirrors the Snowflake database/schema h
 | Path | Database | Schema | Module | Description |
 |------|----------|--------|--------|-------------|
 | [`S4/FIN/PNL`](S4/FIN/PNL/README.md) | S4 | FIN | PNL | BSH Group — Financial P&L with marginal contribution (DB1/DB2/EBIT) |
+| [`CPG_S4_BLUEY_CONFECT_PETFOOD`](CPG_S4_BLUEY_CONFECT_PETFOOD/README.md) | CONFECT_PETFOOD_DEMO | SC_RISK_DEMO | Supply Chain Risk | Multi-division CPG supply chain risk intelligence (SAP + Blue Yonder + external signals) |
 
 > More demos coming: `S4/FIN/AP`, `S4/FIN/AR`, `S4/SD/ORDER_TO_CASH`, `S4/MM/PROCUREMENT`
 

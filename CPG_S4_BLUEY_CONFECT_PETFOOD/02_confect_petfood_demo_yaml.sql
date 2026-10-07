@@ -84,7 +84,7 @@ tables:
         data_type: VARCHAR
       - name: peak_event
         synonyms: [seasonal event, season, peak]
-        description: Seasonal demand peak driving the risk (HALLOWEEN_2026, SPRING_PUPPY_2027, SPRING_KITTEN_2027, CHRISTMAS_2026)
+        description: Seasonal demand peak driving the risk (DIWALI_2026, HALLOWEEN_2026, CHRISTMAS_2026, CNY_2027, SPRING_PUPPY_2027, SPRING_KITTEN_2027)
         expr: PEAK_EVENT
         data_type: VARCHAR
       - name: risk_tier
@@ -170,7 +170,7 @@ tables:
         expr: BRAND
         data_type: VARCHAR
       - name: peak_event
-        description: Seasonal peak this coverage analysis is for (HALLOWEEN_2026, SPRING_PUPPY_2027, SPRING_KITTEN_2027, CHRISTMAS_2026)
+        description: Seasonal peak this coverage analysis is for (DIWALI_2026, HALLOWEEN_2026, CHRISTMAS_2026, CNY_2027, SPRING_PUPPY_2027, SPRING_KITTEN_2027)
         expr: PEAK_EVENT
         data_type: VARCHAR
       - name: coverage_status
@@ -1082,6 +1082,80 @@ verified_queries:
       WHERE COMMODITY = 'COCOA'
       ORDER BY PRICE_DATE DESC
 
+  # === GLOBAL SEASONAL PEAKS ===
+  - name: christmas_coverage_gap
+    question: "Which confectionery SKUs have a supply coverage gap for Christmas?"
+    verified_at: 1787356800
+    sql: |
+      SELECT
+          MATERIAL_ID,
+          MATERIAL_DESC,
+          BRAND,
+          COVERAGE_STATUS,
+          DEMAND_FORECAST_QTY,
+          BY_COMMITTED_QTY,
+          SUPPLY_SHORTFALL_QTY,
+          REVENUE_AT_RISK_USD,
+          DAYS_OF_SUPPLY,
+          SAFETY_STOCK_DAYS
+      FROM SC_RISK_DEMO.V_SEASONAL_COVERAGE_GAP
+      WHERE PEAK_EVENT = 'CHRISTMAS_2026'
+        AND DIVISION = 'CONFECTIONERY'
+      ORDER BY REVENUE_AT_RISK_USD DESC
+
+  - name: diwali_coverage_gap
+    question: "What is the coverage gap for Diwali confectionery SKUs?"
+    verified_at: 1787356800
+    sql: |
+      SELECT
+          MATERIAL_ID,
+          MATERIAL_DESC,
+          BRAND,
+          COVERAGE_STATUS,
+          DEMAND_FORECAST_QTY,
+          BY_COMMITTED_QTY,
+          SUPPLY_SHORTFALL_QTY,
+          REVENUE_AT_RISK_USD,
+          DAYS_OF_SUPPLY,
+          SAFETY_STOCK_DAYS
+      FROM SC_RISK_DEMO.V_SEASONAL_COVERAGE_GAP
+      WHERE PEAK_EVENT = 'DIWALI_2026'
+      ORDER BY REVENUE_AT_RISK_USD DESC
+
+  - name: cny_coverage_gap
+    question: "Which SKUs have supply risk for Chinese New Year?"
+    verified_at: 1787356800
+    sql: |
+      SELECT
+          MATERIAL_ID,
+          MATERIAL_DESC,
+          BRAND,
+          COVERAGE_STATUS,
+          DEMAND_FORECAST_QTY,
+          BY_COMMITTED_QTY,
+          SUPPLY_SHORTFALL_QTY,
+          REVENUE_AT_RISK_USD,
+          DAYS_OF_SUPPLY,
+          SAFETY_STOCK_DAYS
+      FROM SC_RISK_DEMO.V_SEASONAL_COVERAGE_GAP
+      WHERE PEAK_EVENT = 'CNY_2027'
+      ORDER BY REVENUE_AT_RISK_USD DESC
+
+  - name: global_peak_comparison
+    question: "Compare revenue at risk across all seasonal peaks"
+    verified_at: 1787356800
+    sql: |
+      SELECT
+          PEAK_EVENT,
+          COUNT(DISTINCT MATERIAL_ID) AS SKUS_AT_RISK,
+          SUM(SUPPLY_SHORTFALL_QTY) AS TOTAL_SHORTFALL_UNITS,
+          SUM(REVENUE_AT_RISK_USD) AS TOTAL_REVENUE_AT_RISK_USD,
+          AVG(DAYS_OF_SUPPLY) AS AVG_DAYS_OF_SUPPLY
+      FROM SC_RISK_DEMO.V_SEASONAL_COVERAGE_GAP
+      WHERE SUPPLY_SHORTFALL_QTY > 0
+      GROUP BY PEAK_EVENT
+      ORDER BY TOTAL_REVENUE_AT_RISK_USD DESC
+
   # === COMBINED RISK OVERVIEW ===
   - name: full_risk_dashboard
     question: "Give me a full supply chain risk overview across all divisions and peaks"
@@ -1138,10 +1212,11 @@ CREATE OR REPLACE AGENT CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.CONFECT_PETFOOD_SC_RIS
       Use the sc_risk_analyst tool for all data questions about supply chain risk,
       inventory, demand, suppliers, transport, commodity prices, and outbreak alerts.
     sample_questions:
-      - question: "Which confectionery SKUs have a supply coverage gap for Halloween?"
-      - question: "What is the total financial exposure from the Halloween supply risk?"
+      - question: "Which confectionery SKUs have a supply coverage gap for Christmas?"
+      - question: "Compare revenue at risk across all seasonal peaks"
+      - question: "What is the coverage gap for Diwali confectionery SKUs?"
       - question: "Are there any supply risks in European petcare this quarter?"
-      - question: "Which vessels are currently delayed and what cargo are they carrying?"
+      - question: "Which SKUs have supply risk for Chinese New Year?"
       - question: "Give me a full supply chain risk overview across all divisions and peaks"
 
   tools:

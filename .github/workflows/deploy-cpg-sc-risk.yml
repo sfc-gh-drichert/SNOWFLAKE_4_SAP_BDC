@@ -1,0 +1,104 @@
+name: Deploy CPG SC Risk — Confect PetFood Demo
+
+# Colleagues trigger this from the GitHub Actions UI:
+# Actions tab → "Deploy CPG SC Risk — Confect PetFood Demo" → Run workflow
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to deploy'
+        required: true
+        type: choice
+        options:
+          - ping              # Connection test only — no SQL, no objects needed
+          - all               # Full setup: Iceberg tables + semantic view + agent
+          - tables-only       # Just Iceberg tables and views (file 01)
+          - agent-only        # Just semantic view and Cortex Agent (file 02)
+          - teardown          # Drop database + warehouse
+        default: ping
+
+jobs:
+  deploy:
+    name: Deploy (${{ inputs.action }}) → CONFECT_PETFOOD_DEMO
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Snowflake CLI
+        run: |
+          pip install snowflake-cli
+          snow --version
+
+      # Build the connection config from GitHub Secrets.
+      # Uses the same secrets as the BSH demo — see root README for setup.
+      - name: Configure Snowflake connection
+        env:
+          SNOWFLAKE_ACCOUNT:     ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER:        ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PRIVATE_KEY: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.snowflake
+          cat > ~/.snowflake/config.toml << TOMLEOF
+          [connections.default]
+          account          = "${SNOWFLAKE_ACCOUNT}"
+          user             = "${SNOWFLAKE_USER}"
+          authenticator    = "SNOWFLAKE_JWT"
+          private_key_path = "/tmp/rsa_key.p8"
+          role             = "ACCOUNTADMIN"
+          TOMLEOF
+          printf '%s' "${SNOWFLAKE_PRIVATE_KEY}" > /tmp/rsa_key.p8
+          chmod 0600 /tmp/rsa_key.p8
+          chmod 0600 ~/.snowflake/config.toml
+
+      - name: Test connection
+        run: |
+          echo "==> Testing connection to Snowflake..."
+          snow sql -q "SELECT CURRENT_USER() AS user, CURRENT_ACCOUNT() AS account, CURRENT_ROLE() AS role"
+          echo "==> Connection OK"
+
+      - name: Run SQL files
+        run: |
+          BASE="CPG_S4_BLUEY_CONFECT_PETFOOD"
+
+          run_sql() {
+            echo ""
+            echo "--> Running $(basename $1)"
+            snow sql -f "$1"
+          }
+
+          echo "==> Action: ${{ inputs.action }}"
+
+          case "${{ inputs.action }}" in
+            ping)
+              echo "Connection test passed in previous step. No SQL files to run."
+              ;;
+            all)
+              run_sql "${BASE}/01_confect_petfood_demo_sc_risk_ice.sql"
+              run_sql "${BASE}/02_confect_petfood_demo_yaml.sql"
+              ;;
+            tables-only)
+              run_sql "${BASE}/01_confect_petfood_demo_sc_risk_ice.sql"
+              ;;
+            agent-only)
+              echo "NOTE: Requires tables-only or all to have been run first."
+              run_sql "${BASE}/02_confect_petfood_demo_yaml.sql"
+              ;;
+            teardown)
+              snow sql -q "DROP DATABASE IF EXISTS CONFECT_PETFOOD_DEMO; DROP WAREHOUSE IF EXISTS CONFECT_PETFOOD_WH;"
+              ;;
+          esac
+
+      - name: Write deployment summary
+        if: always()
+        run: |
+          echo "## CPG SC Risk — Confect PetFood Demo" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Action | \`${{ inputs.action }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Database | \`CONFECT_PETFOOD_DEMO\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Warehouse | \`CONFECT_PETFOOD_WH\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Status | ${{ job.status }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Triggered by | @${{ github.actor }} |" >> "$GITHUB_STEP_SUMMARY"

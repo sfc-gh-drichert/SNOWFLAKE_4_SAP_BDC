@@ -16,8 +16,11 @@
 -- Run this script in any Snowflake account.
 --
 -- Demo date context: August 2026
---   Act 1+2: Halloween 2026 peak (Oct 31) is 10 weeks away
---   Act 3:   NovaPet Spring 2027 peak (Feb-Apr) is in active planning
+--   Act 1: Christmas 2026 peak (Nov-Dec) — primary confectionery season
+--   Act 2: Logistics deep-dive — Abidjan-Rotterdam cocoa lane disruption
+--   Act 3: NovaPet Spring 2027 (Feb-Apr) — H5N1 biosecurity crisis
+--   Act 4: Global cascade — Diwali (Oct-Nov, India), CNY (Jan-Feb, APAC)
+--          Same cocoa supply crunch hits four peaks on three continents
 -- =============================================================
 USE ROLE ACCOUNTADMIN;
 
@@ -131,9 +134,19 @@ INSERT INTO I_PRODUCT VALUES
 ('WB-HWEEN-450G', 'WaferBliss Halloween Treat Bag 450g',             'CONFECTIONERY','WaferBliss',  'Seasonal Bagged Candy','MEDIUM','EA', 1.98),
 ('MB-HWEEN-350G', 'MaltBurst Halloween Sharing Bag 350g',            'CONFECTIONERY','MaltBurst',   'Seasonal Bagged Candy','MEDIUM','EA', 1.85),
 ('CB-HWEEN-260G', 'CocoBar Halloween Mix 260g',                      'CONFECTIONERY','CocoBar',     'Seasonal Bagged Candy','MEDIUM','EA', 1.78),
--- === CONFECTIONERY — Christmas ===
+-- === CONFECTIONERY — Christmas (primary global peak) ===
 ('FEST-XMAS-650G','Festival Collection Tin 650g',                    'CONFECTIONERY','Festival',    'Seasonal Tin',        'HIGH',  'EA', 4.50),
 ('STAR-XMAS-450G','StarChoc Chocolates Christmas Tin 450g',          'CONFECTIONERY','StarChoc',    'Seasonal Tin',        'HIGH',  'EA', 2.85),
+('CS-XMAS-400G',  'ChocoSnap Milk Choc Christmas Gift Box 400g',    'CONFECTIONERY','ChocoSnap',   'Seasonal Gift Box',   'HIGH',  'EA', 2.40),
+('NC-XMAS-500G',  'NutCrunch Christmas Selection Box 500g',          'CONFECTIONERY','NutCrunch',   'Seasonal Boxed Candy','HIGH',  'EA', 2.60),
+-- === CONFECTIONERY — Diwali (India / APAC) ===
+('CS-DIWALI-400G', 'ChocoSnap Diwali Gift Box 400g',                'CONFECTIONERY','ChocoSnap',   'Seasonal Gift Box',   'HIGH',  'EA', 2.20),
+('NC-DIWALI-500G', 'NutCrunch Diwali Assortment 500g',              'CONFECTIONERY','NutCrunch',   'Seasonal Gift Box',   'HIGH',  'EA', 2.50),
+('CB-DIWALI-300G', 'CocoBar Diwali Selection 300g',                  'CONFECTIONERY','CocoBar',     'Seasonal Gift Box',   'MEDIUM','EA', 1.90),
+-- === CONFECTIONERY — Chinese New Year (APAC) ===
+('CS-CNY-400G',    'ChocoSnap Lunar New Year Gift Box 400g',        'CONFECTIONERY','ChocoSnap',   'Seasonal Gift Box',   'HIGH',  'EA', 2.35),
+('NC-CNY-500G',    'NutCrunch Lunar New Year Tin 500g',              'CONFECTIONERY','NutCrunch',   'Seasonal Tin',        'HIGH',  'EA', 2.55),
+('FEST-CNY-650G',  'Festival Lunar New Year Collection 650g',        'CONFECTIONERY','Festival',    'Seasonal Tin',        'HIGH',  'EA', 4.80),
 -- === PETCARE — NovaPet ===
 ('NP-PUP-MED-4KG','NovaPet Medium Puppy 4kg',                       'PETCARE','NovaPet',   'Puppy Nutrition',       'HIGH',  'EA', 14.80),
 ('NP-KIT-2KG',    'NovaPet Kitten 2kg',                             'PETCARE','NovaPet',   'Kitten Nutrition',      'HIGH',  'EA',  9.60),
@@ -152,7 +165,7 @@ INSERT INTO I_PRODUCT VALUES
 ('SC-PASTA-500G', 'SauceCraft Pasta Sauce Bolognese 500g',           'FOOD','SauceCraft',  'Pasta Sauce',            'MEDIUM','EA',  1.60);
 
 
--- 1.3  I_PRODUCTPLANT  (10 plants across 3 continents)
+-- 1.3  I_PRODUCTPLANT  (12 plants across 4 continents)
 CREATE OR REPLACE ICEBERG TABLE I_PRODUCTPLANT (
     MATERIAL_ID          VARCHAR     NOT NULL,
     PLANT                VARCHAR     NOT NULL,
@@ -202,7 +215,18 @@ INSERT INTO I_PRODUCTPLANT VALUES
 -- GB02: Kettering — Food
 ('GH-LG-500G',     'GB02','Kettering Food Plant',   'United Kingdom',28,21,10),
 ('GH-EXP-250G',    'GB02','Kettering Food Plant',   'United Kingdom',28,21,10),
-('SC-PASTA-500G',  'GB02','Kettering Food Plant',   'United Kingdom',28,21,10);
+('SC-PASTA-500G',  'GB02','Kettering Food Plant',   'United Kingdom',28,21,10),
+-- IN01: Mumbai — India confectionery (Diwali)
+('CS-DIWALI-400G', 'IN01','Mumbai Confectionery',   'India',         35,21,14),
+('NC-DIWALI-500G', 'IN01','Mumbai Confectionery',   'India',         35,21,14),
+('CB-DIWALI-300G', 'IN01','Mumbai Confectionery',   'India',         35,21,14),
+-- SG01: Singapore — APAC confectionery hub (CNY)
+('CS-CNY-400G',    'SG01','Singapore Hub',          'Singapore',     35,21,14),
+('NC-CNY-500G',    'SG01','Singapore Hub',          'Singapore',     35,21,14),
+('FEST-CNY-650G',  'SG01','Singapore Hub',          'Singapore',     42,28,21),
+-- Christmas expansion — NL01 + GB01
+('CS-XMAS-400G',   'NL01','Breda Confectionery',    'Netherlands',   42,28,21),
+('NC-XMAS-500G',   'NL01','Breda Confectionery',    'Netherlands',   42,28,21);
 
 
 -- 1.4  I_BILLOFMATERIAL / I_BILLOFMATERIALITEM
@@ -234,7 +258,18 @@ INSERT INTO I_BILLOFMATERIAL VALUES
 ('BOM-TW-NL02',   'TW-ADL-15KG',    'NL02','PRODUCTION','2024-01-01'),
 ('BOM-PF-NL02',   'PF-ADL-400G',    'NL02','PRODUCTION','2024-01-01'),
 ('BOM-GH-GB02',   'GH-LG-500G',     'GB02','PRODUCTION','2024-01-01'),
-('BOM-GH-EXP-GB02','GH-EXP-250G',   'GB02','PRODUCTION','2024-01-01');
+('BOM-GH-EXP-GB02','GH-EXP-250G',   'GB02','PRODUCTION','2024-01-01'),
+-- Diwali BOMs (IN01)
+('BOM-CS-DIW-IN01','CS-DIWALI-400G', 'IN01','PRODUCTION','2026-01-01'),
+('BOM-NC-DIW-IN01','NC-DIWALI-500G', 'IN01','PRODUCTION','2026-01-01'),
+('BOM-CB-DIW-IN01','CB-DIWALI-300G', 'IN01','PRODUCTION','2026-01-01'),
+-- CNY BOMs (SG01)
+('BOM-CS-CNY-SG01','CS-CNY-400G',    'SG01','PRODUCTION','2026-01-01'),
+('BOM-NC-CNY-SG01','NC-CNY-500G',    'SG01','PRODUCTION','2026-01-01'),
+('BOM-FEST-CNY-SG01','FEST-CNY-650G','SG01','PRODUCTION','2026-01-01'),
+-- Christmas expansion BOMs (NL01)
+('BOM-CS-XMAS-NL01','CS-XMAS-400G', 'NL01','PRODUCTION','2024-01-01'),
+('BOM-NC-XMAS-NL01','NC-XMAS-500G', 'NL01','PRODUCTION','2024-01-01');
 
 
 CREATE OR REPLACE ICEBERG TABLE I_BILLOFMATERIALITEM (
@@ -324,7 +359,40 @@ INSERT INTO I_BILLOFMATERIALITEM VALUES
 ('BOM-GH-GB02',20,'PKG-POUCH-01','Retort Pouch 500g',1.000,'EA',FALSE,'LIFNR-PL-001'),
 -- BOM-GH-EXP-GB02 (GrainHarvest Express)
 ('BOM-GH-EXP-GB02',10,'RICE-LG-01','Long Grain Parboiled Rice',0.240,'KG',TRUE,'LIFNR-TH-002'),
-('BOM-GH-EXP-GB02',20,'PKG-MICRO-01','Microwave Tray 250g',1.000,'EA',FALSE,'LIFNR-PL-001');
+('BOM-GH-EXP-GB02',20,'PKG-MICRO-01','Microwave Tray 250g',1.000,'EA',FALSE,'LIFNR-PL-001'),
+-- BOM-CS-DIW-IN01 (ChocoSnap Diwali — same cocoa supply chain as EU)
+('BOM-CS-DIW-IN01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.240,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-CS-DIW-IN01',20,'SUGAR-WHITE-01','White Sugar Refined',0.300,'KG',FALSE,'LIFNR-BR-001'),
+('BOM-CS-DIW-IN01',30,'MILK-POWDER-01','Whole Milk Powder',0.110,'KG',FALSE,'LIFNR-NL-003'),
+-- BOM-NC-DIW-IN01 (NutCrunch Diwali)
+('BOM-NC-DIW-IN01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.200,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-NC-DIW-IN01',20,'PEANUT-RST-01','Roasted Peanut Halves',0.220,'KG',TRUE,'LIFNR-AR-001'),
+('BOM-NC-DIW-IN01',30,'SUGAR-WHITE-01','White Sugar Refined',0.200,'KG',FALSE,'LIFNR-BR-001'),
+-- BOM-CB-DIW-IN01 (CocoBar Diwali)
+('BOM-CB-DIW-IN01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.180,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-CB-DIW-IN01',20,'COCONUT-OIL-01','Coconut Oil Refined',0.120,'KG',FALSE,'LIFNR-MY-001'),
+('BOM-CB-DIW-IN01',30,'SUGAR-WHITE-01','White Sugar Refined',0.160,'KG',FALSE,'LIFNR-BR-001'),
+-- BOM-CS-CNY-SG01 (ChocoSnap CNY — same cocoa supply chain)
+('BOM-CS-CNY-SG01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.250,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-CS-CNY-SG01',20,'SUGAR-WHITE-01','White Sugar Refined',0.310,'KG',FALSE,'LIFNR-MX-001'),
+('BOM-CS-CNY-SG01',30,'MILK-POWDER-01','Whole Milk Powder',0.100,'KG',FALSE,'LIFNR-NL-003'),
+-- BOM-NC-CNY-SG01 (NutCrunch CNY)
+('BOM-NC-CNY-SG01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.200,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-NC-CNY-SG01',20,'PEANUT-RST-01','Roasted Peanut Halves',0.200,'KG',TRUE,'LIFNR-US-003'),
+('BOM-NC-CNY-SG01',30,'SUGAR-WHITE-01','White Sugar Refined',0.210,'KG',FALSE,'LIFNR-MX-001'),
+-- BOM-FEST-CNY-SG01 (Festival CNY Tin)
+('BOM-FEST-CNY-SG01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.300,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-FEST-CNY-SG01',20,'SUGAR-WHITE-01','White Sugar Refined',0.350,'KG',FALSE,'LIFNR-MX-001'),
+('BOM-FEST-CNY-SG01',30,'MILK-POWDER-01','Whole Milk Powder',0.150,'KG',FALSE,'LIFNR-NL-003'),
+('BOM-FEST-CNY-SG01',40,'PKG-TIN-01','Printed Tin 650g',1.000,'EA',FALSE,'LIFNR-PL-001'),
+-- BOM-CS-XMAS-NL01 (ChocoSnap Christmas)
+('BOM-CS-XMAS-NL01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.260,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-CS-XMAS-NL01',20,'SUGAR-WHITE-01','White Sugar Refined',0.320,'KG',FALSE,'LIFNR-NL-001'),
+('BOM-CS-XMAS-NL01',30,'MILK-POWDER-01','Whole Milk Powder',0.120,'KG',FALSE,'LIFNR-NL-003'),
+-- BOM-NC-XMAS-NL01 (NutCrunch Christmas)
+('BOM-NC-XMAS-NL01',10,'COCOA-MASS-01','Cocoa Mass West Africa',0.200,'KG',TRUE,'LIFNR-CI-003'),
+('BOM-NC-XMAS-NL01',20,'PEANUT-RST-01','Roasted Peanut Halves',0.220,'KG',TRUE,'LIFNR-US-003'),
+('BOM-NC-XMAS-NL01',30,'SUGAR-WHITE-01','White Sugar Refined',0.200,'KG',FALSE,'LIFNR-NL-001');
 
 
 -- =============================================================
@@ -411,7 +479,19 @@ INSERT INTO PPH_DDL_STOCK_1 VALUES
 ('PF-KIT-300G',   'NL02', 12000,     0, 10500, 300,40.0,'2026-08-20'),
 ('GH-LG-500G',    'GB02', 30000,     0, 21000, 750,40.0,'2026-08-20'),
 ('GH-EXP-250G',   'GB02', 22000,     0, 16800, 600,36.7,'2026-08-20'),
-('SC-PASTA-500G', 'GB02', 18000,     0, 14000, 500,36.0,'2026-08-20');
+('SC-PASTA-500G', 'GB02', 18000,     0, 14000, 500,36.0,'2026-08-20'),
+-- Diwali SKUs (IN01) — new market, low initial stock = visible coverage risk
+('CS-DIWALI-400G', 'IN01', 15000,     0, 52500,1500,10.0,'2026-08-20'),
+('NC-DIWALI-500G', 'IN01', 12000,     0, 42000,1200,10.0,'2026-08-20'),
+('CB-DIWALI-300G', 'IN01',  8000,     0, 28000, 800,10.0,'2026-08-20'),
+-- CNY SKUs (SG01) — early planning stage, low stock
+('CS-CNY-400G',    'SG01', 10000,     0, 42000,1200, 8.3,'2026-08-20'),
+('NC-CNY-500G',    'SG01',  8000,     0, 42000,1200, 6.7,'2026-08-20'),
+('FEST-CNY-650G',  'SG01',  5000,     0, 63000,1500, 3.3,'2026-08-20'),
+-- Christmas expansion (NL01)
+('CS-XMAS-400G',   'NL01', 45000,     0,168000,4000,11.3,'2026-08-20'),
+('NC-XMAS-500G',   'NL01', 40000,     0,189000,4500, 8.9,'2026-08-20'),
+('STAR-XMAS-450G', 'NL01', 30000,     0,105000,2500,12.0,'2026-08-20');
 
 
 -- =============================================================
@@ -437,7 +517,7 @@ ICEBERG_VERSION = 3;
 INSERT INTO BY_DEMAND_FORECAST
 WITH weeks AS (
     SELECT DATEADD('week', seq4(), '2026-08-18') AS week_start
-    FROM TABLE(GENERATOR(ROWCOUNT => 14))
+    FROM TABLE(GENERATOR(ROWCOUNT => 26))
 )
 SELECT material_id, week_start,
     ROUND(base_qty * (1 + CASE WHEN week_start BETWEEN peak_start AND peak_end THEN lift ELSE 0 END) + UNIFORM(-500,500,RANDOM())),
@@ -454,7 +534,19 @@ FROM weeks CROSS JOIN (
     SELECT 'WB-HWEEN-450G',                 3000,              '2026-10-06',                        '2026-10-27',                  2.2,         'HALLOWEEN_2026' UNION ALL
     SELECT 'MB-HWEEN-350G',                 2500,              '2026-10-13',                        '2026-10-27',                  1.8,         'HALLOWEEN_2026' UNION ALL
     SELECT 'CB-HWEEN-260G',                 2000,              '2026-10-13',                        '2026-10-27',                  1.5,         'HALLOWEEN_2026' UNION ALL
-    SELECT 'FEST-XMAS-650G',                3000,              '2026-11-17',                        '2026-11-23',                  3.2,         'CHRISTMAS_2026' UNION ALL
+    SELECT 'FEST-XMAS-650G',                3000,              '2026-11-09',                        '2026-12-14',                  3.2,         'CHRISTMAS_2026' UNION ALL
+    SELECT 'STAR-XMAS-450G',                2500,              '2026-11-09',                        '2026-12-14',                  2.8,         'CHRISTMAS_2026' UNION ALL
+    SELECT 'CS-XMAS-400G',                  4000,              '2026-11-09',                        '2026-12-14',                  3.0,         'CHRISTMAS_2026' UNION ALL
+    SELECT 'NC-XMAS-500G',                  4500,              '2026-11-09',                        '2026-12-14',                  2.8,         'CHRISTMAS_2026' UNION ALL
+    -- Diwali 2026 (Oct 20 is Diwali — peak buying Oct 6-Nov 2)
+    SELECT 'CS-DIWALI-400G',                1500,              '2026-10-05',                        '2026-11-02',                  2.8,         'DIWALI_2026' UNION ALL
+    SELECT 'NC-DIWALI-500G',                1200,              '2026-10-05',                        '2026-11-02',                  2.5,         'DIWALI_2026' UNION ALL
+    SELECT 'CB-DIWALI-300G',                 800,              '2026-10-05',                        '2026-11-02',                  2.0,         'DIWALI_2026' UNION ALL
+    -- Chinese New Year 2027 (Feb 6 is CNY — peak buying Jan 19 - Feb 8)
+    SELECT 'CS-CNY-400G',                   1200,              '2027-01-19',                        '2027-02-08',                  3.0,         'CNY_2027' UNION ALL
+    SELECT 'NC-CNY-500G',                   1200,              '2027-01-19',                        '2027-02-08',                  2.8,         'CNY_2027' UNION ALL
+    SELECT 'FEST-CNY-650G',                 1500,              '2027-01-19',                        '2027-02-08',                  3.5,         'CNY_2027' UNION ALL
+    -- Petcare peaks (unchanged)
     SELECT 'NP-PUP-MED-4KG',                700,              '2027-02-03',                        '2027-03-31',                  1.4,         'SPRING_PUPPY_2027' UNION ALL
     SELECT 'NP-KIT-2KG',                     500,              '2027-02-03',                        '2027-03-31',                  1.6,         'SPRING_KITTEN_2027'
 ) sku;
@@ -481,7 +573,19 @@ INSERT INTO BY_CONSENSUS_PLAN VALUES
 ('WB-HWEEN-450G', 'S&OP-2026-AUG',160000, 316800.00,'MEDIUM'),
 ('MB-HWEEN-350G', 'S&OP-2026-AUG',120000, 222000.00,'MEDIUM'),
 ('CB-HWEEN-260G', 'S&OP-2026-AUG', 90000, 160200.00,'MEDIUM'),
-('FEST-XMAS-650G','S&OP-2026-AUG',180000, 810000.00,'LOW'),
+('FEST-XMAS-650G','S&OP-2026-AUG',180000, 810000.00,'HIGH'),
+('STAR-XMAS-450G','S&OP-2026-AUG',120000, 342000.00,'MEDIUM'),
+('CS-XMAS-400G',  'S&OP-2026-AUG',200000, 480000.00,'HIGH'),
+('NC-XMAS-500G',  'S&OP-2026-AUG',220000, 572000.00,'HIGH'),
+-- Diwali — new market entry, lower confidence
+('CS-DIWALI-400G','S&OP-2026-AUG', 40000,  88000.00,'LOW'),
+('NC-DIWALI-500G','S&OP-2026-AUG', 35000,  87500.00,'LOW'),
+('CB-DIWALI-300G','S&OP-2026-AUG', 20000,  38000.00,'LOW'),
+-- CNY — APAC growth market, medium confidence
+('CS-CNY-400G',   'S&OP-2026-AUG', 30000,  70500.00,'MEDIUM'),
+('NC-CNY-500G',   'S&OP-2026-AUG', 30000,  76500.00,'MEDIUM'),
+('FEST-CNY-650G', 'S&OP-2026-AUG', 35000, 168000.00,'MEDIUM'),
+-- Petcare (unchanged)
 ('NP-PUP-MED-4KG','S&OP-2026-AUG', 42000, 621600.00,'MEDIUM'),
 ('NP-KIT-2KG',    'S&OP-2026-AUG', 32000, 307200.00,'MEDIUM'),
 ('NP-PUP-GNT-35', 'S&OP-2026-AUG', 35000, 567000.00,'MEDIUM');
