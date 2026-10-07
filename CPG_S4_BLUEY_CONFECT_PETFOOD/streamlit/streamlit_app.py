@@ -9,16 +9,16 @@ import altair as alt
 
 st.set_page_config(page_title="Supply Risk Command Center", layout="wide")
 
-# -- Snowflake connection --
-# In SiS warehouse runtime: uses embedded session automatically.
-# Locally: picks up from ~/.snowflake/config.toml or .streamlit/secrets.toml.
-conn = st.connection("snowflake")
+# -- Snowflake session --
+# Warehouse runtime uses get_active_session() (works with all SiS Streamlit versions).
+from snowflake.snowpark.context import get_active_session
+session = get_active_session()
 
 DB_SCHEMA = "CONFECT_PETFOOD_DEMO.SC_RISK_DEMO"
 
 
 def run_query(sql: str) -> pd.DataFrame:
-    return conn.query(sql)
+    return session.sql(sql).to_pandas()
 
 
 # ── colour palette ──
