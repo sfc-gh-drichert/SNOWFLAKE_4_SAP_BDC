@@ -222,7 +222,7 @@ CREATE OR REPLACE SEMANTIC VIEW WORLD_DELIVERY_ESG_SV
       COMMENT = 'Number of GoGreen Plus orders',
 
     -- ── FLEET ──────────────────────────────────────────────────────────────
-    FLEET_COUNT AS COUNT(FLEET.VEHICLEID)
+    FLEET.FLEET_COUNT AS COUNT(VEHICLEID)
       COMMENT = 'Total vehicles in fleet',
 
     -- ── WORKFORCE ──────────────────────────────────────────────────────────
