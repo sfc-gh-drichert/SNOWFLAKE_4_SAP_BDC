@@ -23,23 +23,23 @@ USE SCHEMA ESG;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE Z_SHIPMENT_EMISSIONS (
-    SHIPMENTID          VARCHAR(20)  NOT NULL  COMMENT 'Unique shipment identifier',
-    TRANSPORTMODE       VARCHAR(10)            COMMENT 'Mode: AIR, ROAD, OCEAN, RAIL',
-    DIVISION            VARCHAR(30)            COMMENT 'Division: EXPRESS, SUPPLY_CHAIN, ECOMMERCE, POST_PARCEL',
-    COMPANYCODE         VARCHAR(4)             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
-    ORIGIN              VARCHAR(50)            COMMENT 'Origin city or hub code',
-    DESTINATION         VARCHAR(50)            COMMENT 'Destination city or hub code',
+    SHIPMENTID          VARCHAR  NOT NULL  COMMENT 'Unique shipment identifier',
+    TRANSPORTMODE       VARCHAR            COMMENT 'Mode: AIR, ROAD, OCEAN, RAIL',
+    DIVISION            VARCHAR            COMMENT 'Division: EXPRESS, SUPPLY_CHAIN, ECOMMERCE, POST_PARCEL',
+    COMPANYCODE         VARCHAR             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
+    ORIGIN              VARCHAR            COMMENT 'Origin city or hub code',
+    DESTINATION         VARCHAR            COMMENT 'Destination city or hub code',
     SHIPMENTDATE        DATE                   COMMENT 'Date shipment was dispatched',
     DISTANCEKM          NUMBER(10,1)           COMMENT 'Distance traveled in kilometers',
     WEIGHTKG            NUMBER(10,2)           COMMENT 'Shipment weight in kilograms',
     CO2EKG              NUMBER(12,4)           COMMENT 'CO2-equivalent emissions in kilograms',
-    EMISSIONSCOPE       VARCHAR(1)             COMMENT 'GHG Protocol scope: 1 (own fleet) or 3 (subcontracted)',
-    CALCULATIONMETHOD   VARCHAR(20)            COMMENT 'Method: GLEC_DEFAULT, GLEC_MODELED, DEFRA, EPA',
+    EMISSIONSCOPE       VARCHAR             COMMENT 'GHG Protocol scope: 1 (own fleet) or 3 (subcontracted)',
+    CALCULATIONMETHOD   VARCHAR            COMMENT 'Method: GLEC_DEFAULT, GLEC_MODELED, DEFRA, EPA',
     PRIMARYDATAPCT      NUMBER(5,1)            COMMENT 'Percentage of primary data used in calculation',
-    FUELTYPEUSED        VARCHAR(20)            COMMENT 'Fuel: JET_A1, SAF, DIESEL, HVO, BEV_ELEC, CNG, LNG, BUNKER_FUEL',
+    FUELTYPEUSED        VARCHAR            COMMENT 'Fuel: JET_A1, SAF, DIESEL, HVO, BEV_ELEC, CNG, LNG, BUNKER_FUEL',
     FUELQUANTITYLITERS  NUMBER(10,2)           COMMENT 'Fuel consumed in liters (or KWH for BEV)',
     ISGOGREENPLUSORDER  BOOLEAN                COMMENT 'TRUE if part of GoGreen Plus emission-reduced offering',
-    CARRIERTYPE         VARCHAR(15)            COMMENT 'OWN_FLEET or SUBCONTRACTED',
+    CARRIERTYPE         VARCHAR            COMMENT 'OWN_FLEET or SUBCONTRACTED',
     PRIMARY KEY (SHIPMENTID)
 )
 CATALOG = 'SNOWFLAKE'
@@ -54,14 +54,14 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE Z_FACILITY_ENERGY (
-    FACILITYENERGYID    VARCHAR(20)  NOT NULL  COMMENT 'Unique record ID',
-    PLANT               VARCHAR(4)             COMMENT 'FK → PLANT.PLANT',
+    FACILITYENERGYID    VARCHAR  NOT NULL  COMMENT 'Unique record ID',
+    PLANT               VARCHAR             COMMENT 'FK → PLANT.PLANT',
     REPORTINGMONTH      DATE                   COMMENT 'First day of reporting month',
-    ENERGYSOURCETYPE    VARCHAR(20)            COMMENT 'Source: GRID_CONVENTIONAL, GRID_RENEWABLE, SOLAR_ONSITE, WIND_ONSITE, DIESEL_GENERATOR, NATURAL_GAS',
+    ENERGYSOURCETYPE    VARCHAR            COMMENT 'Source: GRID_CONVENTIONAL, GRID_RENEWABLE, SOLAR_ONSITE, WIND_ONSITE, DIESEL_GENERATOR, NATURAL_GAS',
     CONSUMPTIONKWH      NUMBER(12,1)           COMMENT 'Energy consumed in kilowatt-hours',
     CONSUMPTIONMWH      NUMBER(10,3)           COMMENT 'Energy consumed in megawatt-hours',
     CO2EKG              NUMBER(12,4)           COMMENT 'CO2-equivalent emissions from this consumption',
-    EMISSIONSCOPE       VARCHAR(1)             COMMENT 'GHG scope: 1 (onsite gen) or 2 (purchased)',
+    EMISSIONSCOPE       VARCHAR             COMMENT 'GHG scope: 1 (onsite gen) or 2 (purchased)',
     RENEWABLEPCT        NUMBER(5,1)            COMMENT 'Percentage that is renewable (0-100)',
     GRIDEMIISSIONFACTOR  NUMBER(8,4)           COMMENT 'Grid emission factor used (kg CO2e per KWH)',
     PRIMARY KEY (FACILITYENERGYID)
@@ -78,14 +78,14 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE Z_FLEET_VEHICLE (
-    VEHICLEID           VARCHAR(15)  NOT NULL  COMMENT 'Vehicle registration/asset ID',
-    DRIVETYPE           VARCHAR(10)            COMMENT 'Drive type: BEV, PHEV, HVO, CNG, DIESEL, H2',
-    VEHICLECATEGORY     VARCHAR(15)            COMMENT 'Category: LAST_MILE, LINE_HAUL, SPECIAL',
-    DIVISION            VARCHAR(30)            COMMENT 'Division operating this vehicle',
-    PLANT               VARCHAR(4)             COMMENT 'FK → PLANT.PLANT — home depot',
-    COMPANYCODE         VARCHAR(4)             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
-    MANUFACTURER        VARCHAR(30)            COMMENT 'Vehicle manufacturer',
-    MODEL               VARCHAR(40)            COMMENT 'Vehicle model',
+    VEHICLEID           VARCHAR  NOT NULL  COMMENT 'Vehicle registration/asset ID',
+    DRIVETYPE           VARCHAR            COMMENT 'Drive type: BEV, PHEV, HVO, CNG, DIESEL, H2',
+    VEHICLECATEGORY     VARCHAR            COMMENT 'Category: LAST_MILE, LINE_HAUL, SPECIAL',
+    DIVISION            VARCHAR            COMMENT 'Division operating this vehicle',
+    PLANT               VARCHAR             COMMENT 'FK → PLANT.PLANT — home depot',
+    COMPANYCODE         VARCHAR             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
+    MANUFACTURER        VARCHAR            COMMENT 'Vehicle manufacturer',
+    MODEL               VARCHAR            COMMENT 'Vehicle model',
     MANUFACTUREYEAR     NUMBER(4,0)            COMMENT 'Year of manufacture',
     CO2GPERKM           NUMBER(6,1)            COMMENT 'Rated CO2 emissions in grams per kilometer',
     PAYLOADKG           NUMBER(8,0)            COMMENT 'Maximum payload capacity in kilograms',
@@ -105,15 +105,15 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE Z_FLEET_FUEL_LOG (
-    LOGID               VARCHAR(20)  NOT NULL  COMMENT 'Unique log entry ID',
-    VEHICLEID           VARCHAR(15)            COMMENT 'FK → Z_FLEET_VEHICLE.VEHICLEID',
+    LOGID               VARCHAR  NOT NULL  COMMENT 'Unique log entry ID',
+    VEHICLEID           VARCHAR            COMMENT 'FK → Z_FLEET_VEHICLE.VEHICLEID',
     LOGDATE             DATE                   COMMENT 'Date of fueling/charging event',
-    FUELTYPE            VARCHAR(20)            COMMENT 'Fuel: DIESEL, HVO, SAF, CNG, LNG, BEV_ELEC, H2',
+    FUELTYPE            VARCHAR            COMMENT 'Fuel: DIESEL, HVO, SAF, CNG, LNG, BEV_ELEC, H2',
     QUANTITYLITERS      NUMBER(10,2)           COMMENT 'Liters dispensed (or KWH for electric)',
     DISTANCEKM          NUMBER(8,1)            COMMENT 'Distance driven since last log',
     CO2EKG              NUMBER(10,4)           COMMENT 'CO2e emissions from this consumption',
     COSTLOCALCURRENCY   NUMBER(10,2)           COMMENT 'Cost in local currency',
-    CURRENCY            VARCHAR(5)             COMMENT 'Currency code (ISO 4217)',
+    CURRENCY            VARCHAR             COMMENT 'Currency code (ISO 4217)',
     PRIMARY KEY (LOGID)
 )
 CATALOG = 'SNOWFLAKE'
@@ -128,19 +128,19 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE Z_GOGREEN_PLUS_ORDER (
-    ORDERID             VARCHAR(15)  NOT NULL  COMMENT 'GoGreen Plus order ID',
-    CUSTOMERNAME        VARCHAR(100)           COMMENT 'Customer company name',
-    CUSTOMERSEGMENT     VARCHAR(20)            COMMENT 'Segment: ENTERPRISE, MID_MARKET, SMB',
-    DIVISION            VARCHAR(30)            COMMENT 'Division fulfilling the order',
-    SHIPMENTID          VARCHAR(20)            COMMENT 'FK → Z_SHIPMENT_EMISSIONS.SHIPMENTID (optional)',
+    ORDERID             VARCHAR  NOT NULL  COMMENT 'GoGreen Plus order ID',
+    CUSTOMERNAME        VARCHAR           COMMENT 'Customer company name',
+    CUSTOMERSEGMENT     VARCHAR            COMMENT 'Segment: ENTERPRISE, MID_MARKET, SMB',
+    DIVISION            VARCHAR            COMMENT 'Division fulfilling the order',
+    SHIPMENTID          VARCHAR            COMMENT 'FK → Z_SHIPMENT_EMISSIONS.SHIPMENTID (optional)',
     ORDERDATE           DATE                   COMMENT 'Date order was placed',
     SAFBLENDINGPCT      NUMBER(5,1)            COMMENT 'SAF blending percentage applied (0-100)',
     SAFQUANTITYKG       NUMBER(10,2)           COMMENT 'SAF quantity in kilograms used',
     CO2EAVOIDEDKG       NUMBER(12,4)           COMMENT 'CO2e avoided compared to conventional transport',
     PREMIUMUSD          NUMBER(10,2)           COMMENT 'Green premium charged in USD',
     BASESHIPMENTCOSTUSD NUMBER(10,2)           COMMENT 'Base shipment cost before green premium',
-    CERTIFICATEID       VARCHAR(30)            COMMENT 'Emission reduction certificate reference',
-    DECARBTECHNOLOGY    VARCHAR(20)            COMMENT 'Technology: SAF, BEV, INSETTING, OFFSETTING',
+    CERTIFICATEID       VARCHAR            COMMENT 'Emission reduction certificate reference',
+    DECARBTECHNOLOGY    VARCHAR            COMMENT 'Technology: SAF, BEV, INSETTING, OFFSETTING',
     PRIMARY KEY (ORDERID)
 )
 CATALOG = 'SNOWFLAKE'
@@ -164,16 +164,16 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE Z_EMISSION_FORECAST (
-    FORECASTID          VARCHAR(20)  NOT NULL  COMMENT 'Unique forecast record ID',
+    FORECASTID          VARCHAR  NOT NULL  COMMENT 'Unique forecast record ID',
     REPORTING_YEAR      NUMBER(4,0)            COMMENT 'Year (2020-2030)',
-    SCOPE_GROUP         VARCHAR(10)            COMMENT 'SCOPE_1_2 or SCOPE_3',
-    SCENARIO            VARCHAR(20)            COMMENT 'Scenario: ACTUAL, BAU, ACCELERATED, SBTI_REQUIRED',
+    SCOPE_GROUP         VARCHAR            COMMENT 'SCOPE_1_2 or SCOPE_3',
+    SCENARIO            VARCHAR            COMMENT 'Scenario: ACTUAL, BAU, ACCELERATED, SBTI_REQUIRED',
     TOTAL_CO2E_TONNES   NUMBER(15,0)           COMMENT 'Total CO2e emissions in tonnes for this year/scope/scenario',
     REDUCTION_FROM_BASE_PCT NUMBER(6,2)        COMMENT 'Reduction percentage vs 2020 baseline',
     IS_FORECAST         BOOLEAN                COMMENT 'FALSE = historical actual, TRUE = projected',
-    KEY_ASSUMPTIONS     VARCHAR(500)           COMMENT 'Key assumptions driving this scenario (for tooltip/narrative)',
+    KEY_ASSUMPTIONS     VARCHAR           COMMENT 'Key assumptions driving this scenario (for tooltip/narrative)',
     FORECAST_DATE       DATE                   COMMENT 'Date this forecast was generated',
-    MODEL_VERSION       VARCHAR(20)            COMMENT 'Forecast model version identifier',
+    MODEL_VERSION       VARCHAR            COMMENT 'Forecast model version identifier',
     PRIMARY KEY (FORECASTID)
 )
 CATALOG = 'SNOWFLAKE'
@@ -190,14 +190,14 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE Z_DECARB_LEVERS (
-    LEVERID             VARCHAR(20)  NOT NULL  COMMENT 'Unique lever projection ID',
+    LEVERID             VARCHAR  NOT NULL  COMMENT 'Unique lever projection ID',
     REPORTING_YEAR      NUMBER(4,0)            COMMENT 'Projection year (2024-2030)',
-    SCENARIO            VARCHAR(20)            COMMENT 'Scenario: BAU, ACCELERATED, SBTI_REQUIRED',
-    LEVER_NAME          VARCHAR(30)            COMMENT 'Lever: SAF, FLEET_ELECTRIFICATION, RENEWABLE_ENERGY, EFFICIENCY, INSETTING',
+    SCENARIO            VARCHAR            COMMENT 'Scenario: BAU, ACCELERATED, SBTI_REQUIRED',
+    LEVER_NAME          VARCHAR            COMMENT 'Lever: SAF, FLEET_ELECTRIFICATION, RENEWABLE_ENERGY, EFFICIENCY, INSETTING',
     CO2E_REDUCTION_KT   NUMBER(10,1)           COMMENT 'Projected CO2e reduction in kilotonnes from this lever',
     INVESTMENT_MEUR     NUMBER(10,1)           COMMENT 'Projected investment in millions EUR',
     COST_PER_TONNE_EUR  NUMBER(8,0)            COMMENT 'Marginal abatement cost EUR per tonne CO2e avoided',
-    READINESS           VARCHAR(15)            COMMENT 'Technology readiness: DEPLOYED, SCALING, PILOT, EMERGING',
+    READINESS           VARCHAR            COMMENT 'Technology readiness: DEPLOYED, SCALING, PILOT, EMERGING',
     PRIMARY KEY (LEVERID)
 )
 CATALOG = 'SNOWFLAKE'

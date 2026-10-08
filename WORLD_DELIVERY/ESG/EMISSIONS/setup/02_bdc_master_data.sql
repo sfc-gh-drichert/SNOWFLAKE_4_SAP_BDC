@@ -26,14 +26,14 @@ USE SCHEMA ESG;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE COMPANYCODE (
-    COMPANYCODE         VARCHAR(4)   NOT NULL  COMMENT 'SAP company code (BUKRS)',
-    COMPANYCODENAME     VARCHAR(100)           COMMENT 'Legal entity name',
-    CITYNAME            VARCHAR(50)            COMMENT 'Headquarters city',
-    COUNTRY             VARCHAR(3)             COMMENT 'ISO 3166-1 alpha-2 country code',
-    CURRENCY            VARCHAR(5)             COMMENT 'Local reporting currency (ISO 4217)',
-    CHARTOFACCOUNTS     VARCHAR(4)             COMMENT 'Chart of accounts key',
-    FISCALYEARVARIANT   VARCHAR(2)             COMMENT 'Fiscal year variant (K4 = calendar year)',
-    DIVISION            VARCHAR(30)            COMMENT 'World Delivery division assignment',
+    COMPANYCODE         VARCHAR   NOT NULL  COMMENT 'SAP company code (BUKRS)',
+    COMPANYCODENAME     VARCHAR           COMMENT 'Legal entity name',
+    CITYNAME            VARCHAR            COMMENT 'Headquarters city',
+    COUNTRY             VARCHAR             COMMENT 'ISO 3166-1 alpha-2 country code',
+    CURRENCY            VARCHAR             COMMENT 'Local reporting currency (ISO 4217)',
+    CHARTOFACCOUNTS     VARCHAR             COMMENT 'Chart of accounts key',
+    FISCALYEARVARIANT   VARCHAR             COMMENT 'Fiscal year variant (K4 = calendar year)',
+    DIVISION            VARCHAR            COMMENT 'World Delivery division assignment',
     PRIMARY KEY (COMPANYCODE)
 )
 CATALOG = 'SNOWFLAKE'
@@ -48,13 +48,13 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE COSTCENTER (
-    COSTCENTERID        VARCHAR(20)  NOT NULL  COMMENT 'Cost center ID (SAP KOSTL)',
-    EXTERNALCODE        VARCHAR(30)            COMMENT 'External code for cross-system mapping',
-    NAME                VARCHAR(100)           COMMENT 'Cost center descriptive name',
-    DESCRIPTION         VARCHAR(200)           COMMENT 'Purpose and function of this cost center',
-    COMPANYCODE         VARCHAR(4)             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
-    DIVISION            VARCHAR(30)            COMMENT 'Division: EXPRESS, SUPPLY_CHAIN, ECOMMERCE, POST_PARCEL, GROUP',
-    COSTCENTERTYPE      VARCHAR(20)            COMMENT 'Type: FLEET, FACILITY, LINEHAUL, HUB, SORT_CENTER, OFFICE, SUSTAINABILITY',
+    COSTCENTERID        VARCHAR  NOT NULL  COMMENT 'Cost center ID (SAP KOSTL)',
+    EXTERNALCODE        VARCHAR            COMMENT 'External code for cross-system mapping',
+    NAME                VARCHAR           COMMENT 'Cost center descriptive name',
+    DESCRIPTION         VARCHAR           COMMENT 'Purpose and function of this cost center',
+    COMPANYCODE         VARCHAR             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
+    DIVISION            VARCHAR            COMMENT 'Division: EXPRESS, SUPPLY_CHAIN, ECOMMERCE, POST_PARCEL, GROUP',
+    COSTCENTERTYPE      VARCHAR            COMMENT 'Type: FLEET, FACILITY, LINEHAUL, HUB, SORT_CENTER, OFFICE, SUSTAINABILITY',
     VALIDFROM           DATE                   COMMENT 'Effective start date',
     VALIDTO             DATE                   COMMENT 'Effective end date (9999-12-31 = open)',
     PRIMARY KEY (COSTCENTERID)
@@ -72,15 +72,15 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE PLANT (
-    PLANT               VARCHAR(4)   NOT NULL  COMMENT 'SAP plant code (WERKS)',
-    PLANTNAME           VARCHAR(60)            COMMENT 'Plant / facility name',
-    PLANTCATEGORY       VARCHAR(20)            COMMENT 'Category: HUB, SORT_CENTER, FREIGHT_TERMINAL, OFFICE, WAREHOUSE',
-    COUNTRY             VARCHAR(3)             COMMENT 'ISO country code',
-    REGION              VARCHAR(30)            COMMENT 'Geographic region: EUROPE, AMERICAS, APAC, MEA',
-    CITYNAME            VARCHAR(50)            COMMENT 'City location',
-    COMPANYCODE         VARCHAR(4)             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
-    DIVISION            VARCHAR(30)            COMMENT 'Division: EXPRESS, SUPPLY_CHAIN, ECOMMERCE, POST_PARCEL, GROUP',
-    FACTORYCALENDAR     VARCHAR(2)             COMMENT 'Factory calendar ID',
+    PLANT               VARCHAR   NOT NULL  COMMENT 'SAP plant code (WERKS)',
+    PLANTNAME           VARCHAR            COMMENT 'Plant / facility name',
+    PLANTCATEGORY       VARCHAR            COMMENT 'Category: HUB, SORT_CENTER, FREIGHT_TERMINAL, OFFICE, WAREHOUSE',
+    COUNTRY             VARCHAR             COMMENT 'ISO country code',
+    REGION              VARCHAR            COMMENT 'Geographic region: EUROPE, AMERICAS, APAC, MEA',
+    CITYNAME            VARCHAR            COMMENT 'City location',
+    COMPANYCODE         VARCHAR             COMMENT 'FK → COMPANYCODE.COMPANYCODE',
+    DIVISION            VARCHAR            COMMENT 'Division: EXPRESS, SUPPLY_CHAIN, ECOMMERCE, POST_PARCEL, GROUP',
+    FACTORYCALENDAR     VARCHAR             COMMENT 'Factory calendar ID',
     FLOORSPACESQM       NUMBER(10,0)           COMMENT 'Total floor space in square meters',
     PRIMARY KEY (PLANT)
 )
@@ -97,23 +97,23 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE GENERALLEDGERACCOUNTLINEITEM (
-    SOURCELEDGER                    VARCHAR(2)   NOT NULL  COMMENT 'Ledger ID (0L = leading ledger)',
-    COMPANYCODE                     VARCHAR(4)   NOT NULL  COMMENT 'FK → COMPANYCODE.COMPANYCODE',
-    FISCALYEAR                      VARCHAR(4)   NOT NULL  COMMENT 'Fiscal year (YYYY)',
-    ACCOUNTINGDOCUMENT              VARCHAR(10)  NOT NULL  COMMENT 'Accounting document number (BELNR)',
-    LEDGERGLLINEITEM                VARCHAR(6)   NOT NULL  COMMENT 'Line item number within document',
-    GLACCOUNT                       VARCHAR(10)            COMMENT 'G/L account number — ESG ranges: 6100xx=fuel, 6200xx=energy, 6300xx=SAF, 6400xx=fleet_capex, 6500xx=carbon_offset',
-    GLACCOUNTDESCRIPTION            VARCHAR(100)           COMMENT 'G/L account description',
-    COSTCENTER                      VARCHAR(20)            COMMENT 'FK → COSTCENTER.COSTCENTERID',
-    PROFITCENTER                    VARCHAR(10)            COMMENT 'Profit center',
+    SOURCELEDGER                    VARCHAR   NOT NULL  COMMENT 'Ledger ID (0L = leading ledger)',
+    COMPANYCODE                     VARCHAR   NOT NULL  COMMENT 'FK → COMPANYCODE.COMPANYCODE',
+    FISCALYEAR                      VARCHAR   NOT NULL  COMMENT 'Fiscal year (YYYY)',
+    ACCOUNTINGDOCUMENT              VARCHAR  NOT NULL  COMMENT 'Accounting document number (BELNR)',
+    LEDGERGLLINEITEM                VARCHAR   NOT NULL  COMMENT 'Line item number within document',
+    GLACCOUNT                       VARCHAR            COMMENT 'G/L account number — ESG ranges: 6100xx=fuel, 6200xx=energy, 6300xx=SAF, 6400xx=fleet_capex, 6500xx=carbon_offset',
+    GLACCOUNTDESCRIPTION            VARCHAR           COMMENT 'G/L account description',
+    COSTCENTER                      VARCHAR            COMMENT 'FK → COSTCENTER.COSTCENTERID',
+    PROFITCENTER                    VARCHAR            COMMENT 'Profit center',
     AMOUNTINCOMPANYCODECURRENCY     NUMBER(15,2)           COMMENT 'Amount in local currency (positive = debit)',
-    CURRENCY                        VARCHAR(5)             COMMENT 'Document currency (ISO 4217)',
+    CURRENCY                        VARCHAR             COMMENT 'Document currency (ISO 4217)',
     POSTINGDATE                     DATE                   COMMENT 'Posting date of the journal entry',
     DOCUMENTDATE                    DATE                   COMMENT 'Document date (invoice/receipt date)',
-    POSTINGPERIOD                   VARCHAR(3)             COMMENT 'Fiscal period (01-12)',
-    DOCUMENTTYPE                    VARCHAR(2)             COMMENT 'Document type (SA=GL, KR=vendor invoice, AA=asset)',
-    PLANT                           VARCHAR(4)             COMMENT 'FK → PLANT.PLANT',
-    ESGCATEGORY                     VARCHAR(30)            COMMENT 'ESG cost category: FUEL, ENERGY, SAF, FLEET_CAPEX, CARBON_OFFSET, RENEWABLE_CERT, DECARB_OTHER',
+    POSTINGPERIOD                   VARCHAR             COMMENT 'Fiscal period (01-12)',
+    DOCUMENTTYPE                    VARCHAR             COMMENT 'Document type (SA=GL, KR=vendor invoice, AA=asset)',
+    PLANT                           VARCHAR             COMMENT 'FK → PLANT.PLANT',
+    ESGCATEGORY                     VARCHAR            COMMENT 'ESG cost category: FUEL, ENERGY, SAF, FLEET_CAPEX, CARBON_OFFSET, RENEWABLE_CERT, DECARB_OTHER',
     PRIMARY KEY (SOURCELEDGER, COMPANYCODE, FISCALYEAR, ACCOUNTINGDOCUMENT, LEDGERGLLINEITEM)
 )
 CATALOG = 'SNOWFLAKE'
