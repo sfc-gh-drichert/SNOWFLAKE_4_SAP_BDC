@@ -26,7 +26,7 @@ CREATE STAGE IF NOT EXISTS WORLD_DELIVERY_ESG_STG
 CREATE OR REPLACE STREAMLIT WORLD_DELIVERY_ESG_DASHBOARD
     ROOT_LOCATION   = '@WORLD_DELIVERY_ESG_STG'
     MAIN_FILE       = 'streamlit_app.py'
-    QUERY_WAREHOUSE = IDENTIFIER('<% wh_name %>')
+    QUERY_WAREHOUSE = '<% wh_name %>'
     COMMENT         = 'World Delivery ESG CxO Dashboard — emissions, fleet, GoGreen Plus, workforce, agent chat';
 
 SELECT 'Streamlit dashboard created: WORLD_DELIVERY_ESG_DASHBOARD' AS status;
