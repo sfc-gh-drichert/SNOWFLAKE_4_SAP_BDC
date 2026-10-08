@@ -283,7 +283,7 @@ SELECT
     ROUND(UNIFORM(10, 5000, RANDOM()), 2),
     UNIFORM(0, 100, RANDOM()) < 8,
     CASE WHEN MOD(RN, 3) = 0 THEN 'OWN_FLEET' ELSE 'SUBCONTRACTED' END
-;
+FROM base_data;
 
 
 -- =============================================================================
