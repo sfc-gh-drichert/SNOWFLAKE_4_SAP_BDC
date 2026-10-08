@@ -65,7 +65,7 @@ ICEBERG_VERSION = 3;
 -- =============================================================================
 -- EXT_CLIMATE_RISK — physical and transition risk assessment
 -- Assesses risk exposure at the facility/region level.
--- Source: Manifest Climate / S&P Trucost style data
+-- Source: Manifest Climate / SandP Trucost style data
 -- =============================================================================
 
 CREATE OR REPLACE ICEBERG TABLE EXT_CLIMATE_RISK (

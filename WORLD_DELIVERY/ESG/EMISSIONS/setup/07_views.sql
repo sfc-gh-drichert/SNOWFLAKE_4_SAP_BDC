@@ -121,7 +121,7 @@ LEFT JOIN scope3 s3 ON s3.REPORTING_YEAR = y.REPORTING_YEAR;
 -- =============================================================================
 -- V_DECARB_PROGRESS
 -- Tracks progress against SBTi targets:
---   Scope 1&2: -42% by 2030 from 2020 baseline
+--   Scope 1and2: -42% by 2030 from 2020 baseline
 --   Scope 3:   -25% by 2030 from 2020 baseline
 -- =============================================================================
 

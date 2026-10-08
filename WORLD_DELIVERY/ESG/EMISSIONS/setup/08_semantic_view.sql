@@ -32,7 +32,7 @@ CREATE OR REPLACE SEMANTIC VIEW WORLD_DELIVERY_ESG_SV
     -- Decarbonization progress
     DECARB AS <% db_name %>.ESG.V_DECARB_PROGRESS
       PRIMARY KEY (REPORTING_YEAR)
-      COMMENT = 'SBTi 2030 target tracking. Shows baseline, current, and target for Scope 1&2 (-42%) and Scope 3 (-25%).',
+      COMMENT = 'SBTi 2030 target tracking. Shows baseline, current, and target for Scope 1and2 (-42%) and Scope 3 (-25%).',
 
     -- GoGreen Plus commercial
     GOGREEN AS <% db_name %>.ESG.V_GOGREEN_REVENUE
@@ -69,7 +69,7 @@ CREATE OR REPLACE SEMANTIC VIEW WORLD_DELIVERY_ESG_SV
       PRIMARY KEY (SNAPSHOTID)
       COMMENT = 'Quarterly workforce ESG metrics: headcount, engagement, women in management, training, compliance.',
 
-    -- Health & Safety
+    -- Health and Safety
     SAFETY AS <% db_name %>.ESG.SF_HEALTH_SAFETY
       PRIMARY KEY (RECORDID)
       COMMENT = 'Quarterly occupational health and safety. LTIFR per division.',
@@ -113,7 +113,7 @@ CREATE OR REPLACE SEMANTIC VIEW WORLD_DELIVERY_ESG_SV
 
     -- Decarb
     DECARB.STATUS_SCOPE_1_2  AS SBTI_STATUS_SCOPE_1_2
-      COMMENT = 'SBTi Scope 1&2 target status: ON_TRACK or AT_RISK',
+      COMMENT = 'SBTi Scope 1and2 target status: ON_TRACK or AT_RISK',
     DECARB.STATUS_SCOPE_3    AS SBTI_STATUS_SCOPE_3
       COMMENT = 'SBTi Scope 3 target status: ON_TRACK or AT_RISK',
 
@@ -259,7 +259,7 @@ CREATE OR REPLACE SEMANTIC VIEW WORLD_DELIVERY_ESG_SV
     KPIS.KPI_6_COMPLIANCE_TRAINING_PCT AS AVG(KPIS.KPI_6_COMPLIANCE_TRAINING_PCT)
       COMMENT = 'KPI 6: Compliance training completion rate (%)',
 
-    -- ── FORECAST & SCENARIOS ──────────────────────────────────────────────
+    -- ── FORECAST and SCENARIOS ──────────────────────────────────────────────
     FORECAST.TOTAL_CO2E_TONNES       AS SUM(FORECAST.TOTAL_CO2E_TONNES)
       COMMENT = 'Forecasted (or actual) CO2e emissions in tonnes for the year/scope/scenario',
     FORECAST.TOTAL_CO2E_MT           AS SUM(FORECAST.TOTAL_CO2E_MT)
@@ -278,7 +278,7 @@ CREATE OR REPLACE SEMANTIC VIEW WORLD_DELIVERY_ESG_SV
       COMMENT = 'Cumulative CO2e reduction across all levers ordered by cost-effectiveness'
   )
 
-  COMMENT = 'World Delivery ESG Analytics Semantic View. Covers: GHG emissions by scope/mode/division, ESRS E1 disclosure, SBTi 2030 target tracking, emission forecasts (3 scenarios through 2030), decarbonization lever analysis (marginal abatement cost curve), GoGreen Plus commercial ESG, fleet electrification, facility energy, workforce engagement, health & safety, and peer ESG benchmarking.';
+  COMMENT = 'World Delivery ESG Analytics Semantic View. Covers: GHG emissions by scope/mode/division, ESRS E1 disclosure, SBTi 2030 target tracking, emission forecasts (3 scenarios through 2030), decarbonization lever analysis (marginal abatement cost curve), GoGreen Plus commercial ESG, fleet electrification, facility energy, workforce engagement, health and safety, and peer ESG benchmarking.';
 
 
 SELECT 'Semantic view created: WORLD_DELIVERY_ESG_SV' AS status;

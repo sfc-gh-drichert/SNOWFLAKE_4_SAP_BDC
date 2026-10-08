@@ -73,10 +73,10 @@ SELECT * FROM (
            'ECOMMERCE', 'SORT_CENTER', '2020-01-01'::DATE, '9999-12-31'::DATE
     FROM TABLE(GENERATOR(ROWCOUNT => 10))
     UNION ALL
-    -- Post & Parcel (10)
+    -- Post and Parcel (10)
     SELECT 'CC-PP-OPS-' || LPAD(ROW_NUMBER() OVER(ORDER BY seq4()),3,'0'), 'PP-OPS-' || seq4(),
-           'Post & Parcel Operations ' || CASE MOD(seq4(),2) WHEN 0 THEN 'Germany' ELSE 'Netherlands' END,
-           'Post & Parcel delivery operations',
+           'Post and Parcel Operations ' || CASE MOD(seq4(),2) WHEN 0 THEN 'Germany' ELSE 'Netherlands' END,
+           'Post and Parcel delivery operations',
            CASE MOD(seq4(),2) WHEN 0 THEN 'WD01' ELSE 'WD04' END,
            'POST_PARCEL', 'FLEET', '2020-01-01'::DATE, '9999-12-31'::DATE
     FROM TABLE(GENERATOR(ROWCOUNT => 10))
@@ -128,7 +128,7 @@ INSERT OVERWRITE INTO PLANT VALUES
 ('EC01','UK eCommerce Hub',     'SORT_CENTER',      'GB','EUROPE',   'Coventry',   'WD03','ECOMMERCE',    'GB','20000'),
 ('EC02','DE eCommerce Hub',     'SORT_CENTER',      'DE','EUROPE',   'Dortmund',   'WD01','ECOMMERCE',    'DE','25000'),
 ('EC03','BR eCommerce Hub',     'SORT_CENTER',      'BR','AMERICAS', 'Campinas',   'WD08','ECOMMERCE',    'BR','15000'),
--- Post & Parcel
+-- Post and Parcel
 ('PP01','Bonn Post Center',     'SORT_CENTER',      'DE','EUROPE',   'Bonn',       'WD01','POST_PARCEL',  'DE','30000'),
 ('PP02','Frankfurt Post Center','SORT_CENTER',      'DE','EUROPE',   'Frankfurt',  'WD01','POST_PARCEL',  'DE','28000'),
 ('PP03','Munich Delivery Base', 'SORT_CENTER',      'DE','EUROPE',   'Munich',     'WD01','POST_PARCEL',  'DE','18000'),
@@ -178,7 +178,7 @@ esg_accounts AS (
         ('6400003','H2 fuel cell vehicles',     'FLEET_CAPEX',      85000),
         ('6500001','Carbon offset purchases',   'CARBON_OFFSET',   280000),
         ('6500002','Renewable energy certs',    'RENEWABLE_CERT',  190000),
-        ('6600001','Decarb R&D and consulting', 'DECARB_OTHER',    150000)
+        ('6600001','Decarb R+D and consulting', 'DECARB_OTHER',    150000)
     ) AS t(glaccount, description, esgcategory, monthly_base))
 SELECT
     '0L',
@@ -400,7 +400,7 @@ SELECT
         WHEN 0  THEN 'Mytheresa' WHEN 1  THEN 'dm-drogerie markt' WHEN 2 THEN 'Formula 1 Logistics'
         WHEN 3  THEN 'BASF SE' WHEN 4  THEN 'Siemens AG' WHEN 5 THEN 'BMW Group'
         WHEN 6  THEN 'Unilever NV' WHEN 7 THEN 'Nestlé SA' WHEN 8 THEN 'IKEA'
-        WHEN 9  THEN 'Zalando SE' WHEN 10 THEN 'Maersk Supply' ELSE 'Procter & Gamble'
+        WHEN 9  THEN 'Zalando SE' WHEN 10 THEN 'Maersk Supply' ELSE 'Procter and Gamble'
     END,
     CASE MOD(seq4(), 3) WHEN 0 THEN 'ENTERPRISE' WHEN 1 THEN 'MID_MARKET' ELSE 'SMB' END,
     CASE MOD(seq4(), 4) WHEN 0 THEN 'EXPRESS' WHEN 1 THEN 'SUPPLY_CHAIN' WHEN 2 THEN 'ECOMMERCE' ELSE 'EXPRESS' END,
@@ -523,16 +523,16 @@ INSERT OVERWRITE INTO EXT_EMISSION_FACTORS VALUES
 -- =============================================================================
 
 INSERT OVERWRITE INTO EXT_ESG_SCORES VALUES
-('ESG-001','World Delivery Group','WDLV','2025-09-30', 72.5, 68.0, 75.0, 74.5,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-002','World Delivery Group','WDLV','2024-09-30', 69.8, 65.2, 73.0, 71.2,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-003','FedEx Corporation',   'FDX', '2025-09-30', 58.2, 52.0, 62.0, 60.6,'C', 'COMMITTED',      'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-004','United Parcel Service','UPS','2025-09-30', 65.0, 60.5, 68.0, 66.5,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-005','Maersk',              'MAERSK','2025-09-30',70.0, 72.0, 65.0, 73.0,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-006','Kuehne+Nagel',        'KNIN','2025-09-30', 62.5, 58.0, 64.0, 65.5,'B', 'COMMITTED',      'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-007','DSV Panalpina',       'DSV', '2025-09-30', 55.0, 50.0, 58.0, 57.0,'C', 'NOT_COMMITTED',  'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-008','XPO Logistics',       'XPO', '2025-09-30', 48.5, 42.0, 52.0, 51.5,'C', 'NOT_COMMITTED',  'ESG_BOOK',       'Transportation & Logistics'),
-('ESG-009','World Delivery Group','WDLV','2025-09-30', 74.0, 70.5, 76.0, 75.5,'B', 'TARGETS_SET',    'SUSTAINALYTICS', 'Transportation & Logistics'),
-('ESG-010','World Delivery Group','WDLV','2025-09-30', 71.0, 67.0, 73.5, 72.5,'B', 'TARGETS_SET',    'FITCH',          'Transportation & Logistics');
+('ESG-001','World Delivery Group','WDLV','2025-09-30', 72.5, 68.0, 75.0, 74.5,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-002','World Delivery Group','WDLV','2024-09-30', 69.8, 65.2, 73.0, 71.2,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-003','FedEx Corporation',   'FDX', '2025-09-30', 58.2, 52.0, 62.0, 60.6,'C', 'COMMITTED',      'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-004','United Parcel Service','UPS','2025-09-30', 65.0, 60.5, 68.0, 66.5,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-005','Maersk',              'MAERSK','2025-09-30',70.0, 72.0, 65.0, 73.0,'B', 'TARGETS_SET',    'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-006','Kuehne+Nagel',        'KNIN','2025-09-30', 62.5, 58.0, 64.0, 65.5,'B', 'COMMITTED',      'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-007','DSV Panalpina',       'DSV', '2025-09-30', 55.0, 50.0, 58.0, 57.0,'C', 'NOT_COMMITTED',  'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-008','XPO Logistics',       'XPO', '2025-09-30', 48.5, 42.0, 52.0, 51.5,'C', 'NOT_COMMITTED',  'ESG_BOOK',       'Transportation and Logistics'),
+('ESG-009','World Delivery Group','WDLV','2025-09-30', 74.0, 70.5, 76.0, 75.5,'B', 'TARGETS_SET',    'SUSTAINALYTICS', 'Transportation and Logistics'),
+('ESG-010','World Delivery Group','WDLV','2025-09-30', 71.0, 67.0, 73.5, 72.5,'B', 'TARGETS_SET',    'FITCH',          'Transportation and Logistics');
 
 
 -- =============================================================================
@@ -561,8 +561,8 @@ INSERT OVERWRITE INTO EXT_CLIMATE_RISK VALUES
 -- Z_EMISSION_FORECAST — 3 scenarios x 2 scope groups x 11 years (2020-2030)
 --
 -- Anchored in DHL's real SBTi targets:
---   2020 baseline: Scope 1&2 = 7.52M t, Scope 3 = 32.7M t
---   2030 SBTi:     Scope 1&2 = 4.36M t (-42%), Scope 3 = 24.53M t (-25%)
+--   2020 baseline: Scope 1+2 = 7.52M t, Scope 3 = 32.7M t
+--   2030 SBTi:     Scope 1+2 = 4.36M t (-42%), Scope 3 = 24.53M t (-25%)
 --
 -- Scenarios:
 --   ACTUAL       — historical actuals (2020-2025), from DHL statbook
@@ -588,7 +588,7 @@ SELECT * FROM (VALUES
   ('FC-A-3-25', 2025,'SCOPE_3',  'ACTUAL',  31500000,-3.7,  FALSE,'GoGreen Plus scaling','2026-10-01','v1.0')
 ) AS t(id,yr,scope,scenario,co2e,reduction,is_fc,assumptions,fc_date,model)
 UNION ALL
--- BAU scenario: current ~2.5% annual reduction Scope 1&2, ~1% Scope 3
+-- BAU scenario: current ~2.5% annual reduction Scope 1+2, ~1% Scope 3
 SELECT
     'FC-BAU-' || s.scope || '-' || y.yr,
     y.yr, s.scope, 'BAU',

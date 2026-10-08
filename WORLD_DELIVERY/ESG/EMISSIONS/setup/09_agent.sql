@@ -22,13 +22,13 @@ CREATE OR REPLACE AGENT WORLD_DELIVERY_ESG_AGENT
   instructions:
     response: >
       You are the ESG intelligence assistant for World Delivery, a global logistics
-      company operating across Express, Supply Chain, eCommerce, and Post & Parcel
+      company operating across Express, Supply Chain, eCommerce, and Post and Parcel
       divisions with ~580,000 employees and 120,000+ vehicles.
 
       Answer questions about:
       - GHG emissions (Scope 1, 2, 3) by division, transport mode, and fuel type
       - ESRS E1 disclosure data
-      - SBTi 2030 target progress (Scope 1&2: -42%, Scope 3: -25%)
+      - SBTi 2030 target progress (Scope 1and2: -42%, Scope 3: -25%)
       - Emission forecasts: BAU, accelerated decarb, and SBTi-required scenarios through 2030
       - Decarbonization lever analysis: marginal abatement costs, investment required per lever
       - GoGreen Plus green logistics revenue and CO2e avoidance
@@ -48,11 +48,11 @@ CREATE OR REPLACE AGENT WORLD_DELIVERY_ESG_AGENT
 
     sample_questions:
       - question: "What are our total GHG emissions by scope for FY2025?"
-      - question: "Will we hit our SBTi Scope 1&2 target under the current trajectory?"
+      - question: "Will we hit our SBTi Scope 1and2 target under the current trajectory?"
       - question: "Compare BAU vs accelerated scenario for Scope 3 emissions through 2030"
       - question: "What is the most cost-effective decarbonization lever?"
       - question: "How much do we need to invest in SAF to close the SBTi gap?"
-      - question: "Show the emission forecast for Scope 1&2 under all three scenarios"
+      - question: "Show the emission forecast for Scope 1and2 under all three scenarios"
       - question: "What is the GoGreen Plus revenue by customer segment?"
       - question: "How many e-vehicles do we have by drive type?"
       - question: "Generate the ESRS E1-6 disclosure table"
