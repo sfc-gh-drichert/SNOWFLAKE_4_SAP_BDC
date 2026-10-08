@@ -445,10 +445,10 @@ WITH divisions AS (
         ('ECOMMERCE',      95000, 83, 30.2, 11.0, 97.0, 7.5),
         ('POST_PARCEL',    85000, 81, 25.8,  9.5, 94.5, 4.8),
         ('GROUP',          18000, 85, 35.0, 15.0, 98.5, 3.2)
-    ) AS t(division, headcount, engagement, wim_pct, training_hrs, compliance_pct, turnover))
+    ) AS t(division, headcount, engagement, wim_pct, training_hrs, compliance_pct, turnover)
 ),
 regions AS (
-    SELECT * FROM (VALUES ('EUROPE',0.55), ('AMERICAS',0.22), ('APAC',0.18), ('MEA',0.05)) AS t(region, share))
+    SELECT * FROM (VALUES ('EUROPE',0.55), ('AMERICAS',0.22), ('APAC',0.18), ('MEA',0.05)) AS t(region, share)
 ),
 quarters AS (
     SELECT 'Q' || (MOD(seq4(), 4) + 1) AS q_label,
@@ -489,7 +489,7 @@ WITH divisions AS (
         ('ECOMMERCE',     2.9, 0,  65, 18.0, 98.0),
         ('POST_PARCEL',   3.1, 0,  90, 16.0, 95.0),
         ('GROUP',         1.2, 0,  12,  3.5, 99.0)
-    ) AS t(division, ltifr, fatals, injuries, work_hrs_m, safety_training))
+    ) AS t(division, ltifr, fatals, injuries, work_hrs_m, safety_training)
 ),
 quarters AS (
     SELECT 'Q' || (MOD(seq4(), 4) + 1) AS q_label,
