@@ -221,73 +221,68 @@ INSERT OVERWRITE INTO Z_SHIPMENT_EMISSIONS
      PRIMARYDATAPCT, FUELTYPEUSED, FUELQUANTITYLITERS, ISGOGREENPLUSORDER, CARRIERTYPE)
 WITH base_data AS (
     SELECT
-        'SHP-' || LPAD(ROW_NUMBER() OVER (ORDER BY seq4()), 7, '0') AS shipment_id,
+        'SHP-' || LPAD(ROW_NUMBER() OVER (ORDER BY seq4()), 7, '0') AS SHIPMENTID,
         CASE
             WHEN seq4() < 3250 THEN 'AIR'        -- 65%
             WHEN seq4() < 4400 THEN 'ROAD'       -- 23%
             WHEN seq4() < 4950 THEN 'OCEAN'      -- 11%
             ELSE 'RAIL'                           -- 1%
-        END AS transport_mode,
+        END AS TRANSPORTMODE,
         CASE MOD(seq4(), 5)
             WHEN 0 THEN 'EXPRESS' WHEN 1 THEN 'EXPRESS' WHEN 2 THEN 'SUPPLY_CHAIN'
             WHEN 3 THEN 'ECOMMERCE' ELSE 'POST_PARCEL'
-        END AS division,
+        END AS DIVISION,
         CASE MOD(seq4(), 8)
             WHEN 0 THEN 'WD01' WHEN 1 THEN 'WD02' WHEN 2 THEN 'WD03' WHEN 3 THEN 'WD04'
             WHEN 4 THEN 'WD05' WHEN 5 THEN 'WD06' WHEN 6 THEN 'WD07' ELSE 'WD08'
-        END AS company_code,
-        seq4() AS rn
+        END AS COMPANYCODE,
+        seq4() AS RN
     FROM TABLE(GENERATOR(ROWCOUNT => 5000))
 )
 SELECT
-    shipment_id,
-    transport_mode,
-    division,
-    company_code,
-    -- Origin/destination pairs by mode
-    CASE transport_mode
-        WHEN 'AIR'   THEN CASE MOD(rn, 6) WHEN 0 THEN 'Leipzig' WHEN 1 THEN 'Cincinnati' WHEN 2 THEN 'Hong Kong' WHEN 3 THEN 'Dubai' WHEN 4 THEN 'Singapore' ELSE 'East Midlands' END
-        WHEN 'ROAD'  THEN CASE MOD(rn, 4) WHEN 0 THEN 'Bonn' WHEN 1 THEN 'Munich' WHEN 2 THEN 'London' ELSE 'Amsterdam' END
-        WHEN 'OCEAN' THEN CASE MOD(rn, 3) WHEN 0 THEN 'Rotterdam' WHEN 1 THEN 'Singapore' ELSE 'Santos' END
-        ELSE CASE MOD(rn, 2) WHEN 0 THEN 'Hamburg' ELSE 'Rotterdam' END
+    SHIPMENTID,
+    TRANSPORTMODE,
+    DIVISION,
+    COMPANYCODE,
+    CASE TRANSPORTMODE
+        WHEN 'AIR'   THEN CASE MOD(RN, 6) WHEN 0 THEN 'Leipzig' WHEN 1 THEN 'Cincinnati' WHEN 2 THEN 'Hong Kong' WHEN 3 THEN 'Dubai' WHEN 4 THEN 'Singapore' ELSE 'East Midlands' END
+        WHEN 'ROAD'  THEN CASE MOD(RN, 4) WHEN 0 THEN 'Bonn' WHEN 1 THEN 'Munich' WHEN 2 THEN 'London' ELSE 'Amsterdam' END
+        WHEN 'OCEAN' THEN CASE MOD(RN, 3) WHEN 0 THEN 'Rotterdam' WHEN 1 THEN 'Singapore' ELSE 'Santos' END
+        ELSE CASE MOD(RN, 2) WHEN 0 THEN 'Hamburg' ELSE 'Rotterdam' END
     END,
-    CASE transport_mode
-        WHEN 'AIR'   THEN CASE MOD(rn+3, 6) WHEN 0 THEN 'Tokyo' WHEN 1 THEN 'London' WHEN 2 THEN 'New York' WHEN 3 THEN 'São Paulo' WHEN 4 THEN 'Mumbai' ELSE 'Sydney' END
-        WHEN 'ROAD'  THEN CASE MOD(rn+2, 4) WHEN 0 THEN 'Frankfurt' WHEN 1 THEN 'Brussels' WHEN 2 THEN 'Birmingham' ELSE 'Cologne' END
-        WHEN 'OCEAN' THEN CASE MOD(rn+1, 3) WHEN 0 THEN 'Shanghai' WHEN 1 THEN 'Chennai' ELSE 'Hamburg' END
-        ELSE CASE MOD(rn+1, 2) WHEN 0 THEN 'Munich' ELSE 'Berlin' END
+    CASE TRANSPORTMODE
+        WHEN 'AIR'   THEN CASE MOD(RN+3, 6) WHEN 0 THEN 'Tokyo' WHEN 1 THEN 'London' WHEN 2 THEN 'New York' WHEN 3 THEN 'Sao Paulo' WHEN 4 THEN 'Mumbai' ELSE 'Sydney' END
+        WHEN 'ROAD'  THEN CASE MOD(RN+2, 4) WHEN 0 THEN 'Frankfurt' WHEN 1 THEN 'Brussels' WHEN 2 THEN 'Birmingham' ELSE 'Cologne' END
+        WHEN 'OCEAN' THEN CASE MOD(RN+1, 3) WHEN 0 THEN 'Shanghai' WHEN 1 THEN 'Chennai' ELSE 'Hamburg' END
+        ELSE CASE MOD(RN+1, 2) WHEN 0 THEN 'Munich' ELSE 'Berlin' END
     END,
     DATEADD('day', -UNIFORM(0, 730, RANDOM()), '2025-12-31')::DATE,
-    -- Distance by mode
-    CASE transport_mode
+    CASE TRANSPORTMODE
         WHEN 'AIR'   THEN ROUND(UNIFORM(500, 12000, RANDOM()), 1)
         WHEN 'ROAD'  THEN ROUND(UNIFORM(50, 800, RANDOM()), 1)
         WHEN 'OCEAN' THEN ROUND(UNIFORM(2000, 20000, RANDOM()), 1)
         ELSE ROUND(UNIFORM(200, 2000, RANDOM()), 1)
     END,
-    -- Weight
     ROUND(UNIFORM(5, 25000, RANDOM()), 2),
-    -- CO2e — realistic factors: air ~0.6 kg/tkm, road ~0.1, ocean ~0.01, rail ~0.03
     ROUND(
-        CASE transport_mode
+        CASE TRANSPORTMODE
             WHEN 'AIR'   THEN UNIFORM(500, 12000, RANDOM()) * UNIFORM(5, 25000, RANDOM()) / 1000.0 * 0.6
             WHEN 'ROAD'  THEN UNIFORM(50, 800, RANDOM()) * UNIFORM(5, 25000, RANDOM()) / 1000.0 * 0.1
             WHEN 'OCEAN' THEN UNIFORM(2000, 20000, RANDOM()) * UNIFORM(5, 25000, RANDOM()) / 1000.0 * 0.01
             ELSE UNIFORM(200, 2000, RANDOM()) * UNIFORM(5, 25000, RANDOM()) / 1000.0 * 0.03
         END + UNIFORM(-50, 200, RANDOM()), 4),
-    CASE WHEN MOD(rn, 3) = 0 THEN '1' ELSE '3' END,  -- scope
-    CASE MOD(rn, 4) WHEN 0 THEN 'GLEC_DEFAULT' WHEN 1 THEN 'GLEC_MODELED' WHEN 2 THEN 'DEFRA' ELSE 'EPA' END,
-    CASE WHEN MOD(rn, 3) = 0 THEN 95.0 ELSE ROUND(UNIFORM(10, 50, RANDOM()), 1) END,
-    -- Fuel type
-    CASE transport_mode
+    CASE WHEN MOD(RN, 3) = 0 THEN '1' ELSE '3' END,
+    CASE MOD(RN, 4) WHEN 0 THEN 'GLEC_DEFAULT' WHEN 1 THEN 'GLEC_MODELED' WHEN 2 THEN 'DEFRA' ELSE 'EPA' END,
+    CASE WHEN MOD(RN, 3) = 0 THEN 95.0 ELSE ROUND(UNIFORM(10, 50, RANDOM()), 1) END,
+    CASE TRANSPORTMODE
         WHEN 'AIR'   THEN CASE WHEN UNIFORM(0, 100, RANDOM()) < 12 THEN 'SAF' ELSE 'JET_A1' END
-        WHEN 'ROAD'  THEN CASE MOD(rn, 10) WHEN 0 THEN 'BEV_ELEC' WHEN 1 THEN 'HVO' WHEN 2 THEN 'CNG' ELSE 'DIESEL' END
+        WHEN 'ROAD'  THEN CASE MOD(RN, 10) WHEN 0 THEN 'BEV_ELEC' WHEN 1 THEN 'HVO' WHEN 2 THEN 'CNG' ELSE 'DIESEL' END
         WHEN 'OCEAN' THEN 'BUNKER_FUEL'
         ELSE 'ELECTRIC_RAIL'
     END,
     ROUND(UNIFORM(10, 5000, RANDOM()), 2),
-    UNIFORM(0, 100, RANDOM()) < 8,  -- ~8% GoGreen Plus
-    CASE WHEN MOD(rn, 3) = 0 THEN 'OWN_FLEET' ELSE 'SUBCONTRACTED' END
+    UNIFORM(0, 100, RANDOM()) < 8,
+    CASE WHEN MOD(RN, 3) = 0 THEN 'OWN_FLEET' ELSE 'SUBCONTRACTED' END
 ;
 
 
