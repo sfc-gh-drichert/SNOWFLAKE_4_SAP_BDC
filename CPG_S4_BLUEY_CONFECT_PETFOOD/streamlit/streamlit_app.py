@@ -6,6 +6,7 @@ Streamlit-in-Snowflake dashboard for supply chain risk intelligence.
 import streamlit as st
 import pandas as pd
 import altair as alt
+import json
 
 st.set_page_config(page_title="Supply Risk Command Center", layout="wide")
 
@@ -47,6 +48,12 @@ def source_card(title, color, items):
 st.sidebar.title("Navigation")
 PAGES = ["Overview", "SAP BDC Zero Copy", "Blue Yonder Planning", "External Signals", "Risk Command Center"]
 page = st.sidebar.radio("", PAGES, label_visibility="collapsed")
+
+AGENT_FQN = f"{DB_SCHEMA}.CONFECT_PETFOOD_SC_RISK_AGENT"
+st.sidebar.divider()
+st.sidebar.markdown("**Cowork — SC Risk Intelligence**")
+st.sidebar.caption("Ask the CONFECT agent at the bottom of any page; it sees what you're looking at.")
+st.sidebar.link_button("Open in Snowflake CoWork", "https://ai.snowflake.com", use_container_width=True)
 
 # ===================================================================
 # PAGE 1 — Overview (Landing)
@@ -227,7 +234,7 @@ elif page == "Blue Yonder Planning":
 
         st.divider()
         events = run_query(f"SELECT DISTINCT PEAK_EVENT FROM {DB_SCHEMA}.BY_DEMAND_FORECAST WHERE PEAK_EVENT IS NOT NULL ORDER BY 1")
-        selected_event = st.selectbox("Filter by Peak Event", ["ALL"] + events["PEAK_EVENT"].tolist())
+        selected_event = st.selectbox("Filter by Peak Event", ["ALL"] + events["PEAK_EVENT"].tolist(), key="by_event")
         where_clause = ""
         if selected_event != "ALL":
             where_clause = f"AND (PEAK_EVENT = '{selected_event.replace(chr(39), chr(39)*2)}' OR PEAK_EVENT IS NULL)"
@@ -542,7 +549,7 @@ elif page == "Risk Command Center":
     # Drill-down
     st.divider()
     st.markdown("### Material Drill-Down")
-    selected_material = st.selectbox("Select Material", risk["MATERIAL_ID"].tolist())
+    selected_material = st.selectbox("Select Material", risk["MATERIAL_ID"].tolist(), key="rcc_material")
 
     if selected_material:
         row = risk[risk["MATERIAL_ID"] == selected_material].iloc[0]
@@ -568,3 +575,117 @@ elif page == "Risk Command Center":
                 st.markdown(f"**Supply Shortfall:** {int(row['SUPPLY_SHORTFALL_QTY']):,} units")
                 st.markdown(f"**Disrupted Loads:** {int(row['DISRUPTED_LOAD_COUNT'])}")
                 st.markdown(f"**Commodity YoY Change:** {row['COMMODITY_YOY_CHANGE_PCT']:.1f}%")
+
+
+# ===================================================================
+# COWORK — CONFECT agent chat, available on every page with page context
+# ===================================================================
+SUGGESTIONS = {
+    "Overview": ["What is the total financial exposure from the Halloween supply risk?",
+                 "Are there any supply risks in European petcare this quarter?"],
+    "SAP BDC Zero Copy": ["Which purchase orders are currently blocked and why?",
+                          "Which suppliers can cover the NovaPet protein shortfall?"],
+    "Blue Yonder Planning": ["Which confectionery SKUs have a supply coverage gap for Halloween?",
+                             "Why is the carrier acceptance rate so low on the Abidjan-Rotterdam lane?"],
+    "External Signals": ["What is the current H5N1 outbreak status affecting our suppliers?",
+                         "What does the external port data show about Rotterdam congestion right now?"],
+    "Risk Command Center": ["Explain the risk drivers for the selected material.",
+                            "What is the impact of the Atlantic Origins force majeure on our supply chain?"],
+}
+
+
+def page_context() -> str:
+    ss = st.session_state
+    parts = [f"The user is on the '{page}' page of the Confect PetFood Supply Risk Command Center dashboard."]
+    if page == "Blue Yonder Planning":
+        if ss.get("by_event") and ss["by_event"] != "ALL":
+            parts.append(f"They filtered to peak event '{ss['by_event']}'.")
+        if ss.get("plan_override_mat"):
+            parts.append(f"In the Plan Override editor they selected material {ss['plan_override_mat']}.")
+    if page == "Risk Command Center" and ss.get("rcc_material"):
+        parts.append(f"In the Material Drill-Down they selected material {ss['rcc_material']}; "
+                     "'the selected material' refers to it.")
+    return " ".join(parts)
+
+
+def call_agent(history: list) -> list:
+    """Run the CONFECT agent (non-streaming) with the text history; returns response content items."""
+    body = json.dumps({"messages": [
+        {"role": m["role"], "content": [{"type": "text", "text": m["text"]}]} for m in history]})
+    raw = conn.session().sql(
+        "SELECT SNOWFLAKE.CORTEX.DATA_AGENT_RUN(?, ?) AS R", params=[AGENT_FQN, body]).collect()[0]["R"]
+    resp = json.loads(raw) if isinstance(raw, str) else raw
+    if resp.get("code") and not resp.get("content"):
+        raise RuntimeError(resp.get("message", raw))
+    return resp.get("content", [])
+
+
+def render_items(items: list):
+    for it in items:
+        t = it.get("type")
+        if t == "text" and it.get("text"):
+            st.markdown(it["text"])
+        elif t == "table":
+            rs = it["table"].get("result_set", {})
+            cols = [c["name"] for c in rs.get("resultSetMetaData", {}).get("rowType", [])]
+            if it["table"].get("title"):
+                st.caption(it["table"]["title"])
+            st.dataframe(pd.DataFrame(rs.get("data", []), columns=cols or None), hide_index=True)
+        elif t == "chart":
+            try:
+                st.vega_lite_chart(json.loads(it["chart"]["chart_spec"]), use_container_width=True)
+            except Exception:
+                pass
+        elif t == "tool_result":
+            for c in it["tool_result"].get("content", []):
+                sql = (c.get("json") or {}).get("sql") if c.get("type") == "json" else None
+                if sql:
+                    with st.expander("SQL used"):
+                        st.code(sql, language="sql")
+
+
+if "cowork_history" not in st.session_state:
+    st.session_state.cowork_history = []   # {"role", "text", "items"}
+
+st.divider()
+hc1, hc2 = st.columns([5, 1])
+with hc1:
+    st.markdown("### Ask Cowork — SC Risk Intelligence")
+    st.caption(f"Agent `{AGENT_FQN}` · context: {page}")
+with hc2:
+    if st.button("New chat", use_container_width=True):
+        st.session_state.cowork_history = []
+        st.rerun()
+
+for m in st.session_state.cowork_history:
+    with st.chat_message(m["role"]):
+        if m.get("items"):
+            render_items(m["items"])
+        else:
+            st.markdown(m["text"])
+
+prompt = None
+sc = st.columns(len(SUGGESTIONS.get(page, [])) or 1)
+for i, q in enumerate(SUGGESTIONS.get(page, [])):
+    if sc[i].button(q, key=f"sugg_{page}_{i}", use_container_width=True):
+        prompt = q
+typed = st.chat_input("Ask the CONFECT agent about what you see…")
+prompt = typed or prompt
+
+if prompt:
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    # context is sent to the agent but not shown in the transcript
+    agent_history = [{"role": m["role"], "text": m["text"]} for m in st.session_state.cowork_history]
+    agent_history.append({"role": "user", "text": f"[Dashboard context: {page_context()}]\n\n{prompt}"})
+    with st.chat_message("assistant"):
+        try:
+            with st.spinner("SC Risk Intelligence is thinking…"):
+                items = call_agent(agent_history)
+            render_items(items)
+            answer = "\n\n".join(i["text"] for i in items if i.get("type") == "text" and i.get("text")) or "(no text answer)"
+        except Exception as e:
+            items, answer = [], f"Agent call failed: {e}"
+            st.error(answer)
+    st.session_state.cowork_history += [{"role": "user", "text": prompt},
+                                        {"role": "assistant", "text": answer, "items": items}]
