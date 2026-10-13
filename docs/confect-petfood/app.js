@@ -300,20 +300,26 @@
   }
 
   function planTab(p) {
-    // Consensus plan vs peak-week forecast (same SQL as the Streamlit Plan Override tab)
+    // Consensus plan vs peak-week forecast; S&OP commitment pro-rated to the peak weeks
+    // (same SQL as the Streamlit Plan Override tab)
     const prod = new Map(D.I_PRODUCT.map(r => [r.MATERIAL_ID, r]));
-    const peakByMat = groupBy(D.BY_DEMAND_FORECAST.filter(f => f.IS_PEAK_WEEK), f => f.MATERIAL_ID);
+    const fcByMat = groupBy(D.BY_DEMAND_FORECAST, f => f.MATERIAL_ID);
     const plan = D.BY_CONSENSUS_PLAN.filter(c => prod.has(c.MATERIAL_ID)).map(c => {
       const pr = prod.get(c.MATERIAL_ID);
-      const fc = sum(peakByMat.get(c.MATERIAL_ID) || [], f => f.FORECAST_QTY);
+      const rows = fcByMat.get(c.MATERIAL_ID) || [];
+      const peakRows = rows.filter(f => f.IS_PEAK_WEEK);
+      const share = peakRows.length / Math.max(uniq(rows.map(f => f.WEEK_START)).length, 1);
+      const fc = sum(peakRows, f => f.FORECAST_QTY);
+      const peakCommitted = Math.round(c.COMMITTED_QTY * share);
       return { MATERIAL_ID: c.MATERIAL_ID, MATERIAL_DESC: pr.MATERIAL_DESC, DIVISION: pr.DIVISION, COMMITTED_QTY: c.COMMITTED_QTY,
-               TOTAL_FORECAST_QTY: fc, PLAN_GAP_QTY: fc - c.COMMITTED_QTY,
-               GAP_REVENUE_USD: Math.round((fc - c.COMMITTED_QTY) * pr.UNIT_WHOLESALE_USD), PLAN_CONFIDENCE: c.PLAN_CONFIDENCE };
+               PEAK_COMMITTED_QTY: peakCommitted, TOTAL_FORECAST_QTY: fc, PLAN_GAP_QTY: fc - peakCommitted,
+               GAP_REVENUE_USD: Math.round((fc - peakCommitted) * pr.UNIT_WHOLESALE_USD), PLAN_CONFIDENCE: c.PLAN_CONFIDENCE,
+               PEAK_WEEKS: peakRows.length, SHARE: share };
     }).sort(by(r => r.PLAN_GAP_QTY, true));
 
     const gap = sum(plan, r => r.PLAN_GAP_QTY), gapRev = sum(plan, r => r.GAP_REVENUE_USD);
     p.append(el('div', { class: 'row' }, [
-      kpi('Committed (S&OP)', fmtInt(sum(plan, r => r.COMMITTED_QTY)), '#00897b'),
+      kpi('Committed (peak weeks)', fmtInt(sum(plan, r => r.PEAK_COMMITTED_QTY)), '#00897b'),
       kpi('Peak Forecast', fmtInt(sum(plan, r => r.TOTAL_FORECAST_QTY)), '#1565c0'),
       kpi('Plan Gap (units)', fmtInt(gap), gap > 0 ? '#d32f2f' : '#388e3c'),
       kpi('Gap Revenue Impact', fmtUsd(gapRev), gapRev > 0 ? '#d32f2f' : '#388e3c'),
@@ -324,7 +330,7 @@
       type: 'bar',
       data: { labels: gapRows.map(r => `${r.MATERIAL_ID} — ${r.MATERIAL_DESC.slice(0, 25)}`),
               datasets: [{ data: gapRows.map(r => r.PLAN_GAP_QTY), backgroundColor: gapRows.map(r => (r.PLAN_GAP_QTY > 0 ? '#d32f2f' : '#388e3c')), borderRadius: 4 }] },
-      options: hBarOpts('Forecast − Committed (units)'),
+      options: hBarOpts('Peak forecast − committed (units)'),
     }));
 
     const conf = Array.from(groupBy(plan, r => r.PLAN_CONFIDENCE).entries());
@@ -334,7 +340,7 @@
         data: { labels: conf.map(c => c[0]), datasets: [{ data: conf.map(c => c[1].length), backgroundColor: conf.map(c => CONF_COLORS[c[0]] || '#888') }] },
         options: { cutout: '35%' },
       })]),
-      table(plan, ['MATERIAL_ID', 'MATERIAL_DESC', 'DIVISION', 'COMMITTED_QTY', 'TOTAL_FORECAST_QTY', 'PLAN_GAP_QTY', 'GAP_REVENUE_USD', 'PLAN_CONFIDENCE']),
+      table(plan, ['MATERIAL_ID', 'MATERIAL_DESC', 'DIVISION', 'COMMITTED_QTY', 'PEAK_COMMITTED_QTY', 'TOTAL_FORECAST_QTY', 'PLAN_GAP_QTY', 'GAP_REVENUE_USD', 'PLAN_CONFIDENCE']),
     ]));
 
     // ── interactive override (browser-only stand-in for MERGE INTO BY_PLAN_OVERRIDES)
@@ -371,13 +377,13 @@
       const refresh = () => {
         const qty = Number(slider.value);
         sliderVal.textContent = fmtInt(qty);
-        const newGap = fc - qty;
+        const newGap = fc - Math.round(qty * row.SHARE);
         gapText.replaceChildren(el('strong', { text: 'New gap: ' }), el('strong', { text: `${fmtInt(newGap)} units`, style: { color: newGap > 0 ? '#d32f2f' : '#388e3c' } }));
         saveBtn.disabled = qty === current;
         chartSlot.replaceChildren(chart(260, {
           type: 'bar',
-          data: { labels: ['S&OP Committed', 'Override Qty', 'Peak Forecast'], datasets: [{ data: [current, qty, fc], backgroundColor: ['#9e9e9e', '#1565c0', '#ef6c00'], borderRadius: 4 }] },
-          options: { plugins: { legend: { display: false }, title: { display: true, text: `${mat} — Plan Comparison` } }, scales: { y: { title: { display: true, text: 'Units' } } } },
+          data: { labels: ['S&OP Committed', 'Override Qty', 'Peak Forecast'], datasets: [{ data: [row.PEAK_COMMITTED_QTY, Math.round(qty * row.SHARE), fc], backgroundColor: ['#9e9e9e', '#1565c0', '#ef6c00'], borderRadius: 4 }] },
+          options: { plugins: { legend: { display: false }, title: { display: true, text: `${mat} — Peak-Week Plan Comparison` } }, scales: { y: { title: { display: true, text: 'Units' } } } },
         }));
       };
       slider.addEventListener('input', () => { sliderVal.textContent = fmtInt(Number(slider.value)); });
@@ -394,7 +400,7 @@
       editor.append(el('div', { class: 'cols wide-right' }, [
         el('div', {}, [
           selectBox('Material to override', plan.map(r => ({ value: r.MATERIAL_ID, label: r.MATERIAL_ID })), renderEditor, mat),
-          el('p', {}, [richText(`**Current S&OP Committed:** ${fmtInt(current)}`)]),
+          el('p', {}, [richText(`**Current S&OP Committed:** ${fmtInt(current)} (${fmtInt(row.PEAK_COMMITTED_QTY)} in ${row.PEAK_WEEKS} peak weeks)`)]),
           el('p', {}, [richText(`**Peak Forecast:** ${fmtInt(fc)}`)]),
           el('p', {}, [richText(`**Gap:** ${fmtInt(row.PLAN_GAP_QTY)} units`)]),
           el('label', { class: 'ctl' }, ['New committed quantity: ', sliderVal]), slider,

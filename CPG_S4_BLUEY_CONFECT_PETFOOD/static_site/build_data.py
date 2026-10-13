@@ -237,9 +237,12 @@ def lt(a, b):
 
 
 def v_seasonal_coverage_gap(t):
+    """One row per material x peak event; S&OP commitment pro-rated to the peak weeks."""
     products = {p["MATERIAL_ID"]: p for p in t["I_PRODUCT"]}
+    horizon = defaultdict(set)
     peak = {}
     for f in t["BY_DEMAND_FORECAST"]:
+        horizon[f["MATERIAL_ID"]].add(f["WEEK_START"])
         if not f["IS_PEAK_WEEK"]:
             continue
         agg = peak.setdefault((f["MATERIAL_ID"], f["PEAK_EVENT"]), {"forecast": Decimal(0), "weeks": 0})
@@ -248,13 +251,14 @@ def v_seasonal_coverage_gap(t):
     committed = defaultdict(Decimal)
     for c in t["BY_CONSENSUS_PLAN"]:
         committed[c["MATERIAL_ID"]] += c["COMMITTED_QTY"]
-    stock = defaultdict(list)
-    for s in t["PPH_DDL_STOCK_1"]:
-        if s["MATERIAL_ID"] in products:
-            stock[s["MATERIAL_ID"]].append(s)
-    plants = defaultdict(list)
+    stock = {(s["MATERIAL_ID"], s["PLANT"]): s for s in t["PPH_DDL_STOCK_1"]}
+    material_stock = {}
     for pp in t["I_PRODUCTPLANT"]:
-        plants[pp["MATERIAL_ID"]].append(pp)
+        ms = material_stock.setdefault(pp["MATERIAL_ID"], {"dos": [], "ssd": []})
+        st = stock.get((pp["MATERIAL_ID"], pp["PLANT"]))
+        if st and st["DAYS_OF_SUPPLY"] is not None:
+            ms["dos"].append(st["DAYS_OF_SUPPLY"])
+        ms["ssd"].append(pp["SAFETY_STOCK_DAYS"])
 
     rows = []
     for (mat, event), agg in peak.items():
@@ -262,27 +266,27 @@ def v_seasonal_coverage_gap(t):
             continue
         p = products[mat]
         cp = committed.get(mat)
-        for fs in stock.get(mat) or [None]:
-            for pp in plants.get(mat) or [None]:
-                dos = fs["DAYS_OF_SUPPLY"] if fs else None
-                ssd = pp["SAFETY_STOCK_DAYS"] if pp else None
-                short = agg["forecast"] - cp if cp is not None else None
-                if short is not None and short > 0 and lt(dos, ssd):
-                    status = "CRITICAL"
-                elif short is not None and short > 0:
-                    status = "HIGH"
-                elif lt(dos, ssd):
-                    status = "MEDIUM"
-                else:
-                    status = "LOW"
-                rows.append({
-                    "MATERIAL_ID": mat, "PEAK_EVENT": event,
-                    "SUPPLY_SHORTFALL_QTY": short,
-                    "REVENUE_AT_RISK_USD": round_half_up(short * p["UNIT_WHOLESALE_USD"]) if short is not None else None,
-                    "DAYS_OF_SUPPLY": dos if dos is not None else Decimal(0),
-                    "SAFETY_STOCK_DAYS": ssd,
-                    "COVERAGE_STATUS": status,
-                })
+        peak_committed = round_half_up(cp * agg["weeks"] / len(horizon[mat])) if cp is not None else Decimal(0)
+        ms = material_stock.get(mat, {"dos": [], "ssd": []})
+        dos = min(ms["dos"]) if ms["dos"] else None
+        ssd = max(ms["ssd"]) if ms["ssd"] else None
+        short = max(agg["forecast"] - peak_committed, Decimal(0))
+        if short > 0 and lt(dos, ssd):
+            status = "CRITICAL"
+        elif short > 0:
+            status = "HIGH"
+        elif lt(dos, ssd):
+            status = "MEDIUM"
+        else:
+            status = "LOW"
+        rows.append({
+            "MATERIAL_ID": mat, "PEAK_EVENT": event,
+            "SUPPLY_SHORTFALL_QTY": short,
+            "REVENUE_AT_RISK_USD": round_half_up(short * p["UNIT_WHOLESALE_USD"]),
+            "DAYS_OF_SUPPLY": dos if dos is not None else Decimal(0),
+            "SAFETY_STOCK_DAYS": ssd,
+            "COVERAGE_STATUS": status,
+        })
     return rows
 
 
@@ -373,6 +377,7 @@ def v_supply_risk_score(t, coverage):
         mat = p["MATERIAL_ID"]
         sr, tr = supplier_risk.get(mat), transport_risk.get(mat)
         er, cm = external_risk.get(mat), commodity_risk.get(p["DIVISION"])
+        n_plants = len(plants[mat]) * len(coverage_by_mat.get(mat) or [None])
         for pp in plants[mat]:
             for cr in coverage_by_mat.get(mat) or [None]:
                 composite = round_half_up(
@@ -390,8 +395,8 @@ def v_supply_risk_score(t, coverage):
                     "COMPOSITE_RISK_SCORE": composite, "RISK_TIER": tier,
                     "AT_RISK_SUPPLIERS": sr["ids"] if sr else "None",
                     "BIOSECURITY_ALERT": (sr["bio"] if sr and sr["bio"] else "None"),
-                    "SUPPLY_SHORTFALL_QTY": cr["SUPPLY_SHORTFALL_QTY"] if cr and cr["SUPPLY_SHORTFALL_QTY"] is not None else 0,
-                    "REVENUE_AT_RISK_USD": cr["REVENUE_AT_RISK_USD"] if cr and cr["REVENUE_AT_RISK_USD"] is not None else 0,
+                    "SUPPLY_SHORTFALL_QTY": round_half_up(Decimal(cr["SUPPLY_SHORTFALL_QTY"] if cr else 0) / n_plants),
+                    "REVENUE_AT_RISK_USD": round_half_up(Decimal(cr["REVENUE_AT_RISK_USD"] if cr else 0) / n_plants),
                     "DAYS_OF_SUPPLY": cr["DAYS_OF_SUPPLY"] if cr else 0,
                     "SAFETY_STOCK_DAYS": cr["SAFETY_STOCK_DAYS"] if cr and cr["SAFETY_STOCK_DAYS"] is not None else 42,
                     "DISRUPTED_LOAD_COUNT": tr["disrupted"] if tr else 0,

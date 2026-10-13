@@ -275,19 +275,28 @@ elif page == "Blue Yonder Planning":
         st.dataframe(all_loads, use_container_width=True, hide_index=True)
 
     with tab_p:
-        # Plan vs Forecast gap analysis
+        # Plan vs Forecast gap analysis. The S&OP commitment covers the full horizon,
+        # so it is pro-rated to the peak weeks (same logic as V_SEASONAL_COVERAGE_GAP).
         plan_gap = run_query(f"""
-            SELECT cp.MATERIAL_ID, p.MATERIAL_DESC, p.DIVISION, p.BRAND,
-                cp.COMMITTED_QTY, cp.REVENUE_PLAN_USD, cp.PLAN_CONFIDENCE,
-                COALESCE(SUM(f.FORECAST_QTY), 0) AS TOTAL_FORECAST_QTY,
-                (COALESCE(SUM(f.FORECAST_QTY), 0) - cp.COMMITTED_QTY) AS PLAN_GAP_QTY,
-                ROUND((COALESCE(SUM(f.FORECAST_QTY), 0) - cp.COMMITTED_QTY) * p.UNIT_WHOLESALE_USD, 0) AS GAP_REVENUE_USD
-            FROM {DB_SCHEMA}.BY_CONSENSUS_PLAN cp
-            JOIN {DB_SCHEMA}.I_PRODUCT p ON p.MATERIAL_ID = cp.MATERIAL_ID
-            LEFT JOIN {DB_SCHEMA}.BY_DEMAND_FORECAST f ON f.MATERIAL_ID = cp.MATERIAL_ID AND f.IS_PEAK_WEEK = TRUE
-            GROUP BY cp.MATERIAL_ID, p.MATERIAL_DESC, p.DIVISION, p.BRAND,
-                     cp.COMMITTED_QTY, cp.REVENUE_PLAN_USD, cp.PLAN_CONFIDENCE, p.UNIT_WHOLESALE_USD
-            ORDER BY PLAN_GAP_QTY DESC""")
+            WITH fc AS (
+                SELECT MATERIAL_ID,
+                    SUM(CASE WHEN IS_PEAK_WEEK THEN FORECAST_QTY ELSE 0 END) AS PEAK_FORECAST_QTY,
+                    COUNT_IF(IS_PEAK_WEEK) AS PEAK_WEEKS,
+                    COUNT(DISTINCT WEEK_START) AS HORIZON_WEEKS
+                FROM {DB_SCHEMA}.BY_DEMAND_FORECAST GROUP BY MATERIAL_ID
+            ), g AS (
+                SELECT cp.MATERIAL_ID, p.MATERIAL_DESC, p.DIVISION, p.BRAND, p.UNIT_WHOLESALE_USD,
+                    cp.COMMITTED_QTY, cp.REVENUE_PLAN_USD, cp.PLAN_CONFIDENCE,
+                    COALESCE(fc.PEAK_FORECAST_QTY, 0) AS TOTAL_FORECAST_QTY,
+                    COALESCE(fc.PEAK_WEEKS, 0) AS PEAK_WEEKS, COALESCE(fc.HORIZON_WEEKS, 1) AS HORIZON_WEEKS,
+                    ROUND(cp.COMMITTED_QTY * COALESCE(fc.PEAK_WEEKS, 0) / COALESCE(fc.HORIZON_WEEKS, 1), 0) AS PEAK_COMMITTED_QTY
+                FROM {DB_SCHEMA}.BY_CONSENSUS_PLAN cp
+                JOIN {DB_SCHEMA}.I_PRODUCT p ON p.MATERIAL_ID = cp.MATERIAL_ID
+                LEFT JOIN fc ON fc.MATERIAL_ID = cp.MATERIAL_ID
+            )
+            SELECT *, TOTAL_FORECAST_QTY - PEAK_COMMITTED_QTY AS PLAN_GAP_QTY,
+                ROUND((TOTAL_FORECAST_QTY - PEAK_COMMITTED_QTY) * UNIT_WHOLESALE_USD, 0) AS GAP_REVENUE_USD
+            FROM g ORDER BY PLAN_GAP_QTY DESC""")
 
         # KPIs
         total_committed = plan_gap["COMMITTED_QTY"].sum()
@@ -296,7 +305,8 @@ elif page == "Blue Yonder Planning":
         total_gap_rev = plan_gap["GAP_REVENUE_USD"].sum()
 
         pk1, pk2, pk3, pk4 = st.columns(4)
-        with pk1: kpi_card("Committed (S&OP)", f"{int(total_committed):,}", "#00897b")
+        total_committed = plan_gap["PEAK_COMMITTED_QTY"].sum()
+        with pk1: kpi_card("Committed (peak weeks)", f"{int(total_committed):,}", "#00897b")
         with pk2: kpi_card("Peak Forecast", f"{int(total_forecast):,}", "#1565c0")
         with pk3: kpi_card("Plan Gap (units)", f"{int(total_gap):,}", "#d32f2f" if total_gap > 0 else "#388e3c")
         with pk4: kpi_card("Gap Revenue Impact", f"${int(total_gap_rev):,}", "#d32f2f" if total_gap_rev > 0 else "#388e3c")
@@ -309,13 +319,13 @@ elif page == "Blue Yonder Planning":
             gap_chart_data["label"] = gap_chart_data["MATERIAL_ID"] + " — " + gap_chart_data["MATERIAL_DESC"].str[:25]
             gap_bar = alt.Chart(gap_chart_data).mark_bar(cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
                 y=alt.Y("label:N", sort="-x", title=""),
-                x=alt.X("PLAN_GAP_QTY:Q", title="Forecast − Committed (units)"),
+                x=alt.X("PLAN_GAP_QTY:Q", title="Peak forecast − committed (units)"),
                 color=alt.condition(
                     alt.datum.PLAN_GAP_QTY > 0,
                     alt.value("#d32f2f"),
                     alt.value("#388e3c")
                 ),
-                tooltip=["MATERIAL_ID", "MATERIAL_DESC", "COMMITTED_QTY", "TOTAL_FORECAST_QTY", "PLAN_GAP_QTY",
+                tooltip=["MATERIAL_ID", "MATERIAL_DESC", "COMMITTED_QTY", "PEAK_COMMITTED_QTY", "TOTAL_FORECAST_QTY", "PLAN_GAP_QTY",
                           alt.Tooltip("GAP_REVENUE_USD:Q", format="$,.0f")],
             ).properties(title="Plan Gap: Forecast vs S&OP Committed", height=max(300, len(gap_chart_data) * 26))
             st.altair_chart(gap_bar, use_container_width=True)
@@ -333,7 +343,7 @@ elif page == "Blue Yonder Planning":
             ).properties(title="Plan Confidence", height=240)
             st.altair_chart(conf_donut, use_container_width=True)
         with cc2:
-            st.dataframe(plan_gap[["MATERIAL_ID", "MATERIAL_DESC", "DIVISION", "COMMITTED_QTY",
+            st.dataframe(plan_gap[["MATERIAL_ID", "MATERIAL_DESC", "DIVISION", "COMMITTED_QTY", "PEAK_COMMITTED_QTY",
                                     "TOTAL_FORECAST_QTY", "PLAN_GAP_QTY", "GAP_REVENUE_USD", "PLAN_CONFIDENCE"]],
                           use_container_width=True, hide_index=True)
 
@@ -350,8 +360,10 @@ elif page == "Blue Yonder Planning":
 
             current_committed = int(mat_row["COMMITTED_QTY"])
             forecast = int(mat_row["TOTAL_FORECAST_QTY"])
+            peak_share = int(mat_row["PEAK_WEEKS"]) / max(int(mat_row["HORIZON_WEEKS"]), 1)
 
-            st.markdown(f"**Current S&OP Committed:** {current_committed:,}")
+            st.markdown(f"**Current S&OP Committed:** {current_committed:,} "
+                        f"({int(mat_row['PEAK_COMMITTED_QTY']):,} in {int(mat_row['PEAK_WEEKS'])} peak weeks)")
             st.markdown(f"**Peak Forecast:** {forecast:,}")
             st.markdown(f"**Gap:** {int(mat_row['PLAN_GAP_QTY']):,} units")
 
@@ -363,12 +375,12 @@ elif page == "Blue Yonder Planning":
                                   key="plan_override_reason")
 
         with ov_col2:
-            new_gap = forecast - new_qty
+            new_gap = forecast - round(new_qty * peak_share)
             st.markdown("")
             st.markdown("")
             compare_data = pd.DataFrame({
                 "Measure": ["S&OP Committed", "Override Qty", "Peak Forecast"],
-                "Quantity": [current_committed, new_qty, forecast],
+                "Quantity": [round(current_committed * peak_share), round(new_qty * peak_share), forecast],
                 "Type": ["Original", "Override", "Forecast"]
             })
             compare_bar = alt.Chart(compare_data).mark_bar(cornerRadiusTopLeft=4, cornerRadiusTopRight=4).encode(
@@ -379,7 +391,7 @@ elif page == "Blue Yonder Planning":
                     range=["#9e9e9e", "#1565c0", "#ef6c00"]
                 )),
                 tooltip=["Measure", "Quantity"],
-            ).properties(height=260, title=f"{sel_mat} — Plan Comparison")
+            ).properties(height=260, title=f"{sel_mat} — Peak-Week Plan Comparison")
             st.altair_chart(compare_bar, use_container_width=True)
 
             gap_color = "#d32f2f" if new_gap > 0 else "#388e3c"
