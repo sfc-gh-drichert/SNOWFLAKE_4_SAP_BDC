@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="snowflake-source" content="cortex-agent-authored">
+  <title>Supply Risk Command Center — Confect PetFood (static preview)</title>
+  <script type="application/json" id="snowflake-report-metadata">
+  {
+    "generated": "2026-10-12",
+    "intent": "Static click-through preview of the Confect PetFood Supply Risk Command Center Streamlit app",
+    "dataSources": [
+      { "type": "file", "path": "CPG_S4_BLUEY_CONFECT_PETFOOD/01_confect_petfood_demo_sc_risk_ice.sql" },
+      { "type": "script", "path": "CPG_S4_BLUEY_CONFECT_PETFOOD/static_site/build_data.py",
+        "producerNotes": "Parses INSERT ... VALUES, regenerates the RANDOM() series with a fixed seed, recomputes V_SEASONAL_COVERAGE_GAP and V_SUPPLY_RISK_SCORE. Re-run after changing the SQL." }
+    ],
+    "sections": [
+      { "id": "overview", "title": "Supply Risk Command Center" },
+      { "id": "sap", "title": "SAP BDC Zero Copy" },
+      { "id": "by", "title": "Blue Yonder Planning" },
+      { "id": "ext", "title": "External Signals" },
+      { "id": "risk", "title": "Risk Command Center" }
+    ]
+  }
+  </script>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">Confect PetFood</div>
+    <div class="nav-title">Navigation</div>
+    <nav id="nav">
+      <a href="#overview" data-page="overview">Overview</a>
+      <a href="#sap" data-page="sap">SAP BDC Zero Copy</a>
+      <a href="#by" data-page="by">Blue Yonder Planning</a>
+      <a href="#ext" data-page="ext">External Signals</a>
+      <a href="#risk" data-page="risk">Risk Command Center</a>
+    </nav>
+    <div class="sidebar-foot">Data as of <span id="as-of"></span></div>
+  </aside>
+
+  <main>
+    <div class="banner">
+      <strong>Static preview.</strong> Data is generated from the demo SQL and runs entirely in your browser.
+      <a href="https://github.com/sfc-gh-drichert/SNOWFLAKE_4_SAP_BDC/tree/main/CPG_S4_BLUEY_CONFECT_PETFOOD">Deploy the live Snowflake app via GitHub Actions</a>
+    </div>
+    <div id="page"></div>
+  </main>
+
+  <script src="vendor/chart.umd.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
