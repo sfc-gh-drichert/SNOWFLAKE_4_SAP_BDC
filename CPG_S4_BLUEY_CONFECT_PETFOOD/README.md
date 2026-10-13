@@ -27,43 +27,103 @@ Scale: 12 manufacturing plants across 4 continents (EU, NA, India, APAC), 28 str
 
 All four confectionery peaks draw from the **same West African cocoa supply base** — a single supplier disruption cascades across three continents.
 
+## What Gets Deployed
+
+| File | Creates |
+|------|---------|
+| `01_confect_petfood_demo_sc_risk_ice.sql` | Database `CONFECT_PETFOOD_DEMO`, schema `SC_RISK_DEMO`, warehouse `CONFECT_PETFOOD_WH` (XS), Iceberg tables, intelligence views |
+| `02_confect_petfood_demo_yaml.sql` | Semantic view + Cortex Agent `CONFECT_PETFOOD_SC_RISK_AGENT` ("SC Risk Intelligence") |
+| `03_confect_petfood_streamlit.sql` | Stage `STREAMLIT_STAGE`, EAI `CONFECT_PETFOOD_PYPI_EAI`, Streamlit app `SC_RISK_DASHBOARD` (container runtime), grants |
+| `streamlit/streamlit_app.py`, `streamlit/pyproject.toml` | Dashboard source, uploaded to the stage by GitHub Actions |
+| `static_site/build_data.py` | Generates `docs/confect-petfood/data.js` for the static preview |
+
 ## Prerequisites
 
-- Any Snowflake account (any edition, any cloud/region)
-- `ACCOUNTADMIN` role
-- ~5 minutes to run both files in sequence
+- Any Snowflake account (any edition, any cloud/region) with Cortex Agents available
+- `ACCOUNTADMIN` role (the EAI is an account-level object)
+- ~5 minutes for a full deploy
 
 ## Deployment
 
 ### Option A — GitHub Actions (recommended)
 
 1. Go to **Actions -> Deploy CPG SC Risk -> Run workflow**
-2. Choose `all` and click **Run workflow**
+2. Choose an action and click **Run workflow**
+
+| Action | Runs | Use when |
+|--------|------|----------|
+| `ping` | Connection test only | Checking secrets / key-pair auth |
+| `all` | 01 + 02 + 03 | First deploy, or after data/view changes |
+| `tables-only` | 01 | Rebuild data and views |
+| `agent-only` | 02 | Change the semantic view or agent |
+| `dashboard-only` | 03 + stage upload | Change only `streamlit_app.py` (requires 01 and 02 already deployed) |
+| `teardown` | Drops database, warehouse and EAI | Cleanup |
 
 Uses the same `SNOWFLAKE_ACCOUNT` / `SNOWFLAKE_USER` / `SNOWFLAKE_PRIVATE_KEY` secrets
 as the other demos in this repo (see root README for setup).
 
 ### Option B — Manual
 
-Run the files **in order** in a Snowflake worksheet or via SnowSQL:
+Run the files **in order** in a Snowflake worksheet or via Snowflake CLI:
 
 ```
 1. 01_confect_petfood_demo_sc_risk_ice.sql   -- Database, warehouse, Iceberg tables, views
 2. 02_confect_petfood_demo_yaml.sql          -- Semantic view + Cortex Agent
+3. CREATE STAGE IF NOT EXISTS CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.STREAMLIT_STAGE DIRECTORY = (ENABLE = TRUE);
+   PUT streamlit/streamlit_app.py and streamlit/pyproject.toml
+     to @CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.STREAMLIT_STAGE (AUTO_COMPRESS=FALSE OVERWRITE=TRUE)
+4. 03_confect_petfood_streamlit.sql          -- Streamlit app, EAI, grants
 ```
 
-The scripts create a dedicated `CONFECT_PETFOOD_WH` (XS) warehouse automatically.
+## Viewing the Dashboard
 
-## Data Architecture
+- **Live app:** Snowsight -> **Projects -> Streamlit -> SC_RISK_DASHBOARD**
+  (database `CONFECT_PETFOOD_DEMO`, schema `SC_RISK_DEMO`). The first start takes a minute or two
+  while the container runtime installs packages.
+- **Agent in Snowflake CoWork:** open Snowflake CoWork (`https://ai.snowflake.com`) and pick **SC Risk Intelligence**.
+- **Static preview (no Snowflake needed):** `docs/confect-petfood/` is a click-through copy with data generated
+  from the SQL. Serve it locally with `python3 -m http.server -d docs 8765` and open
+  `http://127.0.0.1:8765/confect-petfood/`. It can't call the agent, and Plan Override changes are simulated
+  in the browser only. GitHub Pages is not enabled because the repo is private.
+  Regenerate data after SQL changes with `python3 CPG_S4_BLUEY_CONFECT_PETFOOD/static_site/build_data.py`.
 
-| Layer | Source System | What It Contains |
-|-------|-------------|------------------|
-| **1 — SAP BDC** | S/4HANA master data, BOMs, POs, stock | Zero-copy share via BDC — SAP CDS naming (I_SUPPLIER, I_PRODUCT, etc.) |
-| **2 — SAP Transactional** | Purchase orders, stock snapshots | M_V_POH_AGGR, PPH_DDL_STOCK_1 |
-| **3 — Blue Yonder** | Demand forecasts, loads, lanes, tenders | BY_DEMAND_FORECAST, BY_LOADS, BY_LANES, BY_TENDER_EVENTS |
-| **4 — External Signals** | Commodity prices, news, ports, vessels, outbreaks | EXT_COMMODITY_PRICES, EXT_PORT_CONGESTION, EXT_VESSEL_TRACKER, etc. |
-| **5 — Intelligence Views** | Composite risk scoring | V_BOM_RISK_EXPLOSION, V_SEASONAL_COVERAGE_GAP, V_SUPPLY_RISK_SCORE |
-| **6 — Semantic View + Agent** | Cortex Analyst + Cortex Agent | Natural language access to the entire risk model |
+## Dashboard — Supply Risk Command Center
+
+| Page | Shows |
+|------|-------|
+| **Overview** | Headline KPIs, the three source systems, risk tier mix |
+| **SAP BDC Zero Copy** | SAP master data, BOMs, POs and stock read in place from BDC shares |
+| **Blue Yonder Planning** | Demand forecast vs. committed plan by peak event, coverage gaps, **Plan Override** |
+| **External Signals** | Commodity prices, port congestion, vessels, outbreaks, news |
+| **Risk Command Center** | Composite risk leaderboard and per-material drill-down |
+
+**Plan Override (write-back).** On Blue Yonder Planning, choose a material, enter a new committed quantity and a
+reason. The app shows the before/after coverage gap and writes it back to Snowflake (`MERGE` into `BY_PLAN_OVERRIDES`).
+
+**Ask Cowork — SC Risk Intelligence.** There's a chat panel at the bottom of every page, backed by the
+`CONFECT_PETFOOD_SC_RISK_AGENT` agent (called with `SNOWFLAKE.CORTEX.DATA_AGENT_RUN`).
+- **Page-aware:** each question carries what's on screen: the current page, the peak-event filter, the
+  Plan Override material, and the drill-down material. So "explain the risk drivers for the selected material" works.
+- **Answers:** text, tables, charts, and the SQL the agent used.
+- **Suggested questions:** two one-click questions per page.
+- **Conversation:** it continues across pages. **New chat** resets it.
+- **Open in Snowflake CoWork:** the sidebar button opens the full CoWork experience.
+
+**Permissions.** Agent calls use the calling user's **default role** and **default warehouse**. That role needs:
+- the `SNOWFLAKE.CORTEX_USER` (or `CORTEX_AGENT_USER`) database role;
+- USAGE on the agent. File 03 grants this to `PUBLIC`.
+
+If the panel shows "Agent call failed", check these first.
+
+## Risk Logic (Intelligence Views)
+
+- **`V_SEASONAL_COVERAGE_GAP`:** one row per material × peak event, with stock joined on material **and** plant.
+  The S&OP commitment is pro-rated to the peak weeks (`committed × peak_weeks / horizon_weeks`). The gap is peak
+  forecast minus the pro-rated commitment and stock, floored at 0.
+- **`V_SUPPLY_RISK_SCORE`:** composite score and tier (HIGH / MODERATE / LOW) per material × plant. For a SKU
+  made in several plants, shortfall and revenue at risk are split evenly across those plants so totals aren't
+  double-counted. Expected totals from the generated data: 35 rows, HIGH 18 / MODERATE 10 / LOW 7, ≈ $0.89 M
+  revenue at risk.
 
 ## Demo Storyline (4 Acts)
 
@@ -107,9 +167,25 @@ Composite risk score across everything — the view no single system can provide
 
 ## Cleanup
 
+Run the `teardown` workflow action, or:
+
 ```sql
-DROP DATABASE IF EXISTS CONFECT_PETFOOD_DEMO;
+DROP DATABASE IF EXISTS CONFECT_PETFOOD_DEMO;   -- tables, views, agent, Streamlit app, stage
 DROP WAREHOUSE IF EXISTS CONFECT_PETFOOD_WH;
+DROP INTEGRATION IF EXISTS CONFECT_PETFOOD_PYPI_EAI;
+```
+
+## Repository Layout
+
+```
+CPG_S4_BLUEY_CONFECT_PETFOOD/
+  01_..._sc_risk_ice.sql      data + views
+  02_..._yaml.sql             semantic view + agent
+  03_..._streamlit.sql        dashboard object + grants
+  streamlit/                  streamlit_app.py, pyproject.toml
+  static_site/build_data.py   static preview data generator
+docs/confect-petfood/         static click-through preview
+.github/workflows/deploy-cpg-sc-risk.yml
 ```
 
 ## Co-authored with CoCo

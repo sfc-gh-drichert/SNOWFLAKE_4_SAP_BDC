@@ -15,7 +15,7 @@ on:
           - tables-only       # Just Iceberg tables and views (file 01)
           - agent-only        # Just semantic view and Cortex Agent (file 02)
           - dashboard-only    # Just the Streamlit dashboard (file 03)
-          - teardown          # Drop database + warehouse
+          - teardown          # Drop database + warehouse + EAI
         default: ping
 
 jobs:
@@ -102,7 +102,7 @@ jobs:
               deploy_streamlit
               ;;
             teardown)
-              snow sql -q "DROP DATABASE IF EXISTS CONFECT_PETFOOD_DEMO; DROP WAREHOUSE IF EXISTS CONFECT_PETFOOD_WH;"
+              snow sql -q "DROP DATABASE IF EXISTS CONFECT_PETFOOD_DEMO; DROP WAREHOUSE IF EXISTS CONFECT_PETFOOD_WH; DROP INTEGRATION IF EXISTS CONFECT_PETFOOD_PYPI_EAI;"
               ;;
           esac
 
