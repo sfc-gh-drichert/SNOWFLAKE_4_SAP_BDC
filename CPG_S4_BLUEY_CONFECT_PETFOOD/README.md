@@ -113,7 +113,7 @@ reason. The app shows the before/after coverage gap and writes it back to Snowfl
 - the `SNOWFLAKE.CORTEX_USER` (or `CORTEX_AGENT_USER`) database role;
 - USAGE on the agent. File 03 grants this to `PUBLIC`.
 
-If the panel shows "Agent call failed", check these first.
+The agent's Analyst tool runs SQL on `CONFECT_PETFOOD_WH`, which is pinned in `tool_resources` and granted to `PUBLIC` in file 02. So callers don't need a default warehouse. If the panel shows "Agent call failed", check these first.
 
 ## Risk Logic (Intelligence Views)
 

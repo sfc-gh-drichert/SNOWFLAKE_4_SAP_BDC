@@ -1236,4 +1236,10 @@ CREATE OR REPLACE AGENT CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.CONFECT_PETFOOD_SC_RIS
   tool_resources:
     sc_risk_analyst:
       semantic_view: "CONFECT_PETFOOD_DEMO.SC_RISK_DEMO.CONFECT_PETFOOD_SC_RISK_SV"
+      execution_environment:
+        type: "warehouse"
+        warehouse: "CONFECT_PETFOOD_WH"
+        query_timeout: 60
   $$;
+
+GRANT USAGE ON WAREHOUSE CONFECT_PETFOOD_WH TO ROLE PUBLIC;
