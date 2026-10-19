@@ -110,6 +110,10 @@ INSERT INTO ROLE_ACCESS_MAPPING VALUES
 --        ALLOWED_CLIENT is NULL (global) OR equals this row's CLIENT_ID
 --        ALLOWED_REGION is NULL (all regions) OR equals this row's REGION
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Re-run safety: a policy attached to a table cannot be replaced. Detach it
+-- first (no-op on a fresh install); 04_fact_table.sql re-attaches it.
+ALTER TABLE IF EXISTS <% db_name %>.FIN.S3_FINANCE_PNL DROP ALL ROW ACCESS POLICIES;
+
 CREATE OR REPLACE ROW ACCESS POLICY PNL_CLIENT_ISOLATION_POLICY
     AS (p_client_id VARCHAR, p_region VARCHAR)
     RETURNS BOOLEAN ->
