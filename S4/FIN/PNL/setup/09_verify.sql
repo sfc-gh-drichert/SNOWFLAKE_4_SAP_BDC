@@ -63,7 +63,7 @@ SELECT
 FROM pnl;
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- TEST 4: Brand distribution (expect Bosch ~50%, Siemens ~28%)
+-- TEST 4: Brand distribution (expect Giskard ~50%, Calvin ~28%)
 -- ─────────────────────────────────────────────────────────────────────────────
 SELECT '4. Brand mix' AS test,
        BRAND,

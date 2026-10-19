@@ -90,7 +90,7 @@ INSERT INTO ROLE_ACCESS_MAPPING VALUES
 -- S4_FIN_NA_DEMO_ROLE — North America only
 INSERT INTO ROLE_ACCESS_MAPPING VALUES
     ('S4_FIN_NA_DEMO_ROLE', 'RDANEEL', 'N_AMERICA',
-     'R.Daneel North America: US, Canada, Mexico. Thermador + Bosch focus.');
+     'R.Daneel North America: US, Canada, Mexico. Aurora + Giskard focus.');
 
 -- S4_FIN_APAC_DEMO_ROLE — Asia-Pacific and Emerging Markets
 INSERT INTO ROLE_ACCESS_MAPPING VALUES

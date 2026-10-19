@@ -66,7 +66,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     COUNTRY_SOLD_TO                 VARCHAR(3)
         COMMENT 'Country of the sold-to party',
     SALESORGANISATION               VARCHAR(4)
-        COMMENT 'SAP sales organisation: 0010=Bosch, 0020=Siemens, 0030=Gaggenau, 0040=Neff, 0050=Thermador',
+        COMMENT 'SAP sales organisation: 0010=Giskard, 0020=Calvin, 0030=Solaria, 0040=Terminus, 0050=Aurora',
     DISTRIBUTIONCHANNEL             VARCHAR(2)
         COMMENT 'Distribution channel: 10=Retail Specialist | 20=Built-in/Project | 30=E-Commerce | 40=B2B/Commercial',
     REPORTINGUNITASREALIGNED        VARCHAR(10)
@@ -142,7 +142,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
     PRODUCT_NAME                    VARCHAR(100)
         COMMENT 'Full product name (denormalised from DIM_PRODUCT for agent readability)',
     BRAND                           VARCHAR(20)
-        COMMENT 'R.Daneel brand (denormalised): BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
+        COMMENT 'R.Daneel brand (denormalised): GISKARD | CALVIN | SOLARIA | TERMINUS | AURORA',
     CATEGORY                        VARCHAR(30)
         COMMENT 'Product category (denormalised): COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
     SUBCATEGORY                     VARCHAR(50)

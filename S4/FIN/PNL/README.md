@@ -10,7 +10,7 @@ A complete Snowflake demo environment built on R.Daneel Inc. financials, using a
 
 - **SAP ACDOCA structure**: the fact table mirrors real SAP CO-PA profitability analysis fields
 - **Multi-level P&L (Deckungsbeitrag)**: full waterfall from Gross Revenue → DB1 → DB2 → EBIT
-- **Real R.Daneel data**: Bosch, Siemens, Gaggenau, NEFF, Thermador — real model numbers, real price points
+- **Fictional R.Daneel brands**: Giskard, Calvin, Solaria, Terminus, Aurora — realistic product ranges and price points
 - **Data isolation via Row Access Policy**: European, North American, and APAC roles see only their data — enforced at the database layer, not in a WHERE clause
 - **AI layer**: Cortex Agent combines structured SQL (via Semantic View) with document search (press releases, product briefs)
 
@@ -42,7 +42,7 @@ make install DEMO=S4/FIN/PNL CONNECTION=my_snowflake
 |--------|------|-------------|
 | `S4.FIN.S3_FINANCE_PNL` | Table | Main P&L fact table (~100K rows) with RAP |
 | `S4.FIN.DIM_GL_ACCOUNT` | Table | 13 GL account / P&L line definitions |
-| `S4.FIN.DIM_PRODUCT` | Table | 52 real R.Daneel SKUs with model numbers |
+| `S4.FIN.DIM_PRODUCT` | Table | 52 fictional R.Daneel SKUs with realistic price points |
 | `S4.FIN.DIM_CUSTOMER` | Table | 44 major retail customers |
 | `S4.FIN.DIM_COMPANY` | Table | 6 R.Daneel SAP company codes |
 | `S4.FIN.DIM_PLANT` | Table | 8 R.Daneel manufacturing plants |

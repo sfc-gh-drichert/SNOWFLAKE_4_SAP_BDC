@@ -38,7 +38,7 @@ export const DEMO_CONFIG = {
       [2025, "2025"],
       [2026, "2026 (partial)"],
     ]),
-    brands:  ["All", "Bosch", "Siemens", "Gaggenau", "NEFF", "Thermador"] as const,
+    brands:  ["All", "Giskard", "Calvin", "Solaria", "Terminus", "Aurora"] as const,
     regions: ["All", "DACH", "W_EUROPE", "E_EUROPE", "N_AMERICA", "APAC", "EMERGING"] as const,
   },
 
@@ -47,7 +47,7 @@ export const DEMO_CONFIG = {
     "Show me the full P&L waterfall for 2025.",
     "Which brand has the highest EBIT margin?",
     "Is the Cooking category recovering in 2025 and 2026?",
-    "Why is Gaggenau so much more profitable than Bosch?",
+    "Why is Solaria so much more profitable than Giskard?",
     "Compare EBIT by region — which region leads?",
   ],
 } as const

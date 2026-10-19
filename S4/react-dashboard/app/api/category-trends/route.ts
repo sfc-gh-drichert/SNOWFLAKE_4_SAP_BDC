@@ -11,7 +11,7 @@ SELECT
   CATEGORY,
   ROUND(SUM(IFF(PNL_CATEGORY = 'REVENUE', HSL, 0)) / 1e6, 0) AS revenue_eur_m
 FROM ${TABLE}
-WHERE (? = 'All' OR BRAND = ?)
+WHERE (? = 'All' OR BRAND = UPPER(?))
   AND (? = 'All' OR REGION = ?)
 GROUP BY 1, 2
 ORDER BY 1, 2

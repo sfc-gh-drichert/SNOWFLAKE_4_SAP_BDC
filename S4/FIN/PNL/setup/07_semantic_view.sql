@@ -27,7 +27,7 @@ CREATE OR REPLACE SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV
     PNL.CLIENT_ID           AS CLIENT_ID
       COMMENT = 'Tenant identifier. Row Access Policy enforces visibility per role.',
     PNL.BRAND               AS BRAND
-      COMMENT = 'R.Daneel brand: BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
+      COMMENT = 'R.Daneel brand: GISKARD | CALVIN | SOLARIA | TERMINUS | AURORA',
     PNL.CATEGORY            AS CATEGORY
       COMMENT = 'Product category: COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
     PNL.SUBCATEGORY         AS SUBCATEGORY,
@@ -44,9 +44,9 @@ CREATE OR REPLACE SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV
     PNL.CUSTOMER            AS CUSTOMER
       COMMENT = 'SAP customer number',
     PNL.MATERIAL            AS MATERIAL
-      COMMENT = 'R.Daneel material/SKU number (e.g. RD-DW-B6000)',
+      COMMENT = 'R.Daneel material/SKU number (e.g. RD-DW-G6000)',
     PNL.PRODUCT_NAME        AS PRODUCT_NAME
-      COMMENT = 'Full product name (e.g. Bosch Serie 6 PerfectDry SMV6ZCX00E)',
+      COMMENT = 'Full product name (e.g. Giskard Series 6 DryMax RD-DW-G6000)',
     PNL.ACDOCA_RACCT        AS ACDOCA_RACCT
       COMMENT = 'GL account number (e.g. 0800000=Gross Revenue, 0500000=Material COGS)',
     PNL.PNL_CATEGORY        AS PNL_CATEGORY
@@ -81,7 +81,7 @@ CREATE OR REPLACE SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV
 
     -- ── COST OF GOODS SOLD ───────────────────────────────────────────────────
     PNL.MATERIAL_COGS AS SUM(IFF(ACDOCA_RACCT = '0500000', -HSL, 0))
-      COMMENT = 'Material cost of goods sold (EUR). Typically 45% of net revenue for Bosch/Siemens, ~36% for Gaggenau.',
+      COMMENT = 'Material cost of goods sold (EUR). Typically 45% of net revenue for Giskard/Calvin, ~36% for Solaria.',
 
     PNL.MFG_LABOUR AS SUM(IFF(ACDOCA_RACCT = '0510000', -HSL, 0))
       COMMENT = 'Manufacturing labour and assembly costs (EUR). Typically 8% of net revenue.',
@@ -96,7 +96,7 @@ CREATE OR REPLACE SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV
                       - SUM(IFF(PNL_CATEGORY = 'TRADE_SPEND', -HSL, 0))
                       - SUM(IFF(PNL_CATEGORY = 'RETURNS', -HSL, 0))
                       - SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS'), -HSL, 0))
-      COMMENT = 'Gross Profit = Net Revenue minus COGS and logistics (EUR). Typically 34% of net for R.Daneel. Gaggenau ~46%.',
+      COMMENT = 'Gross Profit = Net Revenue minus COGS and logistics (EUR). Typically 34% of net for R.Daneel. Solaria ~46%.',
 
     -- ── MARGINAL CONTRIBUTION 1 (DB1) ────────────────────────────────────────
     PNL.BRAND_ADP AS SUM(IFF(PNL_CATEGORY = 'BRAND_ADP', -HSL, 0))
@@ -145,13 +145,13 @@ CREATE OR REPLACE SEMANTIC VIEW S4_FIN_PNL_ANALYTICS_SV
       COMMENT = 'EBIT Margin % of Net Revenue. R.Daneel 2024 reference: ~6%. Dataset covers 2023-2026 with category-level adjustors applied each year.',
 
     GP_MARGIN_PCT AS PNL.GROSS_PROFIT / NULLIF(PNL.NET_REVENUE, 0) * 100
-      COMMENT = 'Gross Profit Margin % of Net Revenue. R.Daneel avg ~34%. Gaggenau ~46%.',
+      COMMENT = 'Gross Profit Margin % of Net Revenue. R.Daneel avg ~34%. Solaria ~46%.',
 
     DB2_MARGIN_PCT AS PNL.DB2_MARGINAL_CONTRIBUTION / NULLIF(PNL.NET_REVENUE, 0) * 100
       COMMENT = 'DB2 Marginal Contribution Margin % of Net Revenue. Typically 15.5%.',
 
     AVG_SELLING_PRICE_EUR AS PNL.GROSS_REVENUE / NULLIF(PNL.TOTAL_UNITS, 0)
-      COMMENT = 'Average Selling Price in EUR = Gross Revenue / Units Sold. Gaggenau ASP is 4-6x higher than Bosch.'
+      COMMENT = 'Average Selling Price in EUR = Gross Revenue / Units Sold. Solaria ASP is 4-6x higher than Giskard.'
   )
 
   COMMENT = 'R.Daneel Inc. PnL Analytics Semantic View. Full PnL waterfall: Gross Revenue to DB1 to DB2 to EBIT. Row Access Policy inherited from S3_FINANCE_PNL: data visibility controlled per role. 2023-2026 (2026 partial through Sep), ~100K rows. EUR currency throughout.';

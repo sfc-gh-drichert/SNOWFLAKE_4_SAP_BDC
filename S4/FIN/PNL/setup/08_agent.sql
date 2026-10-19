@@ -28,7 +28,7 @@ CREATE OR REPLACE AGENT S4_FIN_PNL_AGENT
       - question: "What was R.Daneel EBIT margin trend from 2023 to 2026?"
       - question: "Which brand has the highest gross margin?"
       - question: "Is the Cooking category recovering in 2025 and 2026 after its 2024 decline?"
-      - question: "Show me the PnL waterfall from Gross Revenue to EBIT for Bosch."
+      - question: "Show me the PnL waterfall from Gross Revenue to EBIT for Giskard."
       - question: "Compare DB2 margin across distribution channels."
 
   tools:
@@ -83,8 +83,8 @@ GRANT USAGE ON AGENT S4_FIN_PNL_AGENT TO ROLE S4_FIN_APAC_DEMO_ROLE;
 -- VQ2: Category multi-year comparison
 --   "Compare revenue by product category from 2023 to 2026. Which grew and which declined?"
 --
--- VQ3: Gaggenau margin premium
---   "What is Gaggenau gross margin compared to the R.Daneel Inc. average? Why is it higher?"
+-- VQ3: Solaria margin premium
+--   "What is Solaria gross margin compared to the R.Daneel Inc. average? Why is it higher?"
 --
 -- VQ4: Top products by DB2
 --   "Which are the top 10 products by DB2 marginal contribution in absolute EUR for 2025?"
@@ -93,7 +93,7 @@ GRANT USAGE ON AGENT S4_FIN_PNL_AGENT TO ROLE S4_FIN_APAC_DEMO_ROLE;
 --   "Break down EBIT by region. Which region has the highest EBIT margin?"
 --
 -- VQ6: Monthly seasonality
---   "Show monthly gross revenue for Bosch in 2025. What seasonal patterns do you observe?"
+--   "Show monthly gross revenue for Giskard in 2025. What seasonal patterns do you observe?"
 --
 -- VQ7: Channel profitability
 --   "Compare gross margin and DB2 margin across distribution channels (Retail, Built-in, E-Commerce, B2B)."

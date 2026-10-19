@@ -13,7 +13,7 @@ WITH pnl AS (
     SUM(IFF(PNL_CATEGORY IN ('COGS','LOGISTICS','BRAND_ADP','SALES','RD','GA'), -HSL, 0)) AS total_costs
   FROM ${TABLE}
   WHERE (? = 0 OR FISCALYEAR = ?)
-    AND (? = 'All' OR BRAND = ?)
+    AND (? = 'All' OR BRAND = UPPER(?))
     AND (? = 'All' OR REGION = ?)
 )
 SELECT

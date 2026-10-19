@@ -32,8 +32,8 @@
 --   EBIT                   =  5.5% of gross =  6.0% of net ✓
 --
 -- PREMIUM BRAND OVERRIDES
---   Gaggenau:  COGS × 0.80, Trade Discounts × 0.60 → GP margin ~46%
---   Thermador: COGS × 0.87, Trade Discounts × 0.65 → GP margin ~41%
+--   Solaria:  COGS × 0.80, Trade Discounts × 0.60 → GP margin ~46%
+--   Aurora: COGS × 0.87, Trade Discounts × 0.65 → GP margin ~41%
 --
 -- SEASONALITY MULTIPLIERS (applied to all GL lines equally)
 --   Dec +35%, Nov +25%, Oct +15%, Sep +10% (IFA Berlin launch season)
@@ -110,31 +110,31 @@ assigned AS (
         -- ── GL type: 13 types cycling across all rows ────────────────────────
         MOD(b.rn - 1, 13)  AS gl_idx,
 
-        -- ── Brand (weighted: Bosch 50%, Siemens 28%, Gaggenau 7%, Neff 8%, Thermador 7%)
+        -- ── Brand (weighted: Giskard 50%, Calvin 28%, Solaria 7%, Terminus 8%, Aurora 7%)
         CASE
-            WHEN MOD(b.rn, 100) <  50 THEN 'BOSCH'
-            WHEN MOD(b.rn, 100) <  78 THEN 'SIEMENS'
-            WHEN MOD(b.rn, 100) <  85 THEN 'GAGGENAU'
-            WHEN MOD(b.rn, 100) <  93 THEN 'NEFF'
-            ELSE                            'THERMADOR'
+            WHEN MOD(b.rn, 100) <  50 THEN 'GISKARD'
+            WHEN MOD(b.rn, 100) <  78 THEN 'CALVIN'
+            WHEN MOD(b.rn, 100) <  85 THEN 'SOLARIA'
+            WHEN MOD(b.rn, 100) <  93 THEN 'TERMINUS'
+            ELSE                            'AURORA'
         END  AS brand,
 
         -- ── Category (brand-aware: only assigns categories each brand sells)
-        -- Gaggenau  : COOKING | COOLING | DISH_CARE        (luxury specialist)
-        -- NEFF      : COOKING | DISH_CARE | LAUNDRY_CARE   (cooking enthusiast brand)
-        -- Thermador : COOKING | COOLING | DISH_CARE        (NA luxury kitchen)
-        -- Bosch/Siemens: all 5 categories
+        -- Solaria  : COOKING | COOLING | DISH_CARE        (luxury specialist)
+        -- Terminus      : COOKING | DISH_CARE | LAUNDRY_CARE   (cooking enthusiast brand)
+        -- Aurora : COOKING | COOLING | DISH_CARE        (NA luxury kitchen)
+        -- Giskard/Calvin: all 5 categories
         CASE
-            WHEN MOD(b.rn, 100) BETWEEN 78 AND 84  -- Gaggenau
+            WHEN MOD(b.rn, 100) BETWEEN 78 AND 84  -- Solaria
                 THEN CASE MOD(FLOOR((b.rn - 1) / 13), 3)
                      WHEN 0 THEN 'COOKING' WHEN 1 THEN 'COOLING' ELSE 'DISH_CARE' END
-            WHEN MOD(b.rn, 100) >= 93              -- Thermador
+            WHEN MOD(b.rn, 100) >= 93              -- Aurora
                 THEN CASE MOD(FLOOR((b.rn - 1) / 13), 3)
                      WHEN 0 THEN 'COOKING' WHEN 1 THEN 'COOLING' ELSE 'DISH_CARE' END
-            WHEN MOD(b.rn, 100) BETWEEN 85 AND 92  -- Neff
+            WHEN MOD(b.rn, 100) BETWEEN 85 AND 92  -- Terminus
                 THEN CASE MOD(FLOOR((b.rn - 1) / 13), 3)
                      WHEN 0 THEN 'COOKING' WHEN 1 THEN 'DISH_CARE' ELSE 'LAUNDRY_CARE' END
-            ELSE  -- Bosch and Siemens: all 5 categories
+            ELSE  -- Giskard and Calvin: all 5 categories
                 CASE MOD(FLOOR((b.rn - 1) / 13), 5)
                     WHEN 0 THEN 'LAUNDRY_CARE' WHEN 1 THEN 'DISH_CARE'
                     WHEN 2 THEN 'COOKING'      WHEN 3 THEN 'COOLING'
@@ -163,15 +163,15 @@ assigned AS (
         -- ── Base transaction amount (EUR, varies by brand tier) ──────────────
         ROUND(
             CASE
-                WHEN MOD(b.rn, 100) BETWEEN 78 AND 84  -- Gaggenau (premium)
+                WHEN MOD(b.rn, 100) BETWEEN 78 AND 84  -- Solaria (premium)
                     THEN CAST(80000 + ABS(HASH(b.rn,  7)) % 420001 AS NUMBER(18,2))
-                WHEN MOD(b.rn, 100) >= 93              -- Thermador (premium NA)
+                WHEN MOD(b.rn, 100) >= 93              -- Aurora (premium NA)
                     THEN CAST(60000 + ABS(HASH(b.rn, 11)) % 240001 AS NUMBER(18,2))
-                WHEN MOD(b.rn, 100) BETWEEN 85 AND 92  -- Neff (mid-premium)
+                WHEN MOD(b.rn, 100) BETWEEN 85 AND 92  -- Terminus (mid-premium)
                     THEN CAST(30000 + ABS(HASH(b.rn, 13)) % 170001 AS NUMBER(18,2))
-                WHEN MOD(b.rn, 100) BETWEEN 50 AND 77  -- Siemens
+                WHEN MOD(b.rn, 100) BETWEEN 50 AND 77  -- Calvin
                     THEN CAST(40000 + ABS(HASH(b.rn, 17)) % 310001 AS NUMBER(18,2))
-                ELSE                                    -- Bosch
+                ELSE                                    -- Giskard
                     CAST(50000 + ABS(HASH(b.rn, 19)) % 350001 AS NUMBER(18,2))
             END
         , 2) AS base_amount,
@@ -234,10 +234,10 @@ enriched AS (
               END
             -- Premium brand margin overrides (reduce cost ratios → better margins)
             * CASE
-                WHEN a.brand = 'GAGGENAU'  AND gl.pnl_cat IN ('COGS','LOGISTICS')   THEN 0.80
-                WHEN a.brand = 'GAGGENAU'  AND gl.pnl_cat IN ('TRADE_SPEND','RETURNS') THEN 0.60
-                WHEN a.brand = 'THERMADOR' AND gl.pnl_cat IN ('COGS','LOGISTICS')   THEN 0.87
-                WHEN a.brand = 'THERMADOR' AND gl.pnl_cat IN ('TRADE_SPEND','RETURNS') THEN 0.65
+                WHEN a.brand = 'SOLARIA'  AND gl.pnl_cat IN ('COGS','LOGISTICS')   THEN 0.80
+                WHEN a.brand = 'SOLARIA'  AND gl.pnl_cat IN ('TRADE_SPEND','RETURNS') THEN 0.60
+                WHEN a.brand = 'AURORA' AND gl.pnl_cat IN ('COGS','LOGISTICS')   THEN 0.87
+                WHEN a.brand = 'AURORA' AND gl.pnl_cat IN ('TRADE_SPEND','RETURNS') THEN 0.65
                 ELSE 1.000
               END
         , 2) AS hsl_amount,
@@ -274,51 +274,51 @@ enriched AS (
 
         -- ── Sales organisation (by brand) ─────────────────────────────────────
         CASE a.brand
-            WHEN 'BOSCH'     THEN '0010'
-            WHEN 'SIEMENS'   THEN '0020'
-            WHEN 'GAGGENAU'  THEN '0030'
-            WHEN 'NEFF'      THEN '0040'
-            WHEN 'THERMADOR' THEN '0050'
+            WHEN 'GISKARD'     THEN '0010'
+            WHEN 'CALVIN'   THEN '0020'
+            WHEN 'SOLARIA'  THEN '0030'
+            WHEN 'TERMINUS'      THEN '0040'
+            WHEN 'AURORA' THEN '0050'
         END AS sales_org,
 
         -- ── Material number (brand + category → specific SKU) ─────────────────
         CASE
-            WHEN a.brand = 'BOSCH'    AND a.category = 'DISH_CARE'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-DW-B8000' WHEN 1 THEN 'RD-DW-B6000' WHEN 2 THEN 'RD-DW-B4000' ELSE 'RD-DW-B2000' END
-            WHEN a.brand = 'BOSCH'    AND a.category = 'LAUNDRY_CARE'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-WM-B8100' WHEN 1 THEN 'RD-WM-B6100' WHEN 2 THEN 'RD-WM-B4100' ELSE 'RD-TD-B8100' END
-            WHEN a.brand = 'BOSCH'    AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-B8000' WHEN 1 THEN 'RD-OV-B6000' WHEN 2 THEN 'RD-OV-B4000' ELSE 'RD-IH-B6000' END
-            WHEN a.brand = 'BOSCH'    AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-FF-B8000' WHEN 1 THEN 'RD-FF-B6000' ELSE 'RD-FF-B4000' END
-            WHEN a.brand = 'BOSCH'    AND a.category = 'CONSUMER_PRODUCTS'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-CF-B8000' WHEN 1 THEN 'RD-CF-B6000' ELSE 'RD-VC-B6000' END
-            WHEN a.brand = 'SIEMENS'  AND a.category = 'DISH_CARE'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-DW-S7000' WHEN 1 THEN 'RD-DW-S5000' ELSE 'RD-DW-S3000' END
-            WHEN a.brand = 'SIEMENS'  AND a.category = 'LAUNDRY_CARE'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-WM-S7100' WHEN 1 THEN 'RD-WM-S5100' ELSE 'RD-TD-S7100' END
-            WHEN a.brand = 'SIEMENS'  AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-OV-S9000' WHEN 1 THEN 'RD-OV-S7000' ELSE 'RD-IH-S7000' END
-            WHEN a.brand = 'SIEMENS'  AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-FF-S7000' ELSE 'RD-FF-S5000' END
-            WHEN a.brand = 'SIEMENS'  AND a.category = 'CONSUMER_PRODUCTS'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-CF-S9000' ELSE 'RD-CF-S7000' END
-            WHEN a.brand = 'GAGGENAU' AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-G4800' WHEN 1 THEN 'RD-OV-G4700' WHEN 2 THEN 'RD-IH-G4820' ELSE 'RD-IH-G4250' END
-            WHEN a.brand = 'GAGGENAU' AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-RF-G4920' ELSE 'RD-FZ-G4910' END
-            WHEN a.brand = 'GAGGENAU' AND a.category = 'DISH_CARE'  THEN 'RD-DW-G2870'
-            WHEN a.brand = 'NEFF'     AND a.category = 'COOKING'
-                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-N5770' WHEN 1 THEN 'RD-OV-N6900' WHEN 2 THEN 'RD-OV-N4700' ELSE 'RD-IH-N4600' END
-            WHEN a.brand = 'NEFF'     AND a.category = 'DISH_CARE'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-DW-N5850' ELSE 'RD-DW-N8970' END
-            WHEN a.brand = 'NEFF'     AND a.category = 'LAUNDRY_CARE' THEN 'RD-WM-N7100'
-            WHEN a.brand = 'THERMADOR' AND a.category = 'COOKING'     THEN 'RD-OV-T3600'
-            WHEN a.brand = 'THERMADOR' AND a.category = 'DISH_CARE'   THEN 'RD-DW-T3000'
-            WHEN a.brand = 'THERMADOR' AND a.category = 'COOLING'
-                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-FF-T3600' ELSE 'RD-FZ-T3600' END
-            -- Fallback for brand/category combos not in R.Daneel's portfolio (e.g. Gaggenau laundry)
-            ELSE 'RD-DW-B4000'
+            WHEN a.brand = 'GISKARD'    AND a.category = 'DISH_CARE'
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-DW-G8000' WHEN 1 THEN 'RD-DW-G6000' WHEN 2 THEN 'RD-DW-G4000' ELSE 'RD-DW-G2000' END
+            WHEN a.brand = 'GISKARD'    AND a.category = 'LAUNDRY_CARE'
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-WM-G8100' WHEN 1 THEN 'RD-WM-G6100' WHEN 2 THEN 'RD-WM-G4100' ELSE 'RD-TD-G8100' END
+            WHEN a.brand = 'GISKARD'    AND a.category = 'COOKING'
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-G8000' WHEN 1 THEN 'RD-OV-G6000' WHEN 2 THEN 'RD-OV-G4000' ELSE 'RD-IH-G6000' END
+            WHEN a.brand = 'GISKARD'    AND a.category = 'COOLING'
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-FF-G8000' WHEN 1 THEN 'RD-FF-G6000' ELSE 'RD-FF-G4000' END
+            WHEN a.brand = 'GISKARD'    AND a.category = 'CONSUMER_PRODUCTS'
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-CF-G8000' WHEN 1 THEN 'RD-CF-G6000' ELSE 'RD-VC-G6000' END
+            WHEN a.brand = 'CALVIN'  AND a.category = 'DISH_CARE'
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-DW-C7000' WHEN 1 THEN 'RD-DW-C5000' ELSE 'RD-DW-C3000' END
+            WHEN a.brand = 'CALVIN'  AND a.category = 'LAUNDRY_CARE'
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-WM-C7100' WHEN 1 THEN 'RD-WM-C5100' ELSE 'RD-TD-C7100' END
+            WHEN a.brand = 'CALVIN'  AND a.category = 'COOKING'
+                THEN CASE MOD(a.rn,3) WHEN 0 THEN 'RD-OV-C9000' WHEN 1 THEN 'RD-OV-C7000' ELSE 'RD-IH-C7000' END
+            WHEN a.brand = 'CALVIN'  AND a.category = 'COOLING'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-FF-C7000' ELSE 'RD-FF-C5000' END
+            WHEN a.brand = 'CALVIN'  AND a.category = 'CONSUMER_PRODUCTS'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-CF-C9000' ELSE 'RD-CF-C7000' END
+            WHEN a.brand = 'SOLARIA' AND a.category = 'COOKING'
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-S4800' WHEN 1 THEN 'RD-OV-S4700' WHEN 2 THEN 'RD-IH-S4820' ELSE 'RD-IH-S4250' END
+            WHEN a.brand = 'SOLARIA' AND a.category = 'COOLING'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-RF-S4920' ELSE 'RD-FZ-S4910' END
+            WHEN a.brand = 'SOLARIA' AND a.category = 'DISH_CARE'  THEN 'RD-DW-S2870'
+            WHEN a.brand = 'TERMINUS'     AND a.category = 'COOKING'
+                THEN CASE MOD(a.rn,4) WHEN 0 THEN 'RD-OV-T5770' WHEN 1 THEN 'RD-OV-T6900' WHEN 2 THEN 'RD-OV-T4700' ELSE 'RD-IH-T4600' END
+            WHEN a.brand = 'TERMINUS'     AND a.category = 'DISH_CARE'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-DW-T5850' ELSE 'RD-DW-T8970' END
+            WHEN a.brand = 'TERMINUS'     AND a.category = 'LAUNDRY_CARE' THEN 'RD-WM-T7100'
+            WHEN a.brand = 'AURORA' AND a.category = 'COOKING'     THEN 'RD-OV-A3600'
+            WHEN a.brand = 'AURORA' AND a.category = 'DISH_CARE'   THEN 'RD-DW-A3000'
+            WHEN a.brand = 'AURORA' AND a.category = 'COOLING'
+                THEN CASE MOD(a.rn,2) WHEN 0 THEN 'RD-FF-A3600' ELSE 'RD-FZ-A3600' END
+            -- Fallback for brand/category combos not in R.Daneel's portfolio (e.g. Solaria laundry)
+            ELSE 'RD-DW-G4000'
         END AS mat_code,
 
         -- ── Customer (region-aware assignment) ───────────────────────────────
@@ -403,7 +403,7 @@ SELECT
     -- Customer group from DIM_CUSTOMER (join on customer number)
     COALESCE(c.CUSTOMER_GROUP, '01')                             AS CUSTOMERGROUP,
     e.mat_code                                                   AS MATERIAL,
-    COALESCE(p.PRODUCT_NAME, 'Bosch Serie 4 SMS4HVW31E')        AS PRODUCT_NAME,
+    COALESCE(p.PRODUCT_NAME, 'Giskard Series 4 Dishwasher')        AS PRODUCT_NAME,
     e.brand                                                      AS BRAND,
     e.category                                                   AS CATEGORY,
     COALESCE(p.SUBCATEGORY, 'Dishwasher Freestanding')          AS SUBCATEGORY,

@@ -57,7 +57,7 @@ INSERT INTO DIM_GL_ACCOUNT VALUES
 -- 2. PRODUCT DIMENSION
 --    Real R.Daneel model numbers across all five brands and five categories.
 --    LIST_PRICE_EUR is used to calculate average selling price in the SV.
---    Note: Gaggenau/Neff/Thermador are category-specialist brands — they do
+--    Note: Solaria/Terminus/Aurora are category-specialist brands — they do
 --    not cover all five categories (this is intentional and realistic).
 -- ─────────────────────────────────────────────────────────────────────────────
 CREATE OR REPLACE TABLE DIM_PRODUCT (
@@ -66,7 +66,7 @@ CREATE OR REPLACE TABLE DIM_PRODUCT (
     PRODUCT_NAME     VARCHAR(100)
                      COMMENT 'Full product name including brand and series',
     BRAND            VARCHAR(20)
-                     COMMENT 'R.Daneel brand: BOSCH | SIEMENS | GAGGENAU | NEFF | THERMADOR',
+                     COMMENT 'R.Daneel brand: GISKARD | CALVIN | SOLARIA | TERMINUS | AURORA',
     CATEGORY         VARCHAR(30)
                      COMMENT 'Product category: COOKING | LAUNDRY_CARE | DISH_CARE | COOLING | CONSUMER_PRODUCTS',
     SUBCATEGORY      VARCHAR(50)
@@ -81,72 +81,72 @@ CREATE OR REPLACE TABLE DIM_PRODUCT (
 COMMENT = 'R.Daneel product catalogue — ~52 real SKUs with model numbers, covers all brands and categories';
 
 INSERT INTO DIM_PRODUCT VALUES
--- ── BOSCH — DISH CARE ──────────────────────────────────────────────────────
-('RD-DW-B8000', 'Bosch Serie 8 SMS8YCX02G PerfectDry',               'BOSCH',    'DISH_CARE',        'Dishwasher Freestanding',        999.00,  'PREMIUM', 'A'),
-('RD-DW-B6000', 'Bosch Serie 6 SMV6ZCX00E PerfectDry Integrated',    'BOSCH',    'DISH_CARE',        'Dishwasher Fully Integrated',    799.00,  'MID',     'A'),
-('RD-DW-B4000', 'Bosch Serie 4 SMS4HVW31E',                          'BOSCH',    'DISH_CARE',        'Dishwasher Freestanding',        549.00,  'MID',     'E'),
-('RD-DW-B2000', 'Bosch Serie 2 SMS2ITI11E',                          'BOSCH',    'DISH_CARE',        'Dishwasher Freestanding',        349.00,  'ENTRY',   'E'),
--- ── BOSCH — LAUNDRY CARE ────────────────────────────────────────────────────
-('RD-WM-B8100', 'Bosch Serie 8 WGB254A0GB EcoSilence 10kg',          'BOSCH',    'LAUNDRY_CARE',     'Washing Machine Front Load',    1199.00, 'PREMIUM', 'A'),
-('RD-WM-B6100', 'Bosch Serie 6 WAU28PHSGES 9kg',                     'BOSCH',    'LAUNDRY_CARE',     'Washing Machine Front Load',     699.00,  'MID',     'A'),
-('RD-WM-B4100', 'Bosch Serie 4 WAN28080GB 8kg',                      'BOSCH',    'LAUNDRY_CARE',     'Washing Machine Front Load',     499.00,  'ENTRY',   'B'),
-('RD-TD-B8100', 'Bosch Serie 8 WTX87MH9GB Heat Pump Dryer 9kg',      'BOSCH',    'LAUNDRY_CARE',     'Tumble Dryer Heat Pump',         999.00,  'PREMIUM', 'A'),
--- ── BOSCH — COOKING ─────────────────────────────────────────────────────────
-('RD-OV-B8000', 'Bosch Serie 8 HBG7784B1B Pyrolytic',                'BOSCH',    'COOKING',          'Built-in Oven Pyrolytic',       1299.00, 'PREMIUM', 'A'),
-('RD-OV-B6000', 'Bosch Serie 6 HRS578BS6B Steam Oven',               'BOSCH',    'COOKING',          'Built-in Steam Oven',            999.00,  'MID',     'A'),
-('RD-OV-B4000', 'Bosch Serie 4 HBA172BS1',                           'BOSCH',    'COOKING',          'Built-in Oven',                  449.00,  'ENTRY',   'A'),
-('RD-IH-B6000', 'Bosch Serie 6 PXE675DC1E FlexInduction 60cm',       'BOSCH',    'COOKING',          'Induction Hob 60cm',             549.00,  'MID',     NULL),
--- ── BOSCH — COOLING ─────────────────────────────────────────────────────────
-('RD-FF-B8000', 'Bosch Serie 8 KAN93AAIFP FrenchDoor 590L',          'BOSCH',    'COOLING',          'French Door Refrigerator',      1499.00, 'PREMIUM', 'C'),
-('RD-FF-B6000', 'Bosch Serie 6 KGN86AIDP NoFrost 631L',              'BOSCH',    'COOLING',          'Fridge Freezer NoFrost',        1199.00, 'MID',     'C'),
-('RD-FF-B4000', 'Bosch Serie 4 KGV58VLEAS NoFrost',                  'BOSCH',    'COOLING',          'Fridge Freezer Combi',           649.00,  'ENTRY',   'E'),
--- ── BOSCH — CONSUMER PRODUCTS ───────────────────────────────────────────────
-('RD-CF-B8000', 'Bosch VeroBar AromaPro CTL636ES6 1.4L',             'BOSCH',    'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine', 1199.00, 'PREMIUM', NULL),
-('RD-CF-B6000', 'Bosch VeroCafe Plus TIS65621GB',                    'BOSCH',    'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine',  799.00,  'MID',     NULL),
-('RD-VC-B6000', 'Bosch BCS122GB Unlimited 7 Cordless Vacuum',        'BOSCH',    'CONSUMER_PRODUCTS','Cordless Vacuum Cleaner',         299.00,  'MID',     NULL),
--- ── SIEMENS — DISH CARE ─────────────────────────────────────────────────────
-('RD-DW-S7000', 'Siemens iQ700 SN63HX01BE Fully Integrated',         'SIEMENS',  'DISH_CARE',        'Dishwasher Fully Integrated',    849.00,  'PREMIUM', 'A'),
-('RD-DW-S5000', 'Siemens iQ500 SN55ES16ME',                          'SIEMENS',  'DISH_CARE',        'Dishwasher Freestanding',        599.00,  'MID',     'B'),
-('RD-DW-S3000', 'Siemens iQ300 SN43ES14ME',                          'SIEMENS',  'DISH_CARE',        'Dishwasher Freestanding',        449.00,  'ENTRY',   'E'),
--- ── SIEMENS — LAUNDRY CARE ──────────────────────────────────────────────────
-('RD-WM-S7100', 'Siemens iQ700 WG52A2X0GB 10kg',                     'SIEMENS',  'LAUNDRY_CARE',     'Washing Machine Front Load',     849.00,  'PREMIUM', 'A'),
-('RD-WM-S5100', 'Siemens iQ500 WM14N093GB 9kg',                      'SIEMENS',  'LAUNDRY_CARE',     'Washing Machine Front Load',     699.00,  'MID',     'A'),
-('RD-TD-S7100', 'Siemens iQ700 WT47W5W0 Heat Pump Dryer 9kg',        'SIEMENS',  'LAUNDRY_CARE',     'Tumble Dryer Heat Pump',         949.00,  'PREMIUM', 'A'),
--- ── SIEMENS — COOKING ───────────────────────────────────────────────────────
-('RD-OV-S9000', 'Siemens studioLine HS858GXS6B',                     'SIEMENS',  'COOKING',          'Built-in Oven Premium',         1499.00, 'PREMIUM', 'A'),
-('RD-OV-S7000', 'Siemens iQ700 HB578GBS6B Pyrolytic',                'SIEMENS',  'COOKING',          'Built-in Oven Pyrolytic',       1199.00, 'MID',     'A'),
-('RD-IH-S7000', 'Siemens EX977KXX1E flexInduction 90cm',             'SIEMENS',  'COOKING',          'Induction Hob 90cm',             999.00,  'MID',     NULL),
--- ── SIEMENS — COOLING ───────────────────────────────────────────────────────
-('RD-FF-S7000', 'Siemens iQ700 KF96NAXEA FrenchDoor',                'SIEMENS',  'COOLING',          'French Door Refrigerator',      1699.00, 'PREMIUM', 'C'),
-('RD-FF-S5000', 'Siemens iQ500 KG49NXWEP NoFrost',                   'SIEMENS',  'COOLING',          'Fridge Freezer NoFrost',         799.00,  'MID',     'C'),
--- ── SIEMENS — CONSUMER PRODUCTS ─────────────────────────────────────────────
-('RD-CF-S9000', 'Siemens EQ900 TQ907D03 Fully Automatic',            'SIEMENS',  'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine', 1299.00, 'PREMIUM', NULL),
-('RD-CF-S7000', 'Siemens EQ700 TQ703R07',                            'SIEMENS',  'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine',  999.00,  'MID',     NULL),
--- ── GAGGENAU — COOKING (premium/luxury only) ────────────────────────────────
-('RD-OV-G4800', 'Gaggenau BO480112 Combi-Steam Oven 60cm',           'GAGGENAU', 'COOKING',          'Built-in Combi Steam Oven',     3800.00, 'PREMIUM', 'A'),
-('RD-OV-G4700', 'Gaggenau BS470112 Steam Oven 60cm',                 'GAGGENAU', 'COOKING',          'Built-in Steam Oven',           3200.00, 'PREMIUM', 'A'),
-('RD-IH-G4820', 'Gaggenau CX482101 Full Surface Induction',          'GAGGENAU', 'COOKING',          'Full Surface Induction Hob',    4500.00, 'PREMIUM', NULL),
-('RD-IH-G4250', 'Gaggenau VG425211 Vario Gas Cooktop',               'GAGGENAU', 'COOKING',          'Gas Cooktop',                   2800.00, 'PREMIUM', NULL),
--- ── GAGGENAU — COOLING ──────────────────────────────────────────────────────
-('RD-RF-G4920', 'Gaggenau RC492304 Vario Refrigerator Column 212L',  'GAGGENAU', 'COOLING',          'Vario Refrigerator Column',     4200.00, 'PREMIUM', 'C'),
-('RD-FZ-G4910', 'Gaggenau RF491300 Vario Freezer Column 212L',       'GAGGENAU', 'COOLING',          'Vario Freezer Column',          3800.00, 'PREMIUM', 'C'),
--- ── GAGGENAU — DISH CARE ────────────────────────────────────────────────────
-('RD-DW-G2870', 'Gaggenau GM287161 Fully Integrated 60cm',           'GAGGENAU', 'DISH_CARE',        'Dishwasher Fully Integrated',   2800.00, 'PREMIUM', 'A'),
--- ── NEFF — COOKING ──────────────────────────────────────────────────────────
-('RD-OV-N5770', 'NEFF B57VR22N0B Slide-Hide Pyrolytic',              'NEFF',     'COOKING',          'Built-in Oven Pyrolytic',        999.00,  'PREMIUM', 'A'),
-('RD-OV-N6900', 'NEFF B69FH7AN0B CircoTherm',                        'NEFF',     'COOKING',          'Built-in Oven',                  849.00,  'MID',     'A'),
-('RD-OV-N4700', 'NEFF B47CR32N0B Pyrolytic',                         'NEFF',     'COOKING',          'Built-in Oven Pyrolytic',        779.00,  'MID',     'A'),
-('RD-IH-N4600', 'NEFF T46PT60X0 Induction Hob 60cm',                 'NEFF',     'COOKING',          'Induction Hob 60cm',             549.00,  'MID',     NULL),
--- ── NEFF — DISH CARE ────────────────────────────────────────────────────────
-('RD-DW-N5850', 'NEFF S585T60X1GB Fully Integrated',                 'NEFF',     'DISH_CARE',        'Dishwasher Fully Integrated',    749.00,  'MID',     'A'),
-('RD-DW-N8970', 'NEFF S897HMX80G Fully Integrated',                  'NEFF',     'DISH_CARE',        'Dishwasher Fully Integrated',    849.00,  'PREMIUM', 'A'),
--- ── NEFF — LAUNDRY CARE ─────────────────────────────────────────────────────
-('RD-WM-N7100', 'NEFF W7540X5GB Serie 7 9kg',                        'NEFF',     'LAUNDRY_CARE',     'Washing Machine Front Load',     699.00,  'MID',     'A'),
--- ── THERMADOR — North America premium brand ──────────────────────────────────
-('RD-OV-T3600', 'Thermador MEDS607BS 30-inch Double Wall Oven',      'THERMADOR','COOKING',          'Double Wall Oven',              4000.00, 'PREMIUM', NULL),
-('RD-DW-T3000', 'Thermador DWHD771WFP StarDry Panel Ready',          'THERMADOR','DISH_CARE',        'Dishwasher Panel Ready',        2000.00, 'PREMIUM', 'A'),
-('RD-FF-T3600', 'Thermador T36IT905NP 36-inch Column Refrigerator',  'THERMADOR','COOLING',          'Column Refrigerator',           5500.00, 'PREMIUM', NULL),
-('RD-FZ-T3600', 'Thermador T36IZ900NP 36-inch Column Freezer',       'THERMADOR','COOLING',          'Column Freezer',                5000.00, 'PREMIUM', NULL);
+-- ── GISKARD — DISH CARE ──────────────────────────────────────────────────────
+('RD-DW-G8000', 'Giskard Series 8 DryMax',               'GISKARD',    'DISH_CARE',        'Dishwasher Freestanding',        999.00,  'PREMIUM', 'A'),
+('RD-DW-G6000', 'Giskard Series 6 DryMax Integrated',    'GISKARD',    'DISH_CARE',        'Dishwasher Fully Integrated',    799.00,  'MID',     'A'),
+('RD-DW-G4000', 'Giskard Series 4 Dishwasher',                          'GISKARD',    'DISH_CARE',        'Dishwasher Freestanding',        549.00,  'MID',     'E'),
+('RD-DW-G2000', 'Giskard Series 2 Dishwasher',                          'GISKARD',    'DISH_CARE',        'Dishwasher Freestanding',        349.00,  'ENTRY',   'E'),
+-- ── GISKARD — LAUNDRY CARE ────────────────────────────────────────────────────
+('RD-WM-G8100', 'Giskard Series 8 QuietDrive 10kg',          'GISKARD',    'LAUNDRY_CARE',     'Washing Machine Front Load',    1199.00, 'PREMIUM', 'A'),
+('RD-WM-G6100', 'Giskard Series 6 9kg',                     'GISKARD',    'LAUNDRY_CARE',     'Washing Machine Front Load',     699.00,  'MID',     'A'),
+('RD-WM-G4100', 'Giskard Series 4 8kg',                      'GISKARD',    'LAUNDRY_CARE',     'Washing Machine Front Load',     499.00,  'ENTRY',   'B'),
+('RD-TD-G8100', 'Giskard Series 8 Heat Pump Dryer 9kg',      'GISKARD',    'LAUNDRY_CARE',     'Tumble Dryer Heat Pump',         999.00,  'PREMIUM', 'A'),
+-- ── GISKARD — COOKING ─────────────────────────────────────────────────────────
+('RD-OV-G8000', 'Giskard Series 8 Pyrolytic',                'GISKARD',    'COOKING',          'Built-in Oven Pyrolytic',       1299.00, 'PREMIUM', 'A'),
+('RD-OV-G6000', 'Giskard Series 6 Steam Oven',               'GISKARD',    'COOKING',          'Built-in Steam Oven',            999.00,  'MID',     'A'),
+('RD-OV-G4000', 'Giskard Series 4 Oven',                           'GISKARD',    'COOKING',          'Built-in Oven',                  449.00,  'ENTRY',   'A'),
+('RD-IH-G6000', 'Giskard Series 6 ZoneFlex 60cm',       'GISKARD',    'COOKING',          'Induction Hob 60cm',             549.00,  'MID',     NULL),
+-- ── GISKARD — COOLING ─────────────────────────────────────────────────────────
+('RD-FF-G8000', 'Giskard Series 8 FrenchDoor 590L',          'GISKARD',    'COOLING',          'French Door Refrigerator',      1499.00, 'PREMIUM', 'C'),
+('RD-FF-G6000', 'Giskard Series 6 FrostFree 631L',              'GISKARD',    'COOLING',          'Fridge Freezer FrostFree',        1199.00, 'MID',     'C'),
+('RD-FF-G4000', 'Giskard Series 4 FrostFree',                  'GISKARD',    'COOLING',          'Fridge Freezer Combi',           649.00,  'ENTRY',   'E'),
+-- ── GISKARD — CONSUMER PRODUCTS ───────────────────────────────────────────────
+('RD-CF-G8000', 'Giskard Brew Pro 1.4L',             'GISKARD',    'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine', 1199.00, 'PREMIUM', NULL),
+('RD-CF-G6000', 'Giskard Brew Plus',                    'GISKARD',    'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine',  799.00,  'MID',     NULL),
+('RD-VC-G6000', 'Giskard CordFree 7 Cordless Vacuum',        'GISKARD',    'CONSUMER_PRODUCTS','Cordless Vacuum Cleaner',         299.00,  'MID',     NULL),
+-- ── CALVIN — DISH CARE ─────────────────────────────────────────────────────
+('RD-DW-C7000', 'Calvin C700 Fully Integrated',         'CALVIN',  'DISH_CARE',        'Dishwasher Fully Integrated',    849.00,  'PREMIUM', 'A'),
+('RD-DW-C5000', 'Calvin C500 Dishwasher',                          'CALVIN',  'DISH_CARE',        'Dishwasher Freestanding',        599.00,  'MID',     'B'),
+('RD-DW-C3000', 'Calvin C300 Dishwasher',                          'CALVIN',  'DISH_CARE',        'Dishwasher Freestanding',        449.00,  'ENTRY',   'E'),
+-- ── CALVIN — LAUNDRY CARE ──────────────────────────────────────────────────
+('RD-WM-C7100', 'Calvin C700 10kg',                     'CALVIN',  'LAUNDRY_CARE',     'Washing Machine Front Load',     849.00,  'PREMIUM', 'A'),
+('RD-WM-C5100', 'Calvin C500 9kg',                      'CALVIN',  'LAUNDRY_CARE',     'Washing Machine Front Load',     699.00,  'MID',     'A'),
+('RD-TD-C7100', 'Calvin C700 Heat Pump Dryer 9kg',        'CALVIN',  'LAUNDRY_CARE',     'Tumble Dryer Heat Pump',         949.00,  'PREMIUM', 'A'),
+-- ── CALVIN — COOKING ───────────────────────────────────────────────────────
+('RD-OV-C9000', 'Calvin Studio Oven',                     'CALVIN',  'COOKING',          'Built-in Oven Premium',         1499.00, 'PREMIUM', 'A'),
+('RD-OV-C7000', 'Calvin C700 Pyrolytic',                'CALVIN',  'COOKING',          'Built-in Oven Pyrolytic',       1199.00, 'MID',     'A'),
+('RD-IH-C7000', 'Calvin ZoneFlex 90cm',             'CALVIN',  'COOKING',          'Induction Hob 90cm',             999.00,  'MID',     NULL),
+-- ── CALVIN — COOLING ───────────────────────────────────────────────────────
+('RD-FF-C7000', 'Calvin C700 FrenchDoor',                'CALVIN',  'COOLING',          'French Door Refrigerator',      1699.00, 'PREMIUM', 'C'),
+('RD-FF-C5000', 'Calvin C500 FrostFree',                   'CALVIN',  'COOLING',          'Fridge Freezer FrostFree',         799.00,  'MID',     'C'),
+-- ── CALVIN — CONSUMER PRODUCTS ─────────────────────────────────────────────
+('RD-CF-C9000', 'Calvin Barista 900 Fully Automatic',            'CALVIN',  'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine', 1299.00, 'PREMIUM', NULL),
+('RD-CF-C7000', 'Calvin Barista 700',                            'CALVIN',  'CONSUMER_PRODUCTS','Fully Automatic Coffee Machine',  999.00,  'MID',     NULL),
+-- ── SOLARIA — COOKING (premium/luxury only) ────────────────────────────────
+('RD-OV-S4800', 'Solaria Combi-Steam Oven 60cm',           'SOLARIA', 'COOKING',          'Built-in Combi Steam Oven',     3800.00, 'PREMIUM', 'A'),
+('RD-OV-S4700', 'Solaria Steam Oven 60cm',                 'SOLARIA', 'COOKING',          'Built-in Steam Oven',           3200.00, 'PREMIUM', 'A'),
+('RD-IH-S4820', 'Solaria Full Surface Induction',          'SOLARIA', 'COOKING',          'Full Surface Induction Hob',    4500.00, 'PREMIUM', NULL),
+('RD-IH-S4250', 'Solaria Modular Gas Cooktop',               'SOLARIA', 'COOKING',          'Gas Cooktop',                   2800.00, 'PREMIUM', NULL),
+-- ── SOLARIA — COOLING ──────────────────────────────────────────────────────
+('RD-RF-S4920', 'Solaria Modular Refrigerator Column 212L',  'SOLARIA', 'COOLING',          'Modular Refrigerator Column',     4200.00, 'PREMIUM', 'C'),
+('RD-FZ-S4910', 'Solaria Modular Freezer Column 212L',       'SOLARIA', 'COOLING',          'Modular Freezer Column',          3800.00, 'PREMIUM', 'C'),
+-- ── SOLARIA — DISH CARE ────────────────────────────────────────────────────
+('RD-DW-S2870', 'Solaria Fully Integrated Dishwasher 60cm',           'SOLARIA', 'DISH_CARE',        'Dishwasher Fully Integrated',   2800.00, 'PREMIUM', 'A'),
+-- ── TERMINUS — COOKING ──────────────────────────────────────────────────────────
+('RD-OV-T5770', 'Terminus GlideDoor Pyrolytic Oven',              'TERMINUS',     'COOKING',          'Built-in Oven Pyrolytic',        999.00,  'PREMIUM', 'A'),
+('RD-OV-T6900', 'Terminus AirFlow Oven',                        'TERMINUS',     'COOKING',          'Built-in Oven',                  849.00,  'MID',     'A'),
+('RD-OV-T4700', 'Terminus Pyrolytic Oven',                         'TERMINUS',     'COOKING',          'Built-in Oven Pyrolytic',        779.00,  'MID',     'A'),
+('RD-IH-T4600', 'Terminus Induction Hob 60cm',                 'TERMINUS',     'COOKING',          'Induction Hob 60cm',             549.00,  'MID',     NULL),
+-- ── TERMINUS — DISH CARE ────────────────────────────────────────────────────────
+('RD-DW-T5850', 'Terminus Fully Integrated Dishwasher',                 'TERMINUS',     'DISH_CARE',        'Dishwasher Fully Integrated',    749.00,  'MID',     'A'),
+('RD-DW-T8970', 'Terminus Pro Fully Integrated Dishwasher',                  'TERMINUS',     'DISH_CARE',        'Dishwasher Fully Integrated',    849.00,  'PREMIUM', 'A'),
+-- ── TERMINUS — LAUNDRY CARE ─────────────────────────────────────────────────────
+('RD-WM-T7100', 'Terminus Series 7 9kg',                        'TERMINUS',     'LAUNDRY_CARE',     'Washing Machine Front Load',     699.00,  'MID',     'A'),
+-- ── AURORA — North America premium brand ──────────────────────────────────
+('RD-OV-A3600', 'Aurora 30-inch Double Wall Oven',      'AURORA','COOKING',          'Double Wall Oven',              4000.00, 'PREMIUM', NULL),
+('RD-DW-A3000', 'Aurora ProDry Panel Ready',          'AURORA','DISH_CARE',        'Dishwasher Panel Ready',        2000.00, 'PREMIUM', 'A'),
+('RD-FF-A3600', 'Aurora 36-inch Column Refrigerator',  'AURORA','COOLING',          'Column Refrigerator',           5500.00, 'PREMIUM', NULL),
+('RD-FZ-A3600', 'Aurora 36-inch Column Freezer',       'AURORA','COOLING',          'Column Freezer',                5000.00, 'PREMIUM', NULL);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 3. CUSTOMER DIMENSION

@@ -51,8 +51,8 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
 ### Act 1 — R.Daneel Context (2 minutes)
 
 > "R.Daneel is Europe's largest home appliance manufacturer — EUR 15.3 billion in revenue (2024 reference year),
-> owned by Bosch since 2015. They make the brands in most European kitchens:
-> Bosch, Siemens, Gaggenau, NEFF, Thermador.
+> owned by Giskard since 2015. They make the brands in most European kitchens:
+> Giskard, Calvin, Solaria, Terminus, Aurora.
 >
 > They don't publish detailed P&L because they're not publicly listed.
 > All their financial data lives in SAP. What we've done is bring that SAP data structure —
@@ -118,21 +118,21 @@ USE ROLE S4_FIN_DEMO_ROLE;
 
 ### Act 4 — Premium Brand Story (3 minutes)
 
-> "Gaggenau is a small brand by volume — only 7% of R.Daneel's revenue.
+> "Solaria is a small brand by volume — only 7% of R.Daneel's revenue.
 > But watch what it does to the margin picture."
 
 **Suggested agent questions:**
 
-4. *"Compare Gaggenau's gross margin and EBIT margin to Bosch and Siemens."*
+4. *"Compare Solaria's gross margin and EBIT margin to Giskard and Calvin."*
 
-   Expected: Gaggenau GP margin ~46% vs Bosch ~32-33%. The story: ultra-premium pricing,
+   Expected: Solaria GP margin ~46% vs Giskard ~32-33%. The story: ultra-premium pricing,
    minimal trade discounts, controlled distribution through kitchen studios.
 
 5. *"What are the top 10 products by DB2 contribution in euros? Show brand and category."*
 
 6. *"Which brand has the highest average selling price? How does it compare to its gross margin?"*
 
-> "This is the story Gaggenau's finance team tells internally.
+> "This is the story Solaria's finance team tells internally.
 > With Snowflake, every analyst can run this in seconds."
 
 ---
@@ -142,9 +142,9 @@ USE ROLE S4_FIN_DEMO_ROLE;
 7. *"Break down EBIT by region. Which region has the highest margin?"*
 
 8. *"Compare gross margin across distribution channels — Retail, Built-in, E-Commerce, B2B."*
-   > Expected: Built-in channel has highest margin (Gaggenau/NEFF bias), E-Commerce has lower
+   > Expected: Built-in channel has highest margin (Solaria/Terminus bias), E-Commerce has lower
 
-9. *"Show monthly Bosch revenue for 2025. What seasonal pattern do you see?"*
+9. *"Show monthly Giskard revenue for 2025. What seasonal pattern do you see?"*
    > Expected: September peak (IFA Berlin product launches), November/December Christmas peak, January trough
 
 10. *"How has North America grown since 2023? What drove that growth?"*
@@ -156,10 +156,10 @@ USE ROLE S4_FIN_DEMO_ROLE;
 
 ### Brand Performance
 - "What was R.Daneel's total gross revenue in 2025 by brand?"
-- "Compare Bosch and Siemens: revenue, gross margin, and EBIT margin side by side."
+- "Compare Giskard and Calvin: revenue, gross margin, and EBIT margin side by side."
 - "Which brand contributes most to group EBIT in absolute euros?"
-- "What is Thermador's EBIT margin compared to R.Daneel's overall EBIT margin?"
-- "Show the DB2 margin waterfall for Gaggenau from gross revenue to DB2."
+- "What is Aurora's EBIT margin compared to R.Daneel's overall EBIT margin?"
+- "Show the DB2 margin waterfall for Solaria from gross revenue to DB2."
 
 ### Category Analysis
 - "Which product category had the highest revenue growth between 2023 and 2026?"
@@ -188,8 +188,8 @@ USE ROLE S4_FIN_DEMO_ROLE;
 - "What would EBIT be if trade discounts were reduced by 2 percentage points?"
 
 ### Contextual / Qualitative (uses search tool)
-- "What is the Slide-Hide oven? Why is it a signature NEFF product?"
-- "What is Home Connect and how many appliances is it connected to?"
+- "What is the GlideDoor oven? Why is it a signature Terminus product?"
+- "What is R.Daneel Connect and how many appliances is it connected to?"
 - "What is zeolite technology in R.Daneel dishwashers?"
 - "Explain R.Daneel's sustainability commitment — are they carbon neutral?"
 - "Why does R.Daneel invest so heavily in Research and Development compared to competitors?"

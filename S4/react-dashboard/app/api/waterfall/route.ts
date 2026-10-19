@@ -19,7 +19,7 @@ WITH pnl AS (
     SUM(IFF(PNL_CATEGORY = 'GA',         -HSL, 0))   AS ga
   FROM ${TABLE}
   WHERE (? = 0 OR FISCALYEAR = ?)
-    AND (? = 'All' OR BRAND = ?)
+    AND (? = 'All' OR BRAND = UPPER(?))
     AND (? = 'All' OR REGION = ?)
 )
 SELECT
