@@ -36,7 +36,7 @@
 --   Aurora: COGS × 0.87, Trade Discounts × 0.65 → GP margin ~41%
 --
 -- SEASONALITY MULTIPLIERS (applied to all GL lines equally)
---   Dec +35%, Nov +25%, Oct +15%, Sep +10% (IFA Berlin launch season)
+--   Dec +35%, Nov +25%, Oct +15%, Sep +10% (autumn trade-fair launch season)
 --   Jan -20%, Aug -15%, Jul -10%
 --
 -- CATEGORY 2024 GROWTH (applied when FISCALYEAR=2024)
@@ -181,14 +181,14 @@ assigned AS (
             WHEN 12 THEN 1.35   -- December: Christmas peak
             WHEN 11 THEN 1.25   -- November: Black Friday + pre-Christmas
             WHEN 10 THEN 1.15   -- October: build-up
-            WHEN  9 THEN 1.10   -- September: IFA Berlin launches new products
+            WHEN  9 THEN 1.10   -- September: autumn trade-fair product launches
             WHEN  5 THEN 1.08   -- May: kitchen refit / spring
             WHEN  4 THEN 1.05   -- April: spring
             WHEN  6 THEN 1.00   -- June: neutral
             WHEN  3 THEN 0.95   -- March: quiet
             WHEN  7 THEN 0.90   -- July: summer lull
             WHEN  2 THEN 0.87   -- February: post-holiday trough
-            WHEN  8 THEN 0.85   -- August: IFA prep dip
+            WHEN  8 THEN 0.85   -- August: pre-launch dip
             WHEN  1 THEN 0.80   -- January: post-Christmas slowdown
             ELSE 1.00
         END  AS season_factor
@@ -264,12 +264,12 @@ enriched AS (
 
         -- ── Plant (derived from region) ───────────────────────────────────────
         CASE a.region_name
-            WHEN 'DACH'      THEN CASE MOD(a.rn, 4) WHEN 0 THEN 'GI01' WHEN 1 THEN 'DI01' WHEN 2 THEN 'TR01' ELSE 'BR01' END
-            WHEN 'W_EUROPE'  THEN 'TR01'
-            WHEN 'E_EUROPE'  THEN 'CZ01'
-            WHEN 'N_AMERICA' THEN 'NB01'
-            WHEN 'APAC'      THEN 'CH01'
-            WHEN 'EMERGING'  THEN 'TR02'
+            WHEN 'DACH'      THEN CASE MOD(a.rn, 4) WHEN 0 THEN 'KA01' WHEN 1 THEN 'HE01' WHEN 2 THEN 'AN01' ELSE 'SI01' END
+            WHEN 'W_EUROPE'  THEN 'AN01'
+            WHEN 'E_EUROPE'  THEN 'SA01'
+            WHEN 'N_AMERICA' THEN 'NX01'
+            WHEN 'APAC'      THEN 'TZ01'
+            WHEN 'EMERGING'  THEN 'RS01'
         END AS plant_code,
 
         -- ── Sales organisation (by brand) ─────────────────────────────────────
@@ -325,49 +325,49 @@ enriched AS (
         CASE
             WHEN a.region_name = 'DACH' THEN
                 CASE MOD(a.rn, 10)
-                    WHEN 0 THEN '0000100001' WHEN 1 THEN '0000100001'  -- MediaMarkt DE (20%)
-                    WHEN 2 THEN '0000100003' WHEN 3 THEN '0000100003'  -- Amazon DE (20%)
+                    WHEN 0 THEN '0000100001' WHEN 1 THEN '0000100001'  -- ElektroMax DE (20%)
+                    WHEN 2 THEN '0000100003' WHEN 3 THEN '0000100003'  -- ShopSphere DE (20%)
                     WHEN 4 THEN '0000100007'                            -- Kueche Co (10%)
-                    WHEN 5 THEN '0000100009'                            -- Nobilia (10%)
-                    WHEN 6 THEN '0000100002'                            -- Saturn (10%)
-                    WHEN 7 THEN '0000100004'                            -- Euronics (10%)
-                    WHEN 8 THEN '0000100006'                            -- Otto (10%)
-                    ELSE        '0000100008'                            -- Nolte (10%)
+                    WHEN 5 THEN '0000100009'                            -- Westwerk (10%)
+                    WHEN 6 THEN '0000100002'                            -- Voltwerk (10%)
+                    WHEN 7 THEN '0000100004'                            -- Technikring (10%)
+                    WHEN 8 THEN '0000100006'                            -- Versandhaus Nord (10%)
+                    ELSE        '0000100008'                            -- Lindtal (10%)
                 END
             WHEN a.region_name = 'W_EUROPE' THEN
                 CASE MOD(a.rn, 8)
-                    WHEN 0 THEN '0000100020' WHEN 1 THEN '0000100020'  -- Fnac Darty (25%)
-                    WHEN 2 THEN '0000100030'                            -- Currys (12.5%)
-                    WHEN 3 THEN '0000100031'                            -- John Lewis (12.5%)
-                    WHEN 4 THEN '0000100032'                            -- Amazon UK (12.5%)
-                    WHEN 5 THEN '0000100050'                            -- Unieuro IT (12.5%)
-                    WHEN 6 THEN '0000100041'                            -- Coolblue NL (12.5%)
-                    ELSE        '0000100060'                            -- El Corte Inglés ES (12.5%)
+                    WHEN 0 THEN '0000100020' WHEN 1 THEN '0000100020'  -- Maison Électro (25%)
+                    WHEN 2 THEN '0000100030'                            -- BritElectric (12.5%)
+                    WHEN 3 THEN '0000100031'                            -- Hartwell (12.5%)
+                    WHEN 4 THEN '0000100032'                            -- ShopSphere UK (12.5%)
+                    WHEN 5 THEN '0000100050'                            -- ElettroItalia IT (12.5%)
+                    WHEN 6 THEN '0000100041'                            -- Blauwe Winkel NL (12.5%)
+                    ELSE        '0000100060'                            -- Galerías Sol ES (12.5%)
                 END
             WHEN a.region_name = 'E_EUROPE' THEN
                 CASE MOD(a.rn, 4)
-                    WHEN 0 THEN '0000100071' WHEN 1 THEN '0000100071'  -- RTV AGD PL (50%)
-                    WHEN 2 THEN '0000100072'                            -- Alza.cz (25%)
-                    ELSE        '0000100070'                            -- x-kom PL (25%)
+                    WHEN 0 THEN '0000100071' WHEN 1 THEN '0000100071'  -- DomTech PL (50%)
+                    WHEN 2 THEN '0000100072'                            -- Rychlo.cz (25%)
+                    ELSE        '0000100070'                            -- TechPol PL (25%)
                 END
             WHEN a.region_name = 'N_AMERICA' THEN
                 CASE MOD(a.rn, 5)
-                    WHEN 0 THEN '0000100080' WHEN 1 THEN '0000100080'  -- Best Buy (40%)
-                    WHEN 2 THEN '0000100082'                            -- Amazon US (20%)
-                    WHEN 3 THEN '0000100081'                            -- Williams-Sonoma (20%)
-                    ELSE        '0000100083'                            -- Home Depot (20%)
+                    WHEN 0 THEN '0000100080' WHEN 1 THEN '0000100080'  -- Summit Electronics (40%)
+                    WHEN 2 THEN '0000100082'                            -- ShopSphere US (20%)
+                    WHEN 3 THEN '0000100081'                            -- Hearth & Table (20%)
+                    ELSE        '0000100083'                            -- BuildRight (20%)
                 END
             WHEN a.region_name = 'APAC' THEN
                 CASE MOD(a.rn, 4)
-                    WHEN 0 THEN '0000100090' WHEN 1 THEN '0000100090'  -- JD.com (50%)
-                    WHEN 2 THEN '0000100091'                            -- Tmall (25%)
-                    ELSE        '0000100093'                            -- Harvey Norman AU (25%)
+                    WHEN 0 THEN '0000100090' WHEN 1 THEN '0000100090'  -- Jinghua Online (50%)
+                    WHEN 2 THEN '0000100091'                            -- Tianmall (25%)
+                    ELSE        '0000100093'                            -- Southern Cross AU (25%)
                 END
             ELSE   -- EMERGING
                 CASE MOD(a.rn, 3)
-                    WHEN 0 THEN '0000100100'                            -- Teknik Yapı TR (33%)
-                    WHEN 1 THEN '0000100101'                            -- Fast Shop BR (33%)
-                    ELSE        '0000100102'                            -- Croma IN (33%)
+                    WHEN 0 THEN '0000100100'                            -- Anadolu Elektrik TR (33%)
+                    WHEN 1 THEN '0000100101'                            -- Loja Rápida BR (33%)
+                    ELSE        '0000100102'                            -- Ganga Home IN (33%)
                 END
         END AS cust_num
 

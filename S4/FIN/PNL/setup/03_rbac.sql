@@ -95,7 +95,7 @@ INSERT INTO ROLE_ACCESS_MAPPING VALUES
 -- S4_FIN_APAC_DEMO_ROLE — Asia-Pacific and Emerging Markets
 INSERT INTO ROLE_ACCESS_MAPPING VALUES
     ('S4_FIN_APAC_DEMO_ROLE', 'RDANEEL', 'APAC',
-     'R.Daneel APAC: China (JD.com / Tmall e-comm growth story), Japan, Australia'),
+     'R.Daneel APAC: China (Jinghua / Tianmall e-comm growth story), Japan, Australia'),
     ('S4_FIN_APAC_DEMO_ROLE', 'RDANEEL', 'EMERGING',
      'R.Daneel Emerging Markets: Turkey, Brazil, India');
 

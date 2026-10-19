@@ -173,58 +173,58 @@ COMMENT = 'R.Daneel customer master — 44 major retail and trade customers acro
 
 INSERT INTO DIM_CUSTOMER VALUES
 -- ── Germany ────────────────────────────────────────────────────────────────
-('0000100001', 'MediaMarkt Deutschland GmbH',        'DEU', 'DACH',     '01', '10', 'KEY'),
-('0000100002', 'Saturn GmbH',                         'DEU', 'DACH',     '01', '10', 'KEY'),
-('0000100003', 'Amazon.de Marketplace',              'DEU', 'DACH',     '03', '30', 'KEY'),
-('0000100004', 'Euronics Deutschland eG',            'DEU', 'DACH',     '01', '10', 'STANDARD'),
-('0000100005', 'Expert SE',                          'DEU', 'DACH',     '01', '10', 'STANDARD'),
-('0000100006', 'Otto GmbH & Co KG',                  'DEU', 'DACH',     '03', '30', 'STANDARD'),
+('0000100001', 'ElektroMax Deutschland GmbH',        'DEU', 'DACH',     '01', '10', 'KEY'),
+('0000100002', 'Voltwerk GmbH',                         'DEU', 'DACH',     '01', '10', 'KEY'),
+('0000100003', 'ShopSphere.de Marketplace',              'DEU', 'DACH',     '03', '30', 'KEY'),
+('0000100004', 'Technikring Deutschland eG',            'DEU', 'DACH',     '01', '10', 'STANDARD'),
+('0000100005', 'Fachhandel Plus SE',                          'DEU', 'DACH',     '01', '10', 'STANDARD'),
+('0000100006', 'Versandhaus Nord GmbH & Co KG',                  'DEU', 'DACH',     '03', '30', 'STANDARD'),
 ('0000100007', 'Kueche Co GmbH (Built-in)',           'DEU', 'DACH',     '04', '20', 'KEY'),
-('0000100008', 'Nolte Küchen GmbH',                  'DEU', 'DACH',     '04', '20', 'STANDARD'),
-('0000100009', 'Nobilia-Werke GmbH',                 'DEU', 'DACH',     '04', '20', 'KEY'),
-('0000100010', 'REWE Group (Small Appliances)',       'DEU', 'DACH',     '02', '10', 'STANDARD'),
+('0000100008', 'Lindtal Küchen GmbH',                  'DEU', 'DACH',     '04', '20', 'STANDARD'),
+('0000100009', 'Westwerk Küchen GmbH',                 'DEU', 'DACH',     '04', '20', 'KEY'),
+('0000100010', 'Marktkette Group (Small Appliances)',       'DEU', 'DACH',     '02', '10', 'STANDARD'),
 -- ── Austria / Switzerland ──────────────────────────────────────────────────
-('0000100011', 'Cosmos Electro GmbH Austria',       'AUT', 'DACH',     '01', '10', 'STANDARD'),
-('0000100012', 'Interdiscount AG Switzerland',      'CHE', 'DACH',     '01', '10', 'STANDARD'),
+('0000100011', 'Alpenelektro GmbH Austria',       'AUT', 'DACH',     '01', '10', 'STANDARD'),
+('0000100012', 'Helvetronic AG Switzerland',      'CHE', 'DACH',     '01', '10', 'STANDARD'),
 -- ── France ────────────────────────────────────────────────────────────────
-('0000100020', 'Fnac Darty SA',                     'FRA', 'W_EUROPE',  '01', '10', 'KEY'),
-('0000100021', 'Amazon.fr',                         'FRA', 'W_EUROPE',  '03', '30', 'STANDARD'),
-('0000100022', 'But International SAS',             'FRA', 'W_EUROPE',  '01', '10', 'STANDARD'),
-('0000100023', 'Schmidt Groupe (Built-in)',          'FRA', 'W_EUROPE',  '04', '20', 'STANDARD'),
+('0000100020', 'Maison Électro SA',                     'FRA', 'W_EUROPE',  '01', '10', 'KEY'),
+('0000100021', 'ShopSphere.fr',                         'FRA', 'W_EUROPE',  '03', '30', 'STANDARD'),
+('0000100022', 'Habitat Plus SAS',             'FRA', 'W_EUROPE',  '01', '10', 'STANDARD'),
+('0000100023', 'Cuisines Lumière Groupe (Built-in)',          'FRA', 'W_EUROPE',  '04', '20', 'STANDARD'),
 -- ── United Kingdom ────────────────────────────────────────────────────────
-('0000100030', 'Currys plc',                        'GBR', 'W_EUROPE',  '01', '10', 'KEY'),
-('0000100031', 'John Lewis Partnership',            'GBR', 'W_EUROPE',  '01', '10', 'KEY'),
-('0000100032', 'Amazon.co.uk',                      'GBR', 'W_EUROPE',  '03', '30', 'STANDARD'),
-('0000100033', 'AO World plc',                      'GBR', 'W_EUROPE',  '03', '30', 'STANDARD'),
+('0000100030', 'BritElectric plc',                        'GBR', 'W_EUROPE',  '01', '10', 'KEY'),
+('0000100031', 'Hartwell & Partners',            'GBR', 'W_EUROPE',  '01', '10', 'KEY'),
+('0000100032', 'ShopSphere.co.uk',                      'GBR', 'W_EUROPE',  '03', '30', 'STANDARD'),
+('0000100033', 'ApplianceDirect UK plc',                      'GBR', 'W_EUROPE',  '03', '30', 'STANDARD'),
 -- ── BeNeLux ───────────────────────────────────────────────────────────────
-('0000100040', 'MediaMarkt Nederland BV',           'NLD', 'W_EUROPE',  '01', '10', 'STANDARD'),
-('0000100041', 'Coolblue B.V.',                     'NLD', 'W_EUROPE',  '03', '30', 'STANDARD'),
+('0000100040', 'ElektroMax Nederland BV',           'NLD', 'W_EUROPE',  '01', '10', 'STANDARD'),
+('0000100041', 'Blauwe Winkel B.V.',                     'NLD', 'W_EUROPE',  '03', '30', 'STANDARD'),
 -- ── Italy ─────────────────────────────────────────────────────────────────
-('0000100050', 'Unieuro SpA',                       'ITA', 'W_EUROPE',  '01', '10', 'STANDARD'),
-('0000100051', 'Mediaworld SpA (MediaMarkt Italy)', 'ITA', 'W_EUROPE',  '01', '10', 'STANDARD'),
+('0000100050', 'ElettroItalia SpA',                       'ITA', 'W_EUROPE',  '01', '10', 'STANDARD'),
+('0000100051', 'ElektroMax Italia SpA', 'ITA', 'W_EUROPE',  '01', '10', 'STANDARD'),
 -- ── Spain ─────────────────────────────────────────────────────────────────
-('0000100060', 'El Corte Inglés SA',                'ESP', 'W_EUROPE',  '01', '10', 'STANDARD'),
-('0000100061', 'MediaMarkt Spain',                  'ESP', 'W_EUROPE',  '01', '10', 'STANDARD'),
+('0000100060', 'Galerías Sol SA',                'ESP', 'W_EUROPE',  '01', '10', 'STANDARD'),
+('0000100061', 'ElektroMax España',                  'ESP', 'W_EUROPE',  '01', '10', 'STANDARD'),
 -- ── Eastern Europe ────────────────────────────────────────────────────────
-('0000100070', 'x-kom SA Poland',                   'POL', 'E_EUROPE',  '03', '30', 'STANDARD'),
-('0000100071', 'RTV Euro AGD Poland',               'POL', 'E_EUROPE',  '01', '10', 'STANDARD'),
-('0000100072', 'Alza.cz Czech Republic',            'CZE', 'E_EUROPE',  '03', '30', 'STANDARD'),
-('0000100073', 'Domo-elektro Romania',              'ROU', 'E_EUROPE',  '01', '10', 'SMALL'),
+('0000100070', 'TechPol SA Poland',                   'POL', 'E_EUROPE',  '03', '30', 'STANDARD'),
+('0000100071', 'DomTech AGD Poland',               'POL', 'E_EUROPE',  '01', '10', 'STANDARD'),
+('0000100072', 'Rychlo.cz Czech Republic',            'CZE', 'E_EUROPE',  '03', '30', 'STANDARD'),
+('0000100073', 'CasaElectro Romania',              'ROU', 'E_EUROPE',  '01', '10', 'SMALL'),
 -- ── North America ─────────────────────────────────────────────────────────
-('0000100080', 'Best Buy Co. Inc.',                 'USA', 'N_AMERICA', '01', '10', 'KEY'),
-('0000100081', 'Williams-Sonoma Inc.',              'USA', 'N_AMERICA', '01', '10', 'KEY'),
-('0000100082', 'Amazon.com USA',                    'USA', 'N_AMERICA', '03', '30', 'KEY'),
-('0000100083', 'The Home Depot Inc.',               'USA', 'N_AMERICA', '02', '10', 'STANDARD'),
-('0000100084', 'Costco Wholesale Corporation',      'USA', 'N_AMERICA', '02', '10', 'STANDARD'),
+('0000100080', 'Summit Electronics Inc.',                 'USA', 'N_AMERICA', '01', '10', 'KEY'),
+('0000100081', 'Hearth & Table Inc.',              'USA', 'N_AMERICA', '01', '10', 'KEY'),
+('0000100082', 'ShopSphere.com USA',                    'USA', 'N_AMERICA', '03', '30', 'KEY'),
+('0000100083', 'BuildRight Home Centers Inc.',               'USA', 'N_AMERICA', '02', '10', 'STANDARD'),
+('0000100084', 'BulkWay Wholesale Corporation',      'USA', 'N_AMERICA', '02', '10', 'STANDARD'),
 -- ── Asia-Pacific ──────────────────────────────────────────────────────────
-('0000100090', 'JD.com Inc. China',                 'CHN', 'APAC',      '03', '30', 'KEY'),
-('0000100091', 'Tmall (Alibaba Group) China',       'CHN', 'APAC',      '03', '30', 'KEY'),
-('0000100092', 'Bic Camera Inc. Japan',             'JPN', 'APAC',      '01', '10', 'STANDARD'),
-('0000100093', 'Harvey Norman Australia',           'AUS', 'APAC',      '01', '10', 'STANDARD'),
+('0000100090', 'Jinghua Online China',                 'CHN', 'APAC',      '03', '30', 'KEY'),
+('0000100091', 'Tianmall Marketplace China',       'CHN', 'APAC',      '03', '30', 'KEY'),
+('0000100092', 'Sakura Denki Japan',             'JPN', 'APAC',      '01', '10', 'STANDARD'),
+('0000100093', 'Southern Cross Appliances Australia',           'AUS', 'APAC',      '01', '10', 'STANDARD'),
 -- ── Emerging Markets ──────────────────────────────────────────────────────
-('0000100100', 'Teknik Yapı Turkey',                'TUR', 'EMERGING',  '01', '10', 'STANDARD'),
-('0000100101', 'Fast Shop Brazil',                  'BRA', 'EMERGING',  '01', '10', 'STANDARD'),
-('0000100102', 'Croma Retail India',                'IND', 'EMERGING',  '01', '10', 'SMALL');
+('0000100100', 'Anadolu Elektrik Turkey',                'TUR', 'EMERGING',  '01', '10', 'STANDARD'),
+('0000100101', 'Loja Rápida Brazil',                  'BRA', 'EMERGING',  '01', '10', 'STANDARD'),
+('0000100102', 'Ganga Home Retail India',                'IND', 'EMERGING',  '01', '10', 'SMALL');
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- 4. COMPANY CODE DIMENSION
@@ -250,7 +250,7 @@ CREATE OR REPLACE TABLE DIM_COMPANY (
 COMMENT = 'R.Daneel Inc. SAP company code master — 6 legal entities; all belong to CLIENT_ID=RDANEEL';
 
 INSERT INTO DIM_COMPANY VALUES
-('1000', 'R.Daneel Appliances GmbH — Munich HQ',              'DEU', 'DACH',     'RD00', 'EUR'),
+('1000', 'R.Daneel Appliances GmbH — Headquarters',              'DEU', 'DACH',     'RD00', 'EUR'),
 ('1100', 'R.Daneel Western Europe Operations GmbH',           'FRA', 'W_EUROPE', 'RD00', 'EUR'),
 ('1200', 'R.Daneel Eastern Europe GmbH',                      'POL', 'E_EUROPE', 'RD00', 'EUR'),
 ('2000', 'R.Daneel Home Appliances Corporation (NA)',         'USA', 'N_AMERICA','RD00', 'USD'),
@@ -277,14 +277,14 @@ CREATE OR REPLACE TABLE DIM_PLANT (
 COMMENT = 'R.Daneel manufacturing plant master — 8 plants worldwide';
 
 INSERT INTO DIM_PLANT VALUES
-('GI01', 'R.Daneel Giengen Plant — Swabia, Germany',     'DEU', 'DACH',     'Dishwashers — global technology centre, 1,500+ variants'),
-('DI01', 'R.Daneel Dillingen Plant — Swabia, Germany',   'DEU', 'DACH',     'Refrigerators and freezers'),
-('TR01', 'R.Daneel Traunreut Plant — Bavaria, Germany',  'DEU', 'DACH',     'Cooking and baking appliances'),
-('BR01', 'R.Daneel Bretten Plant — Baden, Germany',      'DEU', 'DACH',     'Ovens — new premium series production'),
-('CZ01', 'R.Daneel Michalovce Plant — Slovakia',         'SVK', 'E_EUROPE', 'Washing machines and tumble dryers'),
-('NB01', 'R.Daneel New Bern NC Plant — USA',             'USA', 'N_AMERICA','Dishwashers and cooking — North American market'),
-('CH01', 'R.Daneel Chuzhou Plant — Anhui, China',        'CHN', 'APAC',     'Washing machines and small appliances for APAC'),
-('TR02', 'R.Daneel Çerkezköy Plant — Tekirdağ, Turkey',  'TUR', 'EMERGING', 'Small appliances and coffee machines');
+('KA01', 'R.Daneel Kalgan Plant — Germany',     'DEU', 'DACH',     'Dishwashers — global technology centre, 1,500+ variants'),
+('HE01', 'R.Daneel Helicon Plant — Germany',   'DEU', 'DACH',     'Refrigerators and freezers'),
+('AN01', 'R.Daneel Anacreon Plant — Germany',  'DEU', 'DACH',     'Cooking and baking appliances'),
+('SI01', 'R.Daneel Siwenna Plant — Germany',      'DEU', 'DACH',     'Ovens — new premium series production'),
+('SA01', 'R.Daneel Santanni Plant — Slovakia',         'SVK', 'E_EUROPE', 'Washing machines and tumble dryers'),
+('NX01', 'R.Daneel Nexon Plant — USA',             'USA', 'N_AMERICA','Dishwashers and cooking — North American market'),
+('TZ01', 'R.Daneel Tazenda Plant — China',        'CHN', 'APAC',     'Washing machines and small appliances for APAC'),
+('RS01', 'R.Daneel Rossem Plant — Turkey',  'TUR', 'EMERGING', 'Small appliances and coffee machines');
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Verification

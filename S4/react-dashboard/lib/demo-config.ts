@@ -13,7 +13,7 @@ export const DEMO_CONFIG = {
   company: {
     name:           "R.Daneel Inc.",
     shortName:      "R.Daneel",
-    tagline:        "Europe's largest home appliance manufacturer",
+    tagline:        "A leading European home appliance manufacturer",
     primaryColor:   "#003087",   // brand dark blue — change for new customer
     accentColor:    "#E30613",   // brand red
     currency:       "EUR",

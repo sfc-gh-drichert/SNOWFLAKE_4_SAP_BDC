@@ -50,8 +50,8 @@ S4.FIN.S3_FINANCE_PNL  (~100K rows — SAP ACDOCA/CO-PA structure)
 
 ### Act 1 — R.Daneel Context (2 minutes)
 
-> "R.Daneel is Europe's largest home appliance manufacturer — EUR 15.3 billion in revenue (2024 reference year),
-> owned by Giskard since 2015. They make the brands in most European kitchens:
+> "R.Daneel is a leading European home appliance manufacturer — EUR 15.3 billion in revenue (2024 reference year),
+> privately held. They make the brands in most European kitchens:
 > Giskard, Calvin, Solaria, Terminus, Aurora.
 >
 > They don't publish detailed P&L because they're not publicly listed.
@@ -145,10 +145,10 @@ USE ROLE S4_FIN_DEMO_ROLE;
    > Expected: Built-in channel has highest margin (Solaria/Terminus bias), E-Commerce has lower
 
 9. *"Show monthly Giskard revenue for 2025. What seasonal pattern do you see?"*
-   > Expected: September peak (IFA Berlin product launches), November/December Christmas peak, January trough
+   > Expected: September peak (autumn trade-fair product launches), November/December Christmas peak, January trough
 
 10. *"How has North America grown since 2023? What drove that growth?"*
-    > Agent should reference the Experience and Design Center expansion document
+    > Agent should reference the Design Studio expansion document
 
 ---
 

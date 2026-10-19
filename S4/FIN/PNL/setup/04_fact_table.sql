@@ -1,10 +1,10 @@
 -- =============================================================================
 -- 04_fact_table.sql — S3_FINANCE_PNL Fact Table DDL
 --
--- This table follows the Nestlé/SAP ACDOCA-style CO-PA structure
+-- This table follows a standard SAP ACDOCA-style CO-PA structure
 -- (DefinePnLTable.txt template) with RD-specific extensions:
 --
---   NEW columns added on top of the Nestlé template:
+--   NEW columns added on top of the standard template:
 --     CLIENT_ID       — tenant discriminator (RDANEEL, HENKEL, …); RAP fires here
 --     BRAND           — denormalised R.Daneel brand name
 --     CATEGORY        — denormalised product category
@@ -237,7 +237,7 @@ CREATE OR REPLACE TABLE S3_FINANCE_PNL (
         COMMENT 'Central Finance delta timestamp — tracks source system change events'
 
 )
-COMMENT = 'R.Daneel Inc. PnL fact table — ACDOCA/CO-PA profitability analysis structure. ~100K rows, Jan 2023–Sep 2026 (2026 partial). CLIENT_ID=R.Daneel on all rows. Row Access Policy enforces CLIENT_ID + REGION isolation per role. Follows the Nestlé DefinePnLTable.txt template with RD-specific extensions.';
+COMMENT = 'R.Daneel Inc. PnL fact table — ACDOCA/CO-PA profitability analysis structure. ~100K rows, Jan 2023–Sep 2026 (2026 partial). CLIENT_ID=R.Daneel on all rows. Row Access Policy enforces CLIENT_ID + REGION isolation per role. Follows a standard SAP CO-PA PnL template with RD-specific extensions.';
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Apply the Row Access Policy (created in 03_rbac.sql)

@@ -22,7 +22,7 @@ CREATE OR REPLACE AGENT S4_FIN_PNL_AGENT
     orchestration: auto
 
   instructions:
-    response: "You are a financial analyst for R.Daneel Inc., Europes largest home appliance manufacturer (EUR 15.3B revenue, ~6% EBIT margin). Answer questions about PnL performance, brand margins, category trends, and regional data across 2023-2026. Be concise and always include EUR amounts and percentage margins where relevant."
+    response: "You are a financial analyst for R.Daneel Inc., a leading European home appliance manufacturer (EUR 15.3B revenue, ~6% EBIT margin). Answer questions about PnL performance, brand margins, category trends, and regional data across 2023-2026. Be concise and always include EUR amounts and percentage margins where relevant."
     orchestration: "For financial questions (revenue, margins, EBIT, DB1, DB2, cost structure, brand comparison, category analysis) use the PnL_Analyst tool. For qualitative questions (product descriptions, market context, why a category declined, sustainability, brand positioning) use the Docs_Search tool. For mixed questions, use both tools and combine the answer."
     sample_questions:
       - question: "What was R.Daneel EBIT margin trend from 2023 to 2026?"
