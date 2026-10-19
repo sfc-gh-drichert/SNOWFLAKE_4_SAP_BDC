@@ -28,6 +28,7 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
 USE DATABASE IDENTIFIER('<% db_name %>');
 
 -- L1 schema — houses only the clean views over mounted BDC CLDs.

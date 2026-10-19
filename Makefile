@@ -77,7 +77,8 @@ add-company:
 dashboard-install:
 	snow sql -f "$(DEMO)/setup/10_dashboard_infra.sql" \
 		--connection "$(CONNECTION)" \
-		--variable "db_name=$(DATABASE)"
+		--variable "db_name=$(DATABASE)" \
+		--variable "wh_name=$(WAREHOUSE)"
 	@cd S4/react-dashboard && \
 		npm ci && npm run build && \
 		cp -r .next/static  .next/standalone/.next/static && \
@@ -101,7 +102,8 @@ dashboard-teardown:
 bdc-catalog:
 	snow sql -f "$(DEMO)/setup/11_bdc_l1_schema_and_catalog.sql" \
 		--connection "$(CONNECTION)" \
-		--variable "db_name=$(DATABASE)"
+		--variable "db_name=$(DATABASE)" \
+		--variable "wh_name=$(WAREHOUSE)"
 
 ## Step 2: list real SAP BDC shares and suggest matches (read-only)
 ## Usage: make bdc-discover CONNECTOR=SAP_BDC_DB.SAP_SCHEMA.SAP_CONNECTOR
@@ -110,6 +112,7 @@ bdc-discover:
 	snow sql -f "$(DEMO)/setup/12_bdc_discover_shares.sql" \
 		--connection "$(CONNECTION)" \
 		--variable "db_name=$(DATABASE)" \
+		--variable "wh_name=$(WAREHOUSE)" \
 		--variable "connector_fqn=$(CONNECTOR)"
 
 ## Step 3: record a confirmed real share_name for one product
@@ -120,6 +123,7 @@ bdc-confirm:
 	snow sql -f "$(DEMO)/runbooks/bdc_confirm_share.sql" \
 		--connection "$(CONNECTION)" \
 		--variable "db_name=$(DATABASE)" \
+		--variable "wh_name=$(WAREHOUSE)" \
 		--variable "product_key=$(PRODUCT_KEY)" \
 		--variable "share_name=$(SHARE_NAME)"
 

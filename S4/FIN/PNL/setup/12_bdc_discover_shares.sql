@@ -24,6 +24,7 @@
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;
+USE WAREHOUSE IDENTIFIER('<% wh_name %>');
 USE DATABASE IDENTIFIER('<% db_name %>');
 USE SCHEMA FIN;
 
