@@ -18,9 +18,9 @@ icon: public/icon.svg
 # This manifest therefore lives in .next/standalone/ at deploy time, and
 # all paths (icon, run command) are relative to that directory.
 #
-database:        S4
+database:        SAP_BDC_PNL
 schema:          FIN
-query_warehouse: S4_FIN_DEMO_WH
+query_warehouse: SAP_BDC_PNL_WH
 
 auto_suspend_secs: 300     # suspend after 5 min idle
 
@@ -32,14 +32,14 @@ targets:
 
   # Customer demo environment — override database/warehouse per engagement
   customer:
-    query_warehouse: S4_FIN_DEMO_WH  # override if the target account uses a different name
+    query_warehouse: SAP_BDC_PNL_WH  # override if the target account uses a different name
 
 # ─── Environment variables available to the running service ──────────────────
 environment_variables:
   - name: NEXT_PUBLIC_SF_DATABASE
-    value: "S4"
+    value: "SAP_BDC_PNL"
   - name: NEXT_PUBLIC_SF_AGENT
-    value: "S4.FIN.S4_FIN_PNL_AGENT"
+    value: "SAP_BDC_PNL.FIN.S4_FIN_PNL_AGENT"
 
 # ─── Builder phases ───────────────────────────────────────────────────────────
 # snow app deploy is run from INSIDE .next/standalone/ after the build.

@@ -7,13 +7,13 @@
 -- Variables:
 --   <% company_id %>  - company identifier (e.g. HENKEL, BAYER, MIELE)
 --   <% db_name %>     - target database (default: S4)
---   <% wh_name %>     - warehouse name (default: S4_FIN_DEMO_WH)
+--   <% wh_name %>     - warehouse name (default: SAP_BDC_PNL_WH)
 --
 -- Usage:
 --   snow sql -f runbooks/add_company.sql \
 --     --connection my_snowflake \
 --     --variable db_name=S4 \
---     --variable wh_name=S4_FIN_DEMO_WH \
+--     --variable wh_name=SAP_BDC_PNL_WH \
 --     --variable company_id=HENKEL
 --   -- or --
 --   make add-company COMPANY=HENKEL

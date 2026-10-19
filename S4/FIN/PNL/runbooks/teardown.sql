@@ -8,7 +8,7 @@
 --   snow sql -f runbooks/teardown.sql \
 --     --connection my_snowflake \
 --     --variable db_name=S4 \
---     --variable wh_name=S4_FIN_DEMO_WH
+--     --variable wh_name=SAP_BDC_PNL_WH
 --   -- or --
 --   make teardown
 -- ==============================================================================

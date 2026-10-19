@@ -6,7 +6,7 @@
 --
 -- Variables (passed by install.sh / GitHub Actions):
 --   <% db_name %>  — target database  (default: S4)
---   <% wh_name %>  — warehouse name   (default: S4_FIN_DEMO_WH)
+--   <% wh_name %>  — warehouse name   (default: SAP_BDC_PNL_WH)
 -- =============================================================================
 
 USE ROLE ACCOUNTADMIN;

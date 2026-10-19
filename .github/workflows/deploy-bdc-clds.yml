@@ -23,11 +23,11 @@ on:
       warehouse:
         description: 'Snowflake warehouse name'
         required: true
-        default: 'S4_FIN_DEMO_WH'
+        default: 'SAP_BDC_PNL_WH'
       database:
         description: 'Target Snowflake database'
         required: true
-        default: 'S4'
+        default: 'SAP_BDC_PNL'
       connector_fqn:
         description: 'Fully-qualified zero-copy connector name, e.g. SAP_BDC_DB.SAP_SCHEMA.SAP_CONNECTOR'
         required: false

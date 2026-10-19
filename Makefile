@@ -17,8 +17,8 @@
 # =============================================================================
 
 CONNECTION ?= my_snowflake
-DATABASE   ?= S4
-WAREHOUSE  ?= S4_FIN_DEMO_WH
+DATABASE   ?= SAP_BDC_PNL
+WAREHOUSE  ?= SAP_BDC_PNL_WH
 DEMO       ?= S4/FIN/PNL
 TARGET     ?= dev    # app.yml target for snow app deploy
 

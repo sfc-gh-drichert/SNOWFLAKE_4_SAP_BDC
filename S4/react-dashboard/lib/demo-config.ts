@@ -22,9 +22,9 @@ export const DEMO_CONFIG = {
 
   snowflake: {
     /** Fully-qualified agent name — override with NEXT_PUBLIC_SF_AGENT env var */
-    agentFqn: process.env.NEXT_PUBLIC_SF_AGENT ?? "S4.FIN.S4_FIN_PNL_AGENT",
+    agentFqn: process.env.NEXT_PUBLIC_SF_AGENT ?? "SAP_BDC_PNL.FIN.S4_FIN_PNL_AGENT",
     /** Database holding the PnL fact table */
-    database: process.env.NEXT_PUBLIC_SF_DATABASE ?? "S4",
+    database: process.env.NEXT_PUBLIC_SF_DATABASE ?? "SAP_BDC_PNL",
     schema:   "FIN",
     table:    "S3_FINANCE_PNL",
   },
