@@ -19,7 +19,7 @@ on:
         type: choice
         options:
           - ping               # Connection test only — no SQL, no objects needed
-          - all                # Full setup: files 01–09
+          - all                # Full setup: files 01–10 (excludes SAP BDC 11–14)
           - rbac-only          # RBAC + Row Access Policy only (03)
           - data-only          # Fact table + 100K row seed (04–05)
           - search-agent-only  # Documents, Semantic View, Agent (06–08)
@@ -101,7 +101,8 @@ jobs:
               echo "Connection test passed in previous step. No SQL files to run."
               ;;
             all)
-              for f in "${BASE}"/[0-9][0-9]_*.sql; do run_sql "$f"; done
+              # 01-10 only; 11-14 are SAP BDC scripts run by deploy-bdc-clds.yml
+              for f in "${BASE}"/{0[1-9],10}_*.sql; do run_sql "$f"; done
               ;;
             react-dashboard-only)
               echo "NOTE: Deploying React PnL Dashboard (pre-build strategy)."

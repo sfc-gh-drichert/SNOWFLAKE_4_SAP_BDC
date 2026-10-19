@@ -36,7 +36,8 @@ if [[ ! -d "${SETUP_DIR}" ]]; then
   exit 1
 fi
 
-SQL_FILES=( "${SETUP_DIR}"/[0-9][0-9]_*.sql )
+# 01-10 only; 11-14 are SAP BDC scripts (make bdc-*), which need a connector
+SQL_FILES=( "${SETUP_DIR}"/{0[1-9],10}_*.sql )
 if [[ ${#SQL_FILES[@]} -eq 0 ]]; then
   echo "ERROR: No numbered SQL files found in ${SETUP_DIR}" >&2
   exit 1
