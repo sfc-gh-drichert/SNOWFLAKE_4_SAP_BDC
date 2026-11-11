@@ -14,7 +14,6 @@
 # Examples:
 #   ./install.sh                                        # defaults
 #   ./install.sh my_snowflake SAP_BDC_PNL SAP_BDC_PNL_WH SAP_BDC_PNL/FIN/PNL  # explicit
-#   ./install.sh MY_CONN S4 DEMO_WH S4/FIN/AP          # different demo
 #
 # Prerequisites:
 #   - Snowflake CLI (snow) installed and on PATH

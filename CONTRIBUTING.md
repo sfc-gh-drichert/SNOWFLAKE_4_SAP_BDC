@@ -8,8 +8,6 @@ This repo organises demos so that the **folder path mirrors the Snowflake object
 
 Examples:
 - `SAP_BDC_PNL/FIN/PNL/` → database `SAP_BDC_PNL`, schema `FIN`, module `PNL`
-- `S4/FIN/AP/`    → database `S4`, schema `FIN`, module `AP` (Accounts Payable)
-- `S4/SD/OTC/`    → database `S4`, schema `SD`, module `OTC` (Order-to-Cash)
 
 ---
 
