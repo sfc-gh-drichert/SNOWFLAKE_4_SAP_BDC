@@ -48,7 +48,7 @@ The app auto-falls back to your `~/.snowflake/config.toml` default connection fo
 **Local** (requires `snow` CLI):
 
 ```bash
-cd S4/react-dashboard
+cd SAP_BDC_PNL/react-dashboard
 npm install
 npm run build
 cp -r .next/static .next/standalone/.next/static

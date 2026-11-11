@@ -28,10 +28,10 @@ A complete Snowflake demo environment built on R.Daneel Inc. financials, using a
 
 ```bash
 # From repo root:
-make install DEMO=S4/FIN/PNL CONNECTION=my_snowflake
+make install DEMO=SAP_BDC_PNL/FIN/PNL CONNECTION=my_snowflake
 
 # Or directly:
-./install.sh my_snowflake S4 S4_FIN_DEMO_WH S4/FIN/PNL
+./install.sh my_snowflake S4 S4_FIN_DEMO_WH SAP_BDC_PNL/FIN/PNL
 ```
 
 ---

@@ -1,7 +1,7 @@
 # Node / Next.js
-S4/react-dashboard/node_modules/
-S4/react-dashboard/.next/
-S4/react-dashboard/out/
+SAP_BDC_PNL/react-dashboard/node_modules/
+SAP_BDC_PNL/react-dashboard/.next/
+SAP_BDC_PNL/react-dashboard/out/
 
 # Local env
 .env*.local

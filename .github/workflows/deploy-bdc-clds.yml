@@ -103,7 +103,7 @@ jobs:
           DB="${{ inputs.database }}"
           WH="${{ inputs.warehouse }}"
           CONN="${{ inputs.connector_fqn }}"
-          BASE="S4/FIN/PNL/setup"
+          BASE="SAP_BDC_PNL/FIN/PNL/setup"
 
           run_sql() {
             echo ""
@@ -138,7 +138,7 @@ jobs:
                 --variable "wh_name=${WH}"
               ;;
             teardown)
-              snow sql -f "S4/FIN/PNL/runbooks/teardown_bdc_clds.sql" \
+              snow sql -f "SAP_BDC_PNL/FIN/PNL/runbooks/teardown_bdc_clds.sql" \
                 --variable "db_name=${DB}" \
                 --variable "wh_name=${WH}"
               ;;
@@ -160,7 +160,7 @@ jobs:
             share_name=$(jq -r --arg k "$key" '.[$k]' /tmp/confirmed_shares.json)
             echo ""
             echo "--> Confirming ${key} -> ${share_name}"
-            snow sql -f "S4/FIN/PNL/runbooks/bdc_confirm_share.sql" \
+            snow sql -f "SAP_BDC_PNL/FIN/PNL/runbooks/bdc_confirm_share.sql" \
               --variable "db_name=${{ inputs.database }}" \
               --variable "product_key=${key}" \
               --variable "share_name=${share_name}"

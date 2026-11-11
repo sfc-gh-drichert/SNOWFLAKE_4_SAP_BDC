@@ -7,7 +7,7 @@ Each demo lives under a folder path that mirrors the Snowflake database/schema h
 
 | Path | Database | Schema | Module | Description |
 |------|----------|--------|--------|-------------|
-| [`S4/FIN/PNL`](S4/FIN/PNL/README.md) | S4 | FIN | PNL | R.Daneel Inc. — Financial P&L with marginal contribution (DB1/DB2/EBIT) |
+| [`SAP_BDC_PNL/FIN/PNL`](SAP_BDC_PNL/FIN/PNL/README.md) | S4 | FIN | PNL | R.Daneel Inc. — Financial P&L with marginal contribution (DB1/DB2/EBIT) |
 | [`CPG_S4_BLUEY_CONFECT_PETFOOD`](CPG_S4_BLUEY_CONFECT_PETFOOD/README.md) | CONFECT_PETFOOD_DEMO | SC_RISK_DEMO | Supply Chain Risk | Multi-division CPG supply chain risk intelligence (SAP + Blue Yonder + external signals) + Streamlit Supply Risk Command Center with Plan Override write-back, in-app Cowork chat (Cortex Agent) and a static preview in `docs/` |
 | [`WORLD_DELIVERY/ESG/EMISSIONS`](WORLD_DELIVERY/ESG/EMISSIONS/README.md) | WORLD_DELIVERY | ESG | Emissions & Sustainability | Global logistics ESG: GHG emissions (Scope 1/2/3), ESRS E1, SBTi tracking, fleet electrification, GoGreen Plus, workforce KPIs + Streamlit CxO dashboard |
 
@@ -71,7 +71,7 @@ cd SNOWFLAKE_4_SAP_BDC
 cp .snowflake/config.toml.example ~/.snowflake/config.toml
 
 # Deploy the R.Daneel PnL demo
-make install DEMO=S4/FIN/PNL CONNECTION=my_snowflake
+make install DEMO=SAP_BDC_PNL/FIN/PNL CONNECTION=my_snowflake
 ```
 
 ---
@@ -235,7 +235,7 @@ Or trigger the GitHub Actions `deploy` workflow and choose `add-company` if you 
 workflow option, or just run the runbook directly:
 
 ```bash
-snow sql -f S4/FIN/PNL/runbooks/add_company.sql \
+snow sql -f SAP_BDC_PNL/FIN/PNL/runbooks/add_company.sql \
   --connection my_snowflake \
   --variable db_name=S4 \
   --variable wh_name=S4_FIN_DEMO_WH \
@@ -309,7 +309,7 @@ GRANT USAGE ON CORTEX AGENT HENKEL_PNL_AGENT TO ROLE HENKEL_DEMO_ROLE;
 | `S4_FIN_PNL_ANALYTICS_SV` semantic view | No — shared across all companies |
 | `ROLE_ACCESS_MAPPING` | Yes — one INSERT row per new company |
 
-See [`S4/FIN/PNL/runbooks/add_company.sql`](S4/FIN/PNL/runbooks/add_company.sql) for the
+See [`SAP_BDC_PNL/FIN/PNL/runbooks/add_company.sql`](SAP_BDC_PNL/FIN/PNL/runbooks/add_company.sql) for the
 full runbook SQL.
 
 ---
@@ -323,7 +323,7 @@ this repo. This section maps those SAP BDC data products into Snowflake as
 catalog-linked databases (CLDs), and puts a stable view on top of each one so
 gold-layer SQL never has to reference SAP-generated CLD internals directly.
 
-See [`S4/FIN/PNL/runbooks/sap_bdc_lineage.md`](S4/FIN/PNL/runbooks/sap_bdc_lineage.md)
+See [`SAP_BDC_PNL/FIN/PNL/runbooks/sap_bdc_lineage.md`](SAP_BDC_PNL/FIN/PNL/runbooks/sap_bdc_lineage.md)
 for the full lineage analysis (CDS view → BDC data product → gold layer,
 including primary/foreign keys and a currency-handling risk analysis) that
 this mapping was built from.

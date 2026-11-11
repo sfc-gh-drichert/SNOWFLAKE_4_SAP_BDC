@@ -5,7 +5,7 @@
 -- natural language ESG questions across emissions, decarb, fleet,
 -- GoGreen Plus, and workforce KPIs.
 --
--- DDL structure follows S4/FIN/PNL/setup/07_semantic_view.sql pattern:
+-- DDL structure follows SAP_BDC_PNL/FIN/PNL/setup/07_semantic_view.sql pattern:
 --   TABLES (...), DIMENSIONS (...), METRICS (...) as top-level clauses.
 --
 -- Variables: <% db_name %>, <% wh_name %>

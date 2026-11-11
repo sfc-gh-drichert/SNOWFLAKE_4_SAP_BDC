@@ -9,11 +9,11 @@
 #   CONNECTION   Snowflake CLI connection name    (default: my_snowflake)
 #   DATABASE     Target Snowflake database        (default: S4)
 #   WAREHOUSE    Warehouse to use/create          (default: SAP_BDC_PNL_WH)
-#   DEMO_PATH    Path to demo setup/ folder       (default: S4/FIN/PNL)
+#   DEMO_PATH    Path to demo setup/ folder       (default: SAP_BDC_PNL/FIN/PNL)
 #
 # Examples:
 #   ./install.sh                                        # defaults
-#   ./install.sh my_snowflake SAP_BDC_PNL SAP_BDC_PNL_WH S4/FIN/PNL  # explicit
+#   ./install.sh my_snowflake SAP_BDC_PNL SAP_BDC_PNL_WH SAP_BDC_PNL/FIN/PNL  # explicit
 #   ./install.sh MY_CONN S4 DEMO_WH S4/FIN/AP          # different demo
 #
 # Prerequisites:
@@ -27,7 +27,7 @@ set -euo pipefail
 CONNECTION="${1:-my_snowflake}"
 DATABASE="${2:-SAP_BDC_PNL}"
 WAREHOUSE="${3:-SAP_BDC_PNL_WH}"
-DEMO_PATH="${4:-S4/FIN/PNL}"
+DEMO_PATH="${4:-SAP_BDC_PNL/FIN/PNL}"
 SETUP_DIR="${DEMO_PATH}/setup"
 
 # ─── Validate ────────────────────────────────────────────────────────────────

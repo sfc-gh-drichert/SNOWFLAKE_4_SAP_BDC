@@ -3,7 +3,7 @@
 #
 # Usage:
 #   make install                              # Deploy S4 FIN PNL with defaults
-#   make install DEMO=S4/FIN/PNL             # Explicit demo path
+#   make install DEMO=SAP_BDC_PNL/FIN/PNL             # Explicit demo path
 #   make install CONNECTION=MY_CONN          # Different Snowflake connection
 #   make verify                              # Run verification queries
 #   make teardown                            # Drop all demo objects
@@ -19,7 +19,7 @@
 CONNECTION ?= my_snowflake
 DATABASE   ?= SAP_BDC_PNL
 WAREHOUSE  ?= SAP_BDC_PNL_WH
-DEMO       ?= S4/FIN/PNL
+DEMO       ?= SAP_BDC_PNL/FIN/PNL
 TARGET     ?= dev    # app.yml target for snow app deploy
 
 .PHONY: install verify teardown add-company dashboard-install dashboard-teardown help \
@@ -79,7 +79,7 @@ dashboard-install:
 		--connection "$(CONNECTION)" \
 		--variable "db_name=$(DATABASE)" \
 		--variable "wh_name=$(WAREHOUSE)"
-	@cd S4/react-dashboard && \
+	@cd SAP_BDC_PNL/react-dashboard && \
 		npm ci && npm run build && \
 		cp -r .next/static  .next/standalone/.next/static && \
 		cp -r public        .next/standalone/public && \

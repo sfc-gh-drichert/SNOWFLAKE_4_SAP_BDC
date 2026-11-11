@@ -48,7 +48,7 @@ jobs:
 
       - name: Run verification
         run: |
-          snow sql -f S4/FIN/PNL/setup/09_verify.sql \
+          snow sql -f SAP_BDC_PNL/FIN/PNL/setup/09_verify.sql \
             --variable "db_name=${{ inputs.database }}" \
             --variable "wh_name=${{ inputs.warehouse }}"
 

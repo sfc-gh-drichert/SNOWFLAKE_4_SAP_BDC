@@ -84,7 +84,7 @@ jobs:
         run: |
           DB="${{ inputs.database }}"
           WH="${{ inputs.warehouse }}"
-          BASE="S4/FIN/PNL/setup"
+          BASE="SAP_BDC_PNL/FIN/PNL/setup"
 
           run_sql() {
             echo ""
@@ -99,7 +99,7 @@ jobs:
             echo "  Step 1: Snowflake infra (compute pool)..."
             run_sql "${BASE}/10_dashboard_infra.sql"
             echo "  Step 2: npm install + build on this runner (internet available)..."
-            pushd S4/react-dashboard > /dev/null
+            pushd SAP_BDC_PNL/react-dashboard > /dev/null
             npm ci
             npm run build
             # Copy static assets into the standalone output directory
@@ -146,7 +146,7 @@ jobs:
               run_sql "${BASE}/09_verify.sql"
               ;;
             teardown)
-              run_sql "S4/FIN/PNL/runbooks/teardown.sql"
+              run_sql "SAP_BDC_PNL/FIN/PNL/runbooks/teardown.sql"
               ;;
           esac
 
