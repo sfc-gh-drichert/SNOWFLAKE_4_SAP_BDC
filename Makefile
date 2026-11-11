@@ -2,7 +2,7 @@
 # Makefile — Snowflake Demo Accelerators
 #
 # Usage:
-#   make install                              # Deploy S4 FIN PNL with defaults
+#   make install                              # Deploy SAP_BDC_PNL PnL demo with defaults
 #   make install DEMO=SAP_BDC_PNL/FIN/PNL             # Explicit demo path
 #   make install CONNECTION=MY_CONN          # Different Snowflake connection
 #   make verify                              # Run verification queries

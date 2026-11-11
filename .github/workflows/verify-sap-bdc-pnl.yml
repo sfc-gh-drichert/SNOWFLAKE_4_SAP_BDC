@@ -1,4 +1,4 @@
-name: Verify S4.FIN.PNL — S4 FIN PNL Demo
+name: Verify SAP_BDC_PNL — PnL Demo
 
 # Run verification queries without touching any objects.
 # Use this after a deploy to confirm row counts, EBIT margins,
@@ -17,7 +17,7 @@ on:
 
 jobs:
   verify:
-    name: Verify S4.FIN.PNL
+    name: Verify SAP_BDC_PNL
     runs-on: ubuntu-latest
 
     steps:
@@ -55,7 +55,7 @@ jobs:
       - name: Write summary
         if: always()
         run: |
-          echo "## S4.FIN.PNL Verification" >> "$GITHUB_STEP_SUMMARY"
+          echo "## SAP_BDC_PNL Verification" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Database | \`${{ inputs.database }}\` |" >> "$GITHUB_STEP_SUMMARY"

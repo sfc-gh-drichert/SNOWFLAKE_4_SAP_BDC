@@ -50,7 +50,7 @@ keeps accounts isolated: your fork's secrets only ever touch your account.
    | `SNOWFLAKE_USER` | Snowflake username of the service user running the deployment |
    | `SNOWFLAKE_PRIVATE_KEY` | Full contents of `demo_cicd.p8` including PEM headers — see setup guide below |
 
-3. On **your fork**, go to **Actions → Deploy S4.FIN.PNL — R.Daneel P&L Demo → Run workflow**
+3. On **your fork**, go to **Actions → Deploy SAP_BDC_PNL — PnL Demo → Run workflow**
 4. Choose `all` for a fresh install, fill in warehouse/database, click **Run workflow**
 
 > **Why fork?** GitHub Actions secrets are scoped to the repo they are stored in.
@@ -176,7 +176,7 @@ cat demo_cicd.p8 | xclip -selection clipboard   # Linux
 
 ### Step 4 — Test the connection
 
-Go to **Actions → Deploy S4.FIN.PNL — R.Daneel P&L Demo → Run workflow**, choose `verify`, and run.
+Go to **Actions → Deploy SAP_BDC_PNL — PnL Demo → Run workflow**, choose `verify`, and run.
 If the connection step passes, the key pair is working and you are ready for a full deploy.
 
 ### Rotating the key later
@@ -421,7 +421,7 @@ guesses and mounts.
 
 ### Via GitHub Actions
 
-Same steps, via **Actions → Deploy S4.FIN.PNL — SAP BDC CLD Mapping → Run
+Same steps, via **Actions → Deploy SAP_BDC_PNL — SAP BDC CLD Mapping → Run
 workflow**. Choose the `action` (`catalog-setup` / `discover` / `confirm` /
 `mount` / `verify` / `teardown`) and fill in `connector_fqn`. For `confirm`,
 paste a JSON object into `confirmed_shares_json`:

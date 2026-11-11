@@ -314,7 +314,7 @@ Tables:
   S4.FIN.S4_FIN_DOCUMENTS          Document corpus for Cortex Search (~20 rows)
 
 Policies:
-  S4.FIN.PNL_CLIENT_ISOLATION_POLICY   Two-column RAP on (CLIENT_ID, REGION)
+  SAP_BDC_PNL_CLIENT_ISOLATION_POLICY   Two-column RAP on (CLIENT_ID, REGION)
 
 AI Objects:
   S4.FIN.S4_FIN_PNL_SEARCH_SVC      Cortex Search on S4_FIN_DOCUMENTS

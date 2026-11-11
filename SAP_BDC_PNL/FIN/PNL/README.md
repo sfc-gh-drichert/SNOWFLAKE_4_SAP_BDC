@@ -21,7 +21,7 @@ A complete Snowflake demo environment built on R.Daneel Inc. financials, using a
 ### GitHub Actions (no CLI needed)
 
 1. Ensure the three [required secrets](../../README.md#setting-up-key-pair-authentication-for-github-actions) are configured in the repo
-2. Go to **Actions → Deploy S4.FIN.PNL — R.Daneel P&L Demo → Run workflow**
+2. Go to **Actions → Deploy SAP_BDC_PNL — PnL Demo → Run workflow**
 3. Leave defaults (`all`, `S4`, `S4_FIN_DEMO_WH`) and click **Run workflow**
 
 ### Local CLI
@@ -48,7 +48,7 @@ make install DEMO=SAP_BDC_PNL/FIN/PNL CONNECTION=my_snowflake
 | `S4.FIN.DIM_PLANT` | Table | 8 R.Daneel manufacturing plants |
 | `S4.FIN.ROLE_ACCESS_MAPPING` | Table | Role → data access registry |
 | `S4.FIN.S4_FIN_DOCUMENTS` | Table | ~20 document rows for Cortex Search |
-| `S4.FIN.PNL_CLIENT_ISOLATION_POLICY` | Row Access Policy | Two-column isolation on (CLIENT_ID, REGION) |
+| `SAP_BDC_PNL_CLIENT_ISOLATION_POLICY` | Row Access Policy | Two-column isolation on (CLIENT_ID, REGION) |
 | `S4.FIN.S4_FIN_PNL_SEARCH_SVC` | Cortex Search | Document corpus search |
 | `S4.FIN.S4_FIN_PNL_ANALYTICS_SV` | Semantic View | P&L waterfall metrics (Gross Revenue → EBIT) |
 | `S4.FIN.S4_FIN_PNL_AGENT` | Cortex Agent | SQL + Search tools, R.Daneel-specific system prompt |

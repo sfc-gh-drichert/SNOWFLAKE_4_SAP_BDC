@@ -65,7 +65,7 @@ Every table column should have a `COMMENT` annotation. Every significant SQL blo
 
 ## GitHub Actions Workflow
 
-Add a new workflow file at `.github/workflows/deploy-<db>-<schema>-<module>.yml` following the pattern in [`deploy-s4-fin-pnl.yml`](.github/workflows/deploy-s4-fin-pnl.yml). Update the `BASE` variable to point to your demo's `setup/` folder.
+Add a new workflow file at `.github/workflows/deploy-<db>-<schema>-<module>.yml` following the pattern in [`deploy-sap-bdc-pnl.yml`](.github/workflows/deploy-sap-bdc-pnl.yml). Update the `BASE` variable to point to your demo's `setup/` folder.
 
 ---
 
